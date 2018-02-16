@@ -1,6 +1,6 @@
 package edu.buffalo.www.cse4562;
 
-import edu.buffalo.www.cse4562.RA.RATree;
+
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -11,39 +11,39 @@ import java.util.HashMap;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;
 import static edu.buffalo.www.cse4562.SQLparser.SelectParser.SelectFunction;
-
+import static edu.buffalo.www.cse4562.processData.processSelect.SelectData;
+import static edu.buffalo.www.cse4562.processData.processCreate.CreateTable;
 
 public class Main {
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         System.out.println("Hello, World");
         CCJSqlParser parser = new CCJSqlParser(System.in);
         Statement stmt = null;
-        HashMap<String,Object> ratree = new HashMap<>();
-        try {
-            ratree = parser(parser);
-            //todo readfile
-        }catch (Exception e){
-            throw new Exception(e);
-        }
+        processSQL(parser);
+
+        //todo readfile
+
     }
 
-    public static HashMap<String,Object> parser(CCJSqlParser parser) throws Exception{
+    public static void processSQL(CCJSqlParser parser) throws Exception {
         Statement stmt = parser.Statement();
-        HashMap<String,Object> afterParse = new HashMap<>();
-        while(stmt!=null){
-            if (stmt instanceof Select){
-                Select select = (Select)stmt;
+        HashMap<String, Object> parsedSQL = new HashMap<>();
+        while (stmt != null) {
+            if (stmt instanceof Select) {
+                Select select = (Select) stmt;
                 SelectBody body = select.getSelectBody();
-                afterParse = SelectFunction(body,0);
+                parsedSQL = SelectFunction(body, 0);
+                SelectData(parsedSQL);
                 stmt = null;
-            }else if (stmt instanceof CreateTable){
-                CreateTable create = (CreateTable)stmt;
-//                afterParse = CreatFunction(create);
-            }else{
-                throw new Exception("Cannot handle the statement"+stmt);
+            } else if (stmt instanceof CreateTable) {
+                CreateTable create = (CreateTable) stmt;
+                parsedSQL = CreatFunction(create);
+                CreateTable(parsedSQL);
+                stmt = null;
+            } else {
+                throw new Exception("Cannot handle the statement" + stmt);
             }
         }
-        return afterParse;
     }
 
 }

@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.RA;
 
+//not be used
 public class RAnode {
     private String nodeName;
     private RAnode leftChild;
