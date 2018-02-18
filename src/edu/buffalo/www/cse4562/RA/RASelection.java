@@ -25,11 +25,15 @@ public class RASelection extends RANode {
 
     @Override
     public boolean hasNext() {
-        return false;
+        if (this.leftNode != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public Object next() {
-        return null;
+        return this.leftNode;
     }
 }

@@ -8,12 +8,17 @@ import net.sf.jsqlparser.statement.select.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class SelectParser {
     /*
     implement 2 ways to parse SQL
      */
+    static Logger logger = Logger.getLogger(SelectItem.class.getName());
+
     public static HashMap<String, Object> SelectFunction(SelectBody body, int tableCounter) {
+        logger.info("Use hashMap to parse SQL");
+
         HashMap<String, Object> query = new HashMap<>();
         HashMap<String, Object> operations = new HashMap<>();
 
@@ -103,6 +108,8 @@ public class SelectParser {
     }
 
     public static RANode SelectFunction(SelectBody body) {
+        logger.info("Use RATree to parse SQL");
+
         if (!(body instanceof Union)) {
             List<Join> joins = ((PlainSelect) body).getJoins();
             List<SelectItem> selectItem = ((PlainSelect) body).getSelectItems();
@@ -115,7 +122,7 @@ public class SelectParser {
             //parse the SQL and build the tree down to up
             //process fromItem joins
             RANode joinNode = new RAJoin(fromItem, joins);
-            RANode point = joinNode;
+            RANode pointer = joinNode;
             if (joins == null) {
                 //only 1 table involved
                 if (fromItem instanceof SubSelect) {
@@ -171,36 +178,36 @@ public class SelectParser {
             //process where
             if (where != null) {
                 RANode whereNode = new RASelection(where);
-                whereNode.setLeftNode(point);
-                point = whereNode;
+                whereNode.setLeftNode(pointer);
+                pointer = whereNode;
             }
 
             //process projection
             RANode projNode = new RAProjection(selectItem);
-            projNode.setLeftNode(point);
-            point = projNode;
+            projNode.setLeftNode(pointer);
+            pointer = projNode;
 
             //process orderby
             if (orderby != null) {
                 RANode orderbyNode = new RAOrderby(orderby);
-                orderbyNode.setLeftNode(point);
-                point = orderbyNode;
+                orderbyNode.setLeftNode(pointer);
+                pointer = orderbyNode;
             }
 
             //process distinct
             if (dist != null) {
                 RANode distNode = new RADistinct(dist);
-                distNode.setLeftNode(point);
-                point = distNode;
+                distNode.setLeftNode(pointer);
+                pointer = distNode;
             }
 
             //process limit
             if (lim != null) {
                 RANode limNode = new RALimit(lim);
-                limNode.setLeftNode(point);
-                point = limNode;
+                limNode.setLeftNode(pointer);
+                pointer = limNode;
             }
-            return point;
+            return pointer;
 
         } else {
             //todo UNION
