@@ -21,6 +21,10 @@ public class RAProjection extends RANode {
         this.selectItem = selectItem;
     }
 
+    public String getOperation() {
+        return this.operation;
+    }
+
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {
@@ -31,7 +35,7 @@ public class RAProjection extends RANode {
     }
 
     @Override
-    public Object next() {
+    public RANode next() {
         return this.leftNode;
     }
 }

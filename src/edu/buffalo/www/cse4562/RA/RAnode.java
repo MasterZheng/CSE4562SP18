@@ -23,10 +23,11 @@ public abstract class RANode implements Iterator{
     public void setRightNode(RANode rightNode) {
         this.rightNode = rightNode;
     }
+    public abstract String getOperation();
 
-    public String getOperation() {
-        return operation;
-    }
+    @Override
+    public abstract boolean hasNext();
 
-
+    @Override
+    public abstract Object next();
 }

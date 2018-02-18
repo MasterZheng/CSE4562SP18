@@ -19,6 +19,10 @@ public class RATable extends RANode{
         this.table = table;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
     @Override
     public boolean hasNext() {
         if (this.leftNode!=null||this.rightNode!=null){

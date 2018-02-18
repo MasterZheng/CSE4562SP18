@@ -30,6 +30,10 @@ public class RAJoin extends RANode {
         this.join = join;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
     public boolean hasNext() {
         if (this.leftNode != null || this.rightNode != null) {
             return true;

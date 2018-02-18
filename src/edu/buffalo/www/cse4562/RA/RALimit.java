@@ -19,6 +19,11 @@ public class RALimit extends RANode {
         this.limit = limit;
     }
 
+
+    public String getOperation() {
+        return operation;
+    }
+
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {

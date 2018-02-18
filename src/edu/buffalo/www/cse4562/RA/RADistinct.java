@@ -18,6 +18,9 @@ public class RADistinct extends RANode {
         this.distinct = distinct;
     }
 
+    public String getOperation() {
+        return operation;
+    }
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {

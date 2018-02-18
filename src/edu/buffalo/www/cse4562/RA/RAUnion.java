@@ -20,6 +20,10 @@ public class RAUnion extends RANode{
         this.union = union;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
     @Override
     public boolean hasNext() {
         return false;

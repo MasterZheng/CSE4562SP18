@@ -20,6 +20,10 @@ public class RAOrderby extends RANode {
         this.orderby = orderby;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {

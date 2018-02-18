@@ -3,12 +3,10 @@ package edu.buffalo.www.cse4562;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.Table.TableObject;
-import edu.buffalo.www.cse4562.processData.processSelect;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.select.*;
-import sun.tools.jconsole.Tab;
 
 
 import java.io.InputStreamReader;
@@ -31,24 +29,28 @@ public class Main {
         System.out.flush();
         HashMap<String, TableObject> tableMap = new HashMap<>();
 
-        Reader in = new InputStreamReader(System.in);
-        CCJSqlParser parser = new CCJSqlParser(in);
-        Statement s;
         // project here
-        while ((s = parser.Statement()) != null) {
-            process(parser, tableMap);
-            System.out.println();// print results line by line);
-            // read for next query
-            System.out.println(prompt);
-            System.out.flush();
+        while (true) {
+            Reader in = new InputStreamReader(System.in);
+            CCJSqlParser parser = new CCJSqlParser(in);
+            Statement stmt;
+            if ((stmt = parser.Statement()) != null){
+                in = new InputStreamReader(System.in);
+                parser = new CCJSqlParser(in);
+                process(stmt, tableMap);
+                System.out.println();// print results line by line);
+                // read for next query
+                System.out.println(prompt);
+                System.out.flush();
+            }
+
         }
 
         //todo readfile
     }
 
 
-    public static void process(CCJSqlParser parser, HashMap<String, TableObject> tableMap) throws Exception {
-        Statement stmt = parser.Statement();
+    public static void process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
         //HashMap<String, Object> parsedSQL = new HashMap<>();
         while (stmt != null) {
             if (stmt instanceof Select) {
