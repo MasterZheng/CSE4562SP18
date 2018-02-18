@@ -123,53 +123,69 @@ public class SelectParser {
             //process fromItem joins
             RANode joinNode = new RAJoin(fromItem, joins);
             RANode pointer = joinNode;
-            if (joins == null) {
-                //only 1 table involved
-                if (fromItem instanceof SubSelect) {
-                    // subSelect
-                    joinNode.setLeftNode(SelectFunction(((SubSelect) fromItem).getSelectBody()));
-                } else {
-                    //table
-                    joinNode.setLeftNode(new RATable((Table) fromItem));
-                }
+
+            if (fromItem instanceof SubSelect) {
+                // subSelect
+                RANode subSelect = SelectFunction(((SubSelect) fromItem).getSelectBody());
+                joinNode.setLeftNode(subSelect);
+                subSelect.setParentNode(pointer);
             } else {
-                //more than one tables involved
-                if (fromItem instanceof SubSelect) {
-                    // subSelect
-                    joinNode.setLeftNode(SelectFunction(((SubSelect) fromItem).getSelectBody()));
-                } else {
-                    //table
-                    joinNode.setLeftNode(new RATable((Table) fromItem));
-                }
+                //table
+                RATable table = new RATable((Table) fromItem);
+                joinNode.setLeftNode(table);
+                table.setParentNode(pointer);
+            }
+            if (joins != null) {
                 for (int i = 0; i < joins.size(); i++) {
                     FromItem join = joins.get(i).getRightItem();
-                    if (joinNode.getLeftNode() == null) {
-                        //if the leftchild is empty, insert the node into leftchild position.
-                        if (join instanceof SubSelect) {
-                            joinNode.setLeftNode(SelectFunction(((SubSelect) join).getSelectBody()));
+
+                    //if the leftchild is empty, insert the node into leftchild position.
+                    if (join instanceof SubSelect) {
+                        if (joinNode.getLeftNode() == null) {
+                            //todo
+                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());
+                            joinNode.setLeftNode(subSelect);
+                            subSelect.setParentNode(pointer);
+                        } else if (joinNode.getRightNode() == null) {
+                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());
+                            joinNode.setRightNode(subSelect);
+                            subSelect.setParentNode(pointer);
                         } else {
-                            joinNode.setLeftNode(new RATable((Table) join));
-                        }
-                    } else if (joinNode.getRightNode() == null) {
-                        //if the rightchild is empty, insert the node into rightchild position.
-                        if (join instanceof SubSelect) {
-                            joinNode.setRightNode(SelectFunction(((SubSelect) join).getSelectBody()));
-                        } else {
-                            joinNode.setRightNode(new RATable((Table) join));
+                            //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
+                            RANode joinNew = new RAJoin(fromItem, joins);
+                            while (joinNode.getLeftNode() != null) {
+                                joinNode = joinNode.getLeftNode();
+                            }
+                            joinNode.setLeftNode(joinNew);
+                            joinNew.setParentNode(joinNode);
+                            joinNode = joinNew;
+                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());
+                            joinNode.setLeftNode(subSelect);
+                            subSelect.setParentNode(joinNode);
                         }
                     } else {
-                        //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
-                        RANode joinNew = new RAJoin(fromItem, joins);
-                        while (joinNode.getLeftNode() != null) {
-                            joinNode = joinNode.getLeftNode();
-                        }
-                        joinNode.setLeftNode(joinNew);
-                        joinNode = joinNew;
-                        if (join instanceof SubSelect) {
-                            joinNode.setLeftNode(SelectFunction(((SubSelect) join).getSelectBody()));
+                        if (joinNode.getLeftNode() == null) {
+                            RATable table = new RATable((Table) join);
+                            joinNode.setLeftNode(table);
+                            table.setParentNode(pointer);
+                        } else if (joinNode.getRightNode() == null) {
+                            RATable table = new RATable((Table) join);
+                            joinNode.setRightNode(table);
+                            table.setParentNode(pointer);
                         } else {
-                            joinNode.setLeftNode(new RATable((Table) join));
+                            //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
+                            RANode joinNew = new RAJoin(fromItem, joins);
+                            while (joinNode.getLeftNode() != null) {
+                                joinNode = joinNode.getLeftNode();
+                            }
+                            joinNode.setLeftNode(joinNew);
+                            joinNew.setParentNode(joinNode);
+                            joinNode = joinNew;
+                            RATable table = new RATable((Table) join);
+                            joinNode.setLeftNode(table);
+                            table.setParentNode(joinNode);
                         }
+
                     }
                 }
             }
@@ -179,18 +195,21 @@ public class SelectParser {
             if (where != null) {
                 RANode whereNode = new RASelection(where);
                 whereNode.setLeftNode(pointer);
+                pointer.setParentNode(whereNode);
                 pointer = whereNode;
             }
 
             //process projection
             RANode projNode = new RAProjection(selectItem);
             projNode.setLeftNode(pointer);
+            pointer.setParentNode(projNode);
             pointer = projNode;
 
             //process orderby
             if (orderby != null) {
                 RANode orderbyNode = new RAOrderby(orderby);
                 orderbyNode.setLeftNode(pointer);
+                pointer.setParentNode(orderbyNode);
                 pointer = orderbyNode;
             }
 
@@ -198,6 +217,7 @@ public class SelectParser {
             if (dist != null) {
                 RANode distNode = new RADistinct(dist);
                 distNode.setLeftNode(pointer);
+                pointer.setParentNode(distNode);
                 pointer = distNode;
             }
 
@@ -205,14 +225,14 @@ public class SelectParser {
             if (lim != null) {
                 RANode limNode = new RALimit(lim);
                 limNode.setLeftNode(pointer);
+                pointer.setParentNode(limNode);
                 pointer = limNode;
             }
             return pointer;
-
         } else {
             //todo UNION
             return null;
-
         }
+
     }
 }

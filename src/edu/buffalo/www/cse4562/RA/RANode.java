@@ -7,6 +7,15 @@ public abstract class RANode implements Iterator{
     public RANode leftNode;
     public RANode rightNode;
     public String operation;
+    public RANode parentNode;
+
+    public RANode getParentNode() {
+        return parentNode;
+    }
+
+    public void setParentNode(RANode parentNode) {
+        this.parentNode = parentNode;
+    }
 
     public RANode getLeftNode() {
         return leftNode;

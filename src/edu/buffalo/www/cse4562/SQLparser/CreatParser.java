@@ -4,7 +4,6 @@ import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
-import java.time.chrono.ThaiBuddhistChronology;
 import java.util.HashMap;
 
 public class CreatParser {
