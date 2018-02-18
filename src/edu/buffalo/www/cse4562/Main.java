@@ -1,6 +1,7 @@
 package edu.buffalo.www.cse4562;
 
 
+import edu.buffalo.www.cse4562.RA.RANode;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -18,7 +19,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello, World");
         CCJSqlParser parser = new CCJSqlParser(System.in);
-        Statement stmt = null;
+        Statement sjmt = null;
         processSQL(parser);
 
         //todo readfile
@@ -28,11 +29,13 @@ public class Main {
     public static void processSQL(CCJSqlParser parser) throws Exception {
         Statement stmt = parser.Statement();
         HashMap<String, Object> parsedSQL = new HashMap<>();
+
         while (stmt != null) {
             if (stmt instanceof Select) {
                 Select select = (Select) stmt;
                 SelectBody body = select.getSelectBody();
-                parsedSQL = SelectFunction(body, 0);
+                //parsedSQL = SelectFunction(body, 0);
+                RANode raTree = SelectFunction(body);
                 SelectData(parsedSQL);
                 stmt = null;
             } else if (stmt instanceof CreateTable) {

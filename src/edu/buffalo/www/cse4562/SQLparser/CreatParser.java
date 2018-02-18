@@ -8,6 +8,7 @@ import java.util.List;
 public class CreatParser {
         public static HashMap<String,Object> CreatFunction(CreateTable create){
             HashMap<String,Object> createMap = new HashMap<String,Object>();
+
             //todo
             List<ColumnDefinition> colDefList = create.getColumnDefinitions();
             String tableName = create.getTable().getName();
