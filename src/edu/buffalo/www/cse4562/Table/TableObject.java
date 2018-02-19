@@ -14,7 +14,11 @@ public class TableObject {
     private String fileDir;
     private File DBFile;
     private List<ColumnDefinition> columnDefinitions;
+    private boolean empty;
 
+    public TableObject(){
+        this.empty = true;
+    }
     public TableObject(CreateTable createTable, Table table, String tableName) {
         this.createTable = createTable;
         this.table = table;
@@ -25,7 +29,7 @@ public class TableObject {
             fileDir = "data/"+createTable.getTable().getName()+".csv";
             DBFile = new File(fileDir);
         }
-
+        this.empty = false;
 //        this.fileDir = fileDir;
 //        this.DBFile = DBFile;
     }
@@ -74,4 +78,7 @@ public class TableObject {
         this.columnDefinitions = columnDefinitions;
     }
 
+    public boolean isEmpty() {
+        return empty;
+    }
 }

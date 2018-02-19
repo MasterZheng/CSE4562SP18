@@ -34,12 +34,18 @@ public class RAJoin extends RANode {
         return operation;
     }
 
+
     public boolean hasNext() {
         if (this.leftNode != null || this.rightNode != null) {
             return true;
         } else {
             return false;
         }
+    }
+
+    @Override
+    public void setRightNode(RANode rightNode) {
+        super.setLeftNode(leftNode);
     }
 
     @Override

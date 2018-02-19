@@ -1,7 +1,9 @@
 package edu.buffalo.www.cse4562.processData;
 
+import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
+import edu.buffalo.www.cse4562.Table.TempTable;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.statement.select.*;
@@ -20,76 +22,106 @@ public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
 
-    public static List<String> SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
+    public static TempTable SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
         //TODO
-        String[] headers = {};
-        List<String> result = new ArrayList<>();
+        List<Tuple> queryResult = new ArrayList<>();
+        TempTable result = new TempTable();
         RANode pointer = raTree;
 
+        TableObject tableLeft = new TableObject();
+        TableObject tableRight = new TableObject();
 
-        List<Join> joins = null;
-        List<SelectItem> selectItem = null;
-        Expression where = null;
-        List orderby = null;
-        Distinct dist = null;
-        Limit lim = null;
-        FromItem fromItem = null;
-        TableObject tableLeft;
-        TableObject tableRight = null;
+        TempTable leftResult;
+        TempTable rightResult;
+
+        FileReader fileReaderLeft;
+        CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
+        CSVParser parserLeft;
+        Iterator<CSVRecord> CSVInteratorLeft = new Iterator<CSVRecord>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public CSVRecord next() {
+                return null;
+            }
+        };
+
+
+        FileReader fileReaderRight;
+        CSVParser parserRight;
+        Iterator<CSVRecord> CSVInteratorRight = new Iterator<CSVRecord>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public CSVRecord next() {
+                return null;
+            }
+        };
 
         while (pointer.hasNext()) {
-            String operation = pointer.getOperation();
-            if (operation.equals("PROJECTION")) {
-                selectItem = ((RAProjection) pointer).getSelectItem();
-                pointer = (RANode) pointer.next();
-            } else if (operation.equals("LIMIT")) {
-                lim = ((RALimit) pointer).getLimit();
-                pointer = (RANode) pointer.next();
-            } else if (operation.equals("DISTINCT")) {
-                dist = ((RADistinct) pointer).getDistinct();
-                pointer = (RANode) pointer.next();
-            } else if (operation.equals("SELECTION")) {
-                where = ((RASelection) pointer).getWhere();
-                pointer = (RANode) pointer.next();
-            } else if (operation.equals("JOIN")) {
-                //todo find the first join, should find the lowest join and finish the subselect.
-//                fromItem = ((RAJoin) pointer).getFromItem();
-//                joins = ((RAJoin) pointer).getJoin();
-                // left is a table, right is null or a table
-                if (pointer.getLeftNode() instanceof RATable
-                        && (pointer.getRightNode() == null || pointer.getRightNode() instanceof RATable)) {
-                    tableLeft = tableMap.get(((RATable) pointer.getLeftNode()).getTable().getName().toUpperCase());
-                    if (pointer.getRightNode() != null) {
-                        tableRight = tableMap.get(((RATable) pointer.getRightNode()).getTable().getName().toUpperCase());
-                    }
-                    queryData(tableLeft);
+            //find the first join
+            pointer = pointer.getLeftNode();
+            if (pointer.getOperation().equals("JOIN")) {
+                RANode left = pointer.getLeftNode();
+                if (left.getOperation().equals("TABLE")) {
+                    tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
+                    fileReaderLeft = new FileReader(tableLeft.getFileDir());
+                    parserLeft = new CSVParser(fileReaderLeft, formator);
+                    CSVInteratorLeft = parserLeft.iterator();
+
                 } else {
-                    // left is a subSelect
-
+                    leftResult = SelectData(left, tableMap);
+                    CSVInteratorLeft = leftResult.getIterator();
                 }
-                pointer = (RANode) pointer.next();
-
+                if (pointer.getRightNode() != null) {
+                    RANode right = pointer.getRightNode();
+                    if (right.getOperation().equals("TABLE")) {
+                        fileReaderRight = new FileReader(tableRight.getFileDir());
+                        parserRight = new CSVParser(fileReaderRight, formator);
+                        CSVInteratorRight = parserRight.iterator();
+                    } else {
+                        rightResult = SelectData(right, tableMap);
+                        CSVInteratorRight = rightResult.getIterator();
+                    }
+                }
             }
 
         }
 
+        pointer = pointer.getParentNode();
+        while (pointer != null) {
+            String operation = pointer.getOperation();
+            if (operation.equals("SELECTION")) {
+                while (CSVInteratorLeft.hasNext()){
+                    Tuple tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
+                    //todo
+                    Tuple tupleRight = null;
+
+                    evaluate eva = new evaluate(tupleLeft, tupleRight, ((RASelection) pointer).getWhere());
+                    if (eva.processEval()){
+                        queryResult.add(tupleLeft);
+                    }
+                }
+            } else if (operation.equals("PROJECTION")) {
+
+            } else if (operation.equals("ORDERBY")) {
+                //TODO
+            } else if (operation.equals("DISTINCT")) {
+                //todo
+            } else if (operation.equals("LIMIT")) {
+                //todo
+            }
+            pointer = pointer.getParentNode();
+        }
+
 
         return result;
-    }
-
-    public static Tuple queryData(TableObject table) throws Exception {
-        // todo merge the fuction into the upper one
-        FileReader fileReaderLeft = new FileReader(table.getFileDir());
-        CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
-        CSVParser parser = new CSVParser(fileReaderLeft, formator);
-        Iterator<CSVRecord> CSVInterator = parser.iterator();
-        Tuple tuple = new Tuple();
-        if (CSVInterator.hasNext()){
-            tuple = new Tuple(table,CSVInterator.next());
-        }
-        parser.close();
-        fileReaderLeft.close();
-        return null;
     }
 
 
