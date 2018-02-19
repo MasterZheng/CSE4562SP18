@@ -2,17 +2,14 @@ package edu.buffalo.www.cse4562.processData;
 
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
+import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import sun.tools.jconsole.Tab;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,9 +52,9 @@ public class processSelect {
                 where = ((RASelection) pointer).getWhere();
                 pointer = (RANode) pointer.next();
             } else if (operation.equals("JOIN")) {
-                //todo
-                fromItem = ((RAJoin) pointer).getFromItem();
-                joins = ((RAJoin) pointer).getJoin();
+                //todo find the first join, should find the lowest join and finish the subselect.
+//                fromItem = ((RAJoin) pointer).getFromItem();
+//                joins = ((RAJoin) pointer).getJoin();
                 // left is a table, right is null or a table
                 if (pointer.getLeftNode() instanceof RATable
                         && (pointer.getRightNode() == null || pointer.getRightNode() instanceof RATable)) {
@@ -65,7 +62,7 @@ public class processSelect {
                     if (pointer.getRightNode() != null) {
                         tableRight = tableMap.get(((RATable) pointer.getRightNode()).getTable().getName().toUpperCase());
                     }
-                    queryData(result, tableLeft, tableRight, where);
+                    queryData(tableLeft);
                 } else {
                     // left is a subSelect
 
@@ -80,22 +77,19 @@ public class processSelect {
         return result;
     }
 
-    public static List<String> queryData(List<String> result, TableObject tableLeft,
-                                         TableObject tableRight, Expression where) throws Exception {
-        FileReader fileReaderLeft = new FileReader(tableLeft.getFileDir());
-        if (tableRight!=null){
-            FileReader fileReaderRight = new FileReader(tableLeft.getFileDir());
-
-        }
-        CSVFormat formator = CSVFormat.DEFAULT.withHeader();
+    public static Tuple queryData(TableObject table) throws Exception {
+        // todo merge the fuction into the upper one
+        FileReader fileReaderLeft = new FileReader(table.getFileDir());
+        CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
         CSVParser parser = new CSVParser(fileReaderLeft, formator);
         Iterator<CSVRecord> CSVInterator = parser.iterator();
-        List<CSVRecord> records = parser.getRecords();
-        System.out.println(CSVInterator.next());
-
+        Tuple tuple = new Tuple();
+        if (CSVInterator.hasNext()){
+            tuple = new Tuple(table,CSVInterator.next());
+        }
         parser.close();
         fileReaderLeft.close();
-        return result;
+        return null;
     }
 
 
