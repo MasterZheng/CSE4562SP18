@@ -26,35 +26,35 @@ public class Main {
 
     static String prompt = "$> "; // expected prompt
 
-    public static void main(String[] argsArray) throws Exception {
-        // ready to read stdin, print out prompt
-        System.out.println(prompt);
-        System.out.flush();
-        HashMap<String, TableObject> tableMap = new HashMap<>();
+        public static void main(String[] argsArray) throws Exception {
+            // ready to read stdin, print out prompt
+            System.out.println(prompt);
+            System.out.flush();
 
-        // project here
-        while (true) {
             Reader in = new InputStreamReader(System.in);
             CCJSqlParser parser = new CCJSqlParser(in);
-            Statement stmt;
-            if ((stmt = parser.Statement()) != null){
-                in = new InputStreamReader(System.in);
-                parser = new CCJSqlParser(in);
-                process(stmt, tableMap);
+            Statement s;
+            HashMap<String, TableObject> tableMap = new HashMap<>();
 
-                System.out.println();// print results line by line);
-                // read for next query
+            // project here
+            while((s = parser.Statement()) != null){
+
+                TempTable tempTable = process(s, tableMap);
+                if (tempTable!=null){
+                    Iterator<Tuple> iterator = tempTable.getIterator();
+                    while (iterator.hasNext()){
+                        iterator.next().print();
+                    }
+                }
                 System.out.println(prompt);
                 System.out.flush();
             }
-
         }
-
         //todo readfile
-    }
 
 
-    public static void process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
+
+    public static TempTable process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
         //HashMap<String, Object> parsedSQL = new HashMap<>();
         while (stmt != null) {
             if (stmt instanceof Select) {
@@ -64,10 +64,7 @@ public class Main {
                 RANode raTree = SelectFunction(body);
                 TempTable tempTable = SelectData(raTree, tableMap);
                 stmt=null;
-                Iterator<Tuple> iterator = tempTable.getIterator();
-                while (iterator.hasNext()){
-                    iterator.next().print();
-                }
+                return tempTable;
             } else if (stmt instanceof CreateTable) {
                 boolean flag = CreatFunction((CreateTable) stmt, tableMap);
                 stmt=null;
@@ -81,6 +78,7 @@ public class Main {
                 throw new Exception("Cannot handle the statement" + stmt);
             }
         }
+        return null;
     }
 
 }
