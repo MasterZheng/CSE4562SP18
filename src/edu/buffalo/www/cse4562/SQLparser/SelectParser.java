@@ -89,11 +89,11 @@ public class SelectParser {
         if (fromItem instanceof SubSelect) {
             //1 subselect
             SubSelect sub = ((SubSelect) fromItem);
-            String subAlisa = sub.getAlias();
-            if (subAlisa == null) {
+            String subAlias = sub.getAlias();
+            if (subAlias == null) {
                 query.put("FromsubSelect" + tableCounter, SelectFunction(sub.getSelectBody(), tableCounter));
             } else {
-                query.put(subAlisa, SelectFunction(sub.getSelectBody(), tableCounter));
+                query.put(subAlias, SelectFunction(sub.getSelectBody(), tableCounter));
             }
         } else {
             //0 subselect

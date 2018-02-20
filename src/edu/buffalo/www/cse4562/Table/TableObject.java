@@ -24,14 +24,6 @@ public class TableObject {
     public TableObject(){
         this.empty = true;
     }
-    public TableObject(List<ColumnDefinition> columnDefinitions){
-        // used to create Temporary table
-        this.columnDefinitions = columnDefinitions;
-        this.fileDir = null;
-        this.DBFile = null;
-        this.empty = false;
-        this.table = null;
-    }
 
     public TableObject(List<ColumnDefinition> columnDefinitions, List<Tuple> tupleList) {
         this.tupleList = tupleList;

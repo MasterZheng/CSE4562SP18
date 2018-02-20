@@ -76,6 +76,7 @@ public class evaluate extends Eval {
             } else if (((SelectExpressionItem)s).getExpression() instanceof Column){
                 for (ColumnDefinition c:list){
                     String name =c.getColumnName();
+                    //todo table name
                     attributes.put(name,tupleLeft.getAttributes().get(name));
                     newTuple.setAttributes(attributes);
                 }
