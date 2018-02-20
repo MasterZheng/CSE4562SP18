@@ -78,7 +78,6 @@ public class processSelect {
                 RANode left = pointer.getLeftNode();
                 if (left.getOperation().equals("TABLE")) {
                     tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
-                    logger.info(tableLeft.getTable().getName());
                     logger.info(tableLeft.getFileDir());
                     fileReaderLeft = new FileReader(tableLeft.getFileDir());
                     parserLeft = new CSVParser(fileReaderLeft, formator);

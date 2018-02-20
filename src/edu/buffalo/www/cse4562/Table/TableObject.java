@@ -6,6 +6,7 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.io.File;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class TableObject {
     private CreateTable createTable;
@@ -15,7 +16,7 @@ public class TableObject {
     private File DBFile;//not be used
     private List<ColumnDefinition> columnDefinitions;
     private boolean empty;
-
+    static Logger logger = Logger.getLogger(TableObject.class.getName());
     public TableObject(){
         this.empty = true;
     }
@@ -34,6 +35,7 @@ public class TableObject {
         columnDefinitions = createTable.getColumnDefinitions();
 
         if (this.fileDir==null){
+            logger.info(createTable.getTable().getName());
             fileDir = "data/"+createTable.getTable().getName()+".csv";
             DBFile = new File(fileDir);
         }
