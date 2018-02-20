@@ -1,12 +1,16 @@
 package edu.buffalo.www.cse4562.SQLparser;
 
 import edu.buffalo.www.cse4562.Table.TableObject;
+import edu.buffalo.www.cse4562.processData.processSelect;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 public class CreatParser {
+    static Logger logger = Logger.getLogger(CreatParser.class.getName());
+
     //        public static HashMap<String,Object> CreatFunction(CreateTable create){
 //            HashMap<String,Object> createMap = new HashMap<String,Object>();
 //
@@ -37,6 +41,7 @@ public class CreatParser {
         Table table = create.getTable();
         TableObject tableObject = new TableObject(create,table,tableName);
         tableMap.put(tableName,tableObject);
+        logger.info(create.toString());
         return true;
     }
 

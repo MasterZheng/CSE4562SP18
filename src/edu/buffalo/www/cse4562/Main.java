@@ -11,8 +11,12 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.select.*;
 
 
+import java.beans.Expression;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -55,29 +59,33 @@ public class Main {
 
 
     public static TempTable process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
-        //HashMap<String, Object> parsedSQL = new HashMap<>();
-        while (stmt != null) {
-            if (stmt instanceof Select) {
-                Select select = (Select) stmt;
-                SelectBody body = select.getSelectBody();
-                //parsedSQL = SelectFunction(body, 0);
-                RANode raTree = SelectFunction(body);
-                TempTable tempTable = SelectData(raTree, tableMap);
-                stmt=null;
-                return tempTable;
-            } else if (stmt instanceof CreateTable) {
-                boolean flag = CreatFunction((CreateTable) stmt, tableMap);
-                stmt=null;
-                if (flag) {
-                    logger.info("Create table successfully");
-                } else {
-                    logger.warning("Failed to create a table ");
+            try {
+                //HashMap<String, Object> parsedSQL = new HashMap<>();
+                while (stmt != null) {
+                    if (stmt instanceof Select) {
+                        Select select = (Select) stmt;
+                        SelectBody body = select.getSelectBody();
+                        //parsedSQL = SelectFunction(body, 0);
+                        RANode raTree = SelectFunction(body);
+                        TempTable tempTable = SelectData(raTree, tableMap);
+                        stmt=null;
+                        return tempTable;
+                    } else if (stmt instanceof CreateTable) {
+                        boolean flag = CreatFunction((CreateTable) stmt, tableMap);
+                        stmt=null;
+                        if (flag) {
+                            logger.info("Create table successfully");
+                        } else {
+                            logger.warning("Failed to create a table ");
+                        }
+                    } else {
+                        stmt=null;
+                        throw new Exception("Cannot handle the statement" + stmt);
+                    }
                 }
-            } else {
-                stmt=null;
-                throw new Exception("Cannot handle the statement" + stmt);
+            }catch (Exception e){
+                e.printStackTrace();
             }
-        }
         return null;
     }
 
