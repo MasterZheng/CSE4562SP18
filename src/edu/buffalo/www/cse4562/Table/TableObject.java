@@ -35,9 +35,8 @@ public class TableObject {
         columnDefinitions = createTable.getColumnDefinitions();
 
         if (this.fileDir==null){
-            logger.info(createTable.getTable().getName());
-            //fileDir = "data/"+createTable.getTable().getName()+".csv";
-            fileDir = "src/data/"+createTable.getTable().getName()+".csv";
+            //fileDir = createTable.getTable().getName()+".csv";
+            fileDir = "src/data/"+createTable.getTable().getName()+".dat";
 
             DBFile = new File(fileDir);
         }
