@@ -19,7 +19,6 @@ public class evaluate extends Eval {
     private Tuple tupleRight;
     private Expression expression;
     private List<Object> selectList;
-    private ColDataType changeType;
 
     public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression) {
         this.tupleLeft = tupleLeft;
@@ -33,6 +32,10 @@ public class evaluate extends Eval {
     }
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
+        ColDataType changeType = null;
+
+        //according to the column name , compare the ColumnDefinitions to determine the type.
+        //and get the value by column name
         HashMap tupleMap = tupleLeft.getAttributes();
         String colName = column.getColumnName().toUpperCase();
         for (int i = 0; i < tupleLeft.getColumnDefinitions().size(); i++) {

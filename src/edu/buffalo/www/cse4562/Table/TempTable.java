@@ -10,8 +10,6 @@ public class TempTable {
     List<Tuple> tempTable = new ArrayList<>();
     private List<ColumnDefinition> columnDefinitions;
 
-    //private TableObject tableObject = new TableObject();
-
     public TempTable(List<ColumnDefinition> columnDefinitions, List<Tuple> tempTable) {
         this.tempTable = tempTable;
         this.columnDefinitions = columnDefinitions;
@@ -25,22 +23,17 @@ public class TempTable {
         return columnDefinitions;
     }
 
-    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) {
-        this.columnDefinitions = columnDefinitions;
-    }
+    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) { this.columnDefinitions = columnDefinitions; }
 
-    public Iterator getIterator(){
+    public Iterator getIterator() {
         return this.tempTable.iterator();
     }
-    public List<Tuple> getTempTable() {
-        return tempTable;
-    }
+
+    public List<Tuple> getTempTable() { return tempTable; }
 
     public void setTempTable(List<Tuple> tempTable) {
         this.tempTable = tempTable;
     }
-
-
 
 
 }

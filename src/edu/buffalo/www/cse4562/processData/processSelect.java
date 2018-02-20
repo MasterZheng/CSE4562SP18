@@ -108,6 +108,7 @@ public class processSelect {
                     }
                 hasSelect = true;
             } else if (operation.equals("PROJECTION")) {
+                //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 if (!hasSelect){
                     while (CSVInteratorLeft.hasNext()){

@@ -4,9 +4,7 @@ import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
-import org.apache.commons.csv.CSVRecord;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class RASelection extends RANode {

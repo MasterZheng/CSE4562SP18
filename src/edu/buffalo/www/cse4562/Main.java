@@ -10,13 +10,8 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.select.*;
 
-
-import java.beans.Expression;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -65,7 +60,6 @@ public class Main {
                     if (stmt instanceof Select) {
                         Select select = (Select) stmt;
                         SelectBody body = select.getSelectBody();
-                        //parsedSQL = SelectFunction(body, 0);
                         RANode raTree = SelectFunction(body);
                         TempTable tempTable = SelectData(raTree, tableMap);
                         stmt=null;

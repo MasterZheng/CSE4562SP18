@@ -4,25 +4,26 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class Tuple {
     //private TableObject tableObject;
     private List<ColumnDefinition> columnDefinitions;
-    private HashMap<String,Object> attributes = new HashMap<>();
+    private HashMap<String, Object> attributes = new HashMap<>();
     private CSVRecord record = null;
     private boolean Empty;
-    public Tuple(){
+
+    public Tuple() {
         this.Empty = true;
     }
+
     public Tuple(TableObject tableObject, CSVRecord record) {
         //this.tableObject = tableObject;
         this.record = record;
         this.columnDefinitions = tableObject.getColumnDefinitions();
         int i = 0;
-        for (ColumnDefinition c:columnDefinitions){
-            attributes.put(c.getColumnName().toUpperCase(),record.get(i++));
+        for (ColumnDefinition c : columnDefinitions) {
+            attributes.put(c.getColumnName().toUpperCase(), record.get(i++));
         }
         this.Empty = false;
     }
@@ -55,15 +56,15 @@ public class Tuple {
         return Empty;
     }
 
-    public void print(){
+    public void print() {
         String row = "";
-        for (int i = 0;i<columnDefinitions.size();i++){
+        for (int i = 0; i < columnDefinitions.size(); i++) {
             String colName = columnDefinitions.get(i).getColumnName();
-            row+=attributes.get(colName);
-            if (columnDefinitions.size()==1||i == columnDefinitions.size()-1){
+            row += attributes.get(colName);
+            if (columnDefinitions.size() == 1 || i == columnDefinitions.size() - 1) {
                 break;
             }
-            row+="|";
+            row += "|";
         }
         System.out.println(row);
 
