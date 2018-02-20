@@ -5,6 +5,8 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -16,6 +18,8 @@ public class TableObject {
     private File DBFile;//not be used
     private List<ColumnDefinition> columnDefinitions;
     private boolean empty;
+    private List<Tuple> tupleList = new ArrayList<>();
+
     static Logger logger = Logger.getLogger(TableObject.class.getName());
     public TableObject(){
         this.empty = true;
@@ -28,6 +32,16 @@ public class TableObject {
         this.empty = false;
         this.table = null;
     }
+
+    public TableObject(List<ColumnDefinition> columnDefinitions, List<Tuple> tupleList) {
+        this.tupleList = tupleList;
+        this.columnDefinitions = columnDefinitions;
+        this.fileDir = null;
+        this.DBFile = null;
+        this.empty = false;
+        this.table = null;
+    }
+
     public TableObject(CreateTable createTable, Table table, String tableName) {
         this.createTable = createTable;
         this.table = table;
@@ -92,4 +106,12 @@ public class TableObject {
     public boolean isEmpty() {
         return empty;
     }
+
+    public void settupleList(List<Tuple> tupleList) {
+        this.tupleList = tupleList;
+    }
+    public Iterator getIterator() {
+        return this.tupleList.iterator();
+    }
+
 }

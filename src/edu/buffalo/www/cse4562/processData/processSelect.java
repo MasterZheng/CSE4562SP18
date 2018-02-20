@@ -2,7 +2,6 @@ package edu.buffalo.www.cse4562.processData;
 
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
-import edu.buffalo.www.cse4562.Table.TempTable;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
@@ -24,18 +23,18 @@ public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
 
-    public static TempTable SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
+    public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
         //TODO
         List<Tuple> queryResult = new ArrayList<>();
         RANode endPointer = raTree;
-        TempTable result = new TempTable();
+        TableObject result = new TableObject();
         RANode pointer = raTree;
 
         TableObject tableLeft = new TableObject();
         TableObject tableRight = new TableObject();
 
-        TempTable leftResult;
-        TempTable rightResult;
+        TableObject leftResult;
+        TableObject rightResult;
 
         FileReader fileReaderLeft;
         FileReader fileReaderRight;
@@ -133,7 +132,7 @@ public class processSelect {
             pointer = pointer.getParentNode();
         }
 
-        result.setTempTable(queryResult);
+        result.settupleList(queryResult);
         result.setColumnDefinitions(columnDefinitions);
         return result;
     }

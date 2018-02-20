@@ -3,7 +3,6 @@ package edu.buffalo.www.cse4562;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.Table.TableObject;
-import edu.buffalo.www.cse4562.Table.TempTable;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
@@ -38,7 +37,7 @@ public class Main {
             // project here
             while((s = parser.Statement()) != null){
 
-                TempTable tempTable = process(s, tableMap);
+                TableObject tempTable = process(s, tableMap);
                 if (tempTable!=null){
                     Iterator<Tuple> iterator = tempTable.getIterator();
                     while (iterator.hasNext()){
@@ -53,7 +52,7 @@ public class Main {
 
 
 
-    public static TempTable process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
+    public static TableObject process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
             try {
                 //HashMap<String, Object> parsedSQL = new HashMap<>();
                 while (stmt != null) {
@@ -61,7 +60,7 @@ public class Main {
                         Select select = (Select) stmt;
                         SelectBody body = select.getSelectBody();
                         RANode raTree = SelectFunction(body);
-                        TempTable tempTable = SelectData(raTree, tableMap);
+                        TableObject tempTable = SelectData(raTree, tableMap);
                         stmt=null;
                         return tempTable;
                     } else if (stmt instanceof CreateTable) {
