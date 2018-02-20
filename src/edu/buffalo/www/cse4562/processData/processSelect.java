@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-import com.sun.tools.javac.util.Name;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -53,7 +52,6 @@ public class processSelect {
             }
         };
 
-
         FileReader fileReaderRight;
         CSVParser parserRight;
         Iterator<CSVRecord> CSVInteratorRight = new Iterator<CSVRecord>() {
@@ -71,6 +69,7 @@ public class processSelect {
         List<Object> selectItems = new ArrayList();
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
 
+        boolean hasSelect = false;
         while (pointer.hasNext()) {
             //find the first join
             pointer = pointer.getLeftNode();
@@ -114,7 +113,14 @@ public class processSelect {
                         queryResult.add(tupleLeft);
                     }
                 }
+                hasSelect = true;
             } else if (operation.equals("PROJECTION")) {
+                if (!hasSelect){
+                    while (CSVInteratorLeft.hasNext()){
+                        Tuple tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
+                        queryResult.add(tupleLeft);
+                    }
+                }
                 selectItems = ((RAProjection)pointer).getSelectItem();
                 columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
                 queryResult = projection(queryResult,selectItems,columnDefinitions);
