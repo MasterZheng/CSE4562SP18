@@ -1,6 +1,9 @@
 package edu.buffalo.www.cse4562.RA;
 
+import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.statement.select.Distinct;
+
+import java.util.List;
 
 public class RADistinct extends RANode {
     private String operation = "DISTINCT";
@@ -8,6 +11,10 @@ public class RADistinct extends RANode {
 
     public RADistinct(Distinct distinct) {
         this.distinct = distinct;
+    }
+
+    public List<Tuple> Eval(List<Tuple> list) {
+        return list;
     }
 
     public Distinct getDistinct() {

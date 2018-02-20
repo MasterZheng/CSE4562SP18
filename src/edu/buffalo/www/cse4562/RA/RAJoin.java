@@ -14,6 +14,9 @@ public class RAJoin extends RANode {
         this.join = join;
     }
 
+    public void Eval(){
+
+    }
     public FromItem getFromItem() {
         return fromItem;
     }

@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.TempTable;
@@ -14,7 +13,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import javax.sound.sampled.Line;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +27,7 @@ public class processSelect {
     public static TempTable SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
         //TODO
         List<Tuple> queryResult = new ArrayList<>();
+        RANode endPointer = raTree;
         TempTable result = new TempTable();
         RANode pointer = raTree;
 
@@ -39,34 +38,14 @@ public class processSelect {
         TempTable rightResult;
 
         FileReader fileReaderLeft;
+        FileReader fileReaderRight;
         CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
         CSVParser parserLeft;
-        Iterator<CSVRecord> CSVInteratorLeft = new Iterator<CSVRecord>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public CSVRecord next() {
-                return null;
-            }
-        };
-
-        FileReader fileReaderRight;
         CSVParser parserRight;
-        Iterator<CSVRecord> CSVInteratorRight = new Iterator<CSVRecord>() {
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public CSVRecord next() {
-                return null;
-            }
-        };
-
+        Iterator<CSVRecord> CSVInteratorLeft = null;
+        Iterator<CSVRecord> CSVInteratorRight = null;
+        Iterator<Tuple> tempIteratorLeft = null;
+        Iterator<Tuple> tempIteratorRight = null;
         List<Object> selectItems = new ArrayList();
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
 
@@ -77,45 +56,59 @@ public class processSelect {
             if (pointer.getOperation().equals("JOIN")) {
                 RANode left = pointer.getLeftNode();
                 if (left.getOperation().equals("TABLE")) {
+                    //join left node is a table
                     tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
                     fileReaderLeft = new FileReader(tableLeft.getFileDir());
                     parserLeft = new CSVParser(fileReaderLeft, formator);
                     CSVInteratorLeft = parserLeft.iterator();
                 } else {
+                    // join left node is a subSelect tree
                     leftResult = SelectData(left, tableMap);
-                    CSVInteratorLeft = leftResult.getIterator();
+                    tempIteratorLeft = leftResult.getIterator();
+                    //finish subSelect, stop loop.
+                    break;
                 }
                 if (pointer.getRightNode() != null) {
                     RANode right = pointer.getRightNode();
                     if (right.getOperation().equals("TABLE")) {
+                        // join right node is a table
                         fileReaderRight = new FileReader(tableRight.getFileDir());
                         parserRight = new CSVParser(fileReaderRight, formator);
                         CSVInteratorRight = parserRight.iterator();
                     } else {
+                        // join right node is a subSelect tree
                         rightResult = SelectData(right, tableMap);
-                        CSVInteratorRight = rightResult.getIterator();
+                        tempIteratorRight = rightResult.getIterator();
+                        break;
                     }
                 }
             }
-
         }
 
         pointer = pointer.getParentNode();
 
         while (pointer != null) {
             String operation = pointer.getOperation();
-            if (operation.equals("SELECTION")) {
-                //todo if no selection no record will be picked!!
-                while (CSVInteratorLeft.hasNext()){
-                    Tuple tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
-                    Tuple tupleRight = null;
-                    evaluate eva = new evaluate(tupleLeft, tupleRight, ((RASelection) pointer).getWhere());
-                    if (eva.whereEval()){
-                        queryResult.add(tupleLeft);
+            if (operation.equals("JOIN")){
+                ((RAJoin)pointer).Eval();
+                // no action
+            }else if (operation.equals("SELECTION")) {
+                    Tuple tupleLeft;
+                    if (CSVInteratorLeft!=null){
+                        while (CSVInteratorLeft.hasNext()){
+                            tupleLeft = new Tuple(tableLeft,CSVInteratorLeft.next());
+                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
+                        }
+                    }else if (tempIteratorLeft!=null){
+                        while (tempIteratorLeft.hasNext()){
+                            tupleLeft = tempIteratorLeft.next();
+                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
+
+                        }
                     }
-                }
                 hasSelect = true;
             } else if (operation.equals("PROJECTION")) {
+                //if no where ,add all tuple into the queryResult List
                 if (!hasSelect){
                     while (CSVInteratorLeft.hasNext()){
                         Tuple tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
@@ -124,14 +117,17 @@ public class processSelect {
                 }
                 selectItems = ((RAProjection)pointer).getSelectItem();
                 columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
-                queryResult = projection(queryResult,selectItems,columnDefinitions);
 
+                queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions);
             } else if (operation.equals("ORDERBY")) {
                 //TODO
             } else if (operation.equals("DISTINCT")) {
                 //todo
             } else if (operation.equals("LIMIT")) {
                 //todo
+            }
+            if (pointer==endPointer){
+                break;
             }
             pointer = pointer.getParentNode();
         }
@@ -141,16 +137,7 @@ public class processSelect {
         return result;
     }
 
-    public static List<Tuple> projection(List<Tuple> queryResult,List<Object> selectItems,
-                                         List<ColumnDefinition> list)throws Exception{
-        List<Tuple> result = new ArrayList<>();
 
-        for(int i = 0;i<queryResult.size();i++){
-            evaluate eva = new evaluate(queryResult.get(i),selectItems);
-            result.add(eva.selectEval(list));
-        }
-        return result;
-    }
     public static List<ColumnDefinition> tempColDef(List selectItems,TableObject tableLeft,
                                                     TableObject tableRight){
         //todo create the temptable coldef
@@ -195,9 +182,7 @@ public class processSelect {
 //                                    colDef.setColDataType(c.getColDataType());
 //                                }
 //                            }
-
                         }
-
                     }else {
                         colDef.setColumnName(((SelectExpressionItem)s).getAlias());
                         //colDef.setColDataType();
