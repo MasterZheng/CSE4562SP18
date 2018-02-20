@@ -3,6 +3,8 @@ package edu.buffalo.www.cse4562;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.Table.TableObject;
+import edu.buffalo.www.cse4562.Table.TempTable;
+import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -12,6 +14,7 @@ import net.sf.jsqlparser.statement.select.*;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;
@@ -38,6 +41,7 @@ public class Main {
                 in = new InputStreamReader(System.in);
                 parser = new CCJSqlParser(in);
                 process(stmt, tableMap);
+
                 System.out.println();// print results line by line);
                 // read for next query
                 System.out.println(prompt);
@@ -58,18 +62,22 @@ public class Main {
                 SelectBody body = select.getSelectBody();
                 //parsedSQL = SelectFunction(body, 0);
                 RANode raTree = SelectFunction(body);
-                SelectData(raTree, tableMap);
-                stmt = null;
-                logger.info("Query finished");
+                TempTable tempTable = SelectData(raTree, tableMap);
+                stmt=null;
+                Iterator<Tuple> iterator = tempTable.getIterator();
+                while (iterator.hasNext()){
+                    iterator.next().print();
+                }
             } else if (stmt instanceof CreateTable) {
                 boolean flag = CreatFunction((CreateTable) stmt, tableMap);
-                stmt = null;
+                stmt=null;
                 if (flag) {
                     logger.info("Create table successfully");
                 } else {
                     logger.warning("Failed to create a table ");
                 }
             } else {
+                stmt=null;
                 throw new Exception("Cannot handle the statement" + stmt);
             }
         }

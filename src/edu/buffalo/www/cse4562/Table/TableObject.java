@@ -12,12 +12,20 @@ public class TableObject {
     private Table table;
     private String tableName;
     private String fileDir;
-    private File DBFile;
+    private File DBFile;//not be used
     private List<ColumnDefinition> columnDefinitions;
     private boolean empty;
 
     public TableObject(){
         this.empty = true;
+    }
+    public TableObject(List<ColumnDefinition> columnDefinitions){
+        // used to create Temporary table
+        this.columnDefinitions = columnDefinitions;
+        this.fileDir = null;
+        this.DBFile = null;
+        this.empty = false;
+        this.table = null;
     }
     public TableObject(CreateTable createTable, Table table, String tableName) {
         this.createTable = createTable;

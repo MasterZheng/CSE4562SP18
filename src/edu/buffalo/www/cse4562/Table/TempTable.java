@@ -1,21 +1,37 @@
 package edu.buffalo.www.cse4562.Table;
 
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class TempTable implements Iterator{
+public class TempTable {
     List<Tuple> tempTable = new ArrayList<>();
-    private Iterator iterator;
+    private List<ColumnDefinition> columnDefinitions;
 
-    public TempTable(List<Tuple> tempTable) {
+    //private TableObject tableObject = new TableObject();
+
+    public TempTable(List<ColumnDefinition> columnDefinitions, List<Tuple> tempTable) {
         this.tempTable = tempTable;
-        this.iterator = tempTable.iterator();
+        this.columnDefinitions = columnDefinitions;
+        //this.tableObject = new TableObject(columnDefinitions);
     }
 
     public TempTable() {
     }
 
+    public List<ColumnDefinition> getColumnDefinitions() {
+        return columnDefinitions;
+    }
+
+    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) {
+        this.columnDefinitions = columnDefinitions;
+    }
+
+    public Iterator getIterator(){
+        return this.tempTable.iterator();
+    }
     public List<Tuple> getTempTable() {
         return tempTable;
     }
@@ -24,17 +40,7 @@ public class TempTable implements Iterator{
         this.tempTable = tempTable;
     }
 
-    public Iterator getIterator() {
-        return iterator;
-    }
 
-    @Override
-    public boolean hasNext() {
-        return iterator.hasNext();
-    }
 
-    @Override
-    public Object next() {
-        return iterator.next();
-    }
+
 }
