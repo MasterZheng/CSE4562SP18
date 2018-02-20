@@ -68,7 +68,7 @@ public class processSelect {
             }
         };
 
-        List<SelectExpressionItem> selectItems = new ArrayList();
+        List<Object> selectItems = new ArrayList();
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
 
         while (pointer.hasNext()) {
@@ -134,7 +134,7 @@ public class processSelect {
         return result;
     }
 
-    public static List<Tuple> projection(List<Tuple> queryResult,List<SelectExpressionItem> selectItems,
+    public static List<Tuple> projection(List<Tuple> queryResult,List<Object> selectItems,
                                          List<ColumnDefinition> list)throws Exception{
         List<Tuple> result = new ArrayList<>();
 
@@ -144,15 +144,15 @@ public class processSelect {
         }
         return result;
     }
-    public static List<ColumnDefinition> tempColDef(List<SelectExpressionItem> selectItems,TableObject tableLeft,
+    public static List<ColumnDefinition> tempColDef(List selectItems,TableObject tableLeft,
                                                     TableObject tableRight){
         //todo create the temptable coldef
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
-        if (selectItems.get(0).toString().equals("*")){
-            columnDefinitions = tableLeft.getColumnDefinitions();
+        if (selectItems.get(0) instanceof AllColumns){
+            columnDefinitions.addAll(tableLeft.getColumnDefinitions());
         }else{
-            for (SelectExpressionItem s:selectItems){
-                Expression expression = s.getExpression();
+            for (Object s:selectItems){
+                Expression expression = ((SelectExpressionItem)s).getExpression();
 
                 if (s.toString().contains("*")){
                     //todo
@@ -192,7 +192,7 @@ public class processSelect {
                         }
 
                     }else {
-                        colDef.setColumnName(s.getAlias());
+                        colDef.setColumnName(((SelectExpressionItem)s).getAlias());
                         //colDef.setColDataType();
                     }
 

@@ -7,6 +7,7 @@ import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
 import java.sql.SQLException;
@@ -17,7 +18,7 @@ public class evaluate extends Eval {
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
-    private List<SelectExpressionItem> selectList;
+    private List<Object> selectList;
     private ColDataType changeType;
 
     public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression) {
@@ -26,7 +27,7 @@ public class evaluate extends Eval {
         this.expression = expression;
     }
 
-    public evaluate(Tuple tupleLeft,List<SelectExpressionItem> list){
+    public evaluate(Tuple tupleLeft,List<Object> list){
         this.tupleLeft = tupleLeft;
         this.selectList = list;
     }
@@ -61,17 +62,29 @@ public class evaluate extends Eval {
         Tuple newTuple = new Tuple();
         newTuple.setColumnDefinitions(list);
         HashMap<String,Object> attributes = new HashMap<>();
-        for (SelectExpressionItem s:selectList){
-            PrimitiveValue result = eval(s.getExpression());
-            String name =null;
-            if (s.getExpression() instanceof Column){
-                name = ((Column)s.getExpression()).getColumnName();
-            }else if (s.getExpression() instanceof Expression){
-                name = s.getAlias();
+        for (Object s:selectList){
+            //todo
+            if (s instanceof AllColumns){
+                for (ColumnDefinition c:list){
+                    String name =c.getColumnName();
+                    attributes.put(name,tupleLeft.getAttributes().get(name));
+                    newTuple.setAttributes(attributes);
+                }
+            } else if (((SelectExpressionItem)s).getExpression() instanceof Column){
+                for (ColumnDefinition c:list){
+                    String name =c.getColumnName();
+                    attributes.put(name,tupleLeft.getAttributes().get(name));
+                    newTuple.setAttributes(attributes);
+                }
+            }else {
+                PrimitiveValue result = eval(((SelectExpressionItem)s).getExpression());
+                String name =((SelectExpressionItem)s).getAlias();
+                attributes.put(name,result);
+                newTuple.setAttributes(attributes);
             }
-            attributes.put(name,result);
-            newTuple.setAttributes(attributes);
+
         }
+
         return newTuple;
     }
 
