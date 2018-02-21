@@ -166,12 +166,11 @@ public class processSelect {
                     if (expression instanceof Column){
                         Column column = (Column)expression;
                         String colName = column.getColumnName();
-                        Table table = column.getTable();
                         if (column.getTable().getName()!=null){
                                 colDef.setColumnName(colName);
-                                for (int i = 0;i<columnDefinitions.size();i++){
-                                    if (columnDefinitions.get(i).getColumnName().equals(colName)){
-                                        colDef.setColDataType(columnDefinitions.get(i).getColDataType());
+                                for (int i = 0;i<tableLeft.getColumnDefinitions().size();i++){
+                                    if (tableLeft.getColumnDefinitions().get(i).getColumnName().equals(colName)){
+                                        colDef.setColDataType(tableLeft.getColumnDefinitions().get(i).getColDataType());
                                     }
                                 }
                         }else {

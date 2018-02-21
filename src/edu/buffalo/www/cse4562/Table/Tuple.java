@@ -11,7 +11,8 @@ import java.util.Map;
 
 public class Tuple {
     //private TableObject tableObject;
-    private HashMap<String, String> attributes = new HashMap<>();
+    private HashMap<String, Object> attributes = new HashMap<>();
+    private List<ColumnDefinition> columnDefinitions;
     private boolean Empty;
     private String  tableName;
     public Tuple() {
@@ -19,9 +20,9 @@ public class Tuple {
     }
 
     public Tuple(TableObject tableObject, CSVRecord record) {
-        //this.tableObject = tableObject;
         int i = 0;
-        for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
+        this.columnDefinitions = tableObject.getColumnDefinitions();
+        for (ColumnDefinition c : this.columnDefinitions) {
             attributes.put(c.getColumnName().toUpperCase(), record.get(i++));
         }
         this.Empty = false;
@@ -37,7 +38,7 @@ public class Tuple {
 //        this.tableObject = tableObject;
 //    }
 
-    public HashMap<String, String> getAttributes() {
+    public HashMap<String, Object> getAttributes() {
         return attributes;
     }
 
@@ -58,18 +59,25 @@ public class Tuple {
         this.tableName = table;
     }
 
+    public List<ColumnDefinition> getColumnDefinitions() {
+        return columnDefinitions;
+    }
+
+    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) {
+        this.columnDefinitions = columnDefinitions;
+    }
 
     public void print(HashMap<String ,TableObject> tableMap ) {
         String row = "";
-        List<ColumnDefinition> list = tableMap.get(this.getTableName()).getColumnDefinitions();
-        for (Iterator<Map.Entry<String, String>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
-            Map.Entry<String, String> column = attIter.next();
+        List<ColumnDefinition> list = this.getColumnDefinitions();
+        for (Iterator<Map.Entry<String, Object>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
+            Map.Entry<String, Object> column = attIter.next();
             for (ColumnDefinition colDef:list){
                 if (column.getKey().equals(colDef.getColumnName())){
                     if (colDef.getColDataType().getDataType().equals("STRING")){
                         row+="\'"+column.getValue()+"\'";
                     }else {
-                        row+=column.getValue();
+                        row+=column.getValue().toString();
                     }
                     if (attIter.hasNext()){
                         row+="|";

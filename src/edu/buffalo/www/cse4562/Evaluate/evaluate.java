@@ -13,6 +13,7 @@ import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -76,6 +77,8 @@ public class evaluate extends Eval {
 
     public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
         Tuple newTuple = new Tuple();
+        List<ColumnDefinition> columnDefinitions = new ArrayList<>();
+
         HashMap<String, Object> attributes = new HashMap<>();
         for (Object s : selectList) {
             if (s instanceof AllColumns) {
@@ -88,25 +91,41 @@ public class evaluate extends Eval {
                 break;
             } else if (s instanceof AllTableColumns) {
                 //todo
-            } else if (((SelectExpressionItem) s).getExpression() instanceof Column) {
-                String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
-                String alias = ((SelectExpressionItem) s).getAlias();
-                if (alias == null) {
-                    attributes.put(name, tupleLeft.getAttributes().get(name));
-                } else {
-                    attributes.put(alias, tupleLeft.getAttributes().get(name));
-                }
-                newTuple.setAttributes(attributes);
-
             } else {
-                PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
-                String name = ((SelectExpressionItem) s).getAlias();
-                attributes.put(name, result);
-                newTuple.setAttributes(attributes);
-
+                //  todo 优化
+                if (((SelectExpressionItem) s).getExpression() instanceof Column) {
+                    String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
+                    String alias = ((SelectExpressionItem) s).getAlias();
+                    if (alias == null) {
+                        attributes.put(name, tupleLeft.getAttributes().get(name));
+                    } else {
+                        attributes.put(alias, tupleLeft.getAttributes().get(name));
+                        name =alias;
+                    }
+                    for (ColumnDefinition c:list){
+                        if (c.getColumnName().equals(name)){
+                            columnDefinitions.add(c);
+                        }
+                    }
+                } else {
+                    PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
+                    String name = ((SelectExpressionItem) s).getAlias();
+                    attributes.put(name, result);
+                    ColumnDefinition colDef = new ColumnDefinition();
+                    if (((SelectExpressionItem) s).getAlias()!=null){
+                        colDef.setColumnName(((SelectExpressionItem) s).getAlias());
+                        ColDataType colDataType = new ColDataType();
+                        colDataType.setDataType("LONG");
+                        colDef.setColDataType(colDataType);
+                    }
+                    columnDefinitions.add(colDef);
+                }
             }
+            newTuple.setAttributes(attributes);
 
+            newTuple.setColumnDefinitions(columnDefinitions);
         }
+
         newTuple.setTableName(tupleLeft.getTableName());
         return newTuple;
     }
