@@ -25,14 +25,14 @@ public class evaluate extends Eval {
     private HashMap<String, TableObject> tableMap;
     private List<Object> selectList;
 
-    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression,HashMap<String, TableObject> tableMap) {
+    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, HashMap<String, TableObject> tableMap) {
         this.tupleLeft = tupleLeft;
         this.tupleRight = tupleRight;
         this.expression = expression;
         this.tableMap = tableMap;
     }
 
-    public evaluate(Tuple tupleLeft, List<Object> list,HashMap<String, TableObject> tableMap) {
+    public evaluate(Tuple tupleLeft, List<Object> list, HashMap<String, TableObject> tableMap) {
         this.tupleLeft = tupleLeft;
         this.selectList = list;
         this.tableMap = tableMap;
@@ -85,27 +85,29 @@ public class evaluate extends Eval {
 //                }
 //                newTuple.setAttributes(attributes);
                 newTuple = tupleLeft;
-            } else if (s instanceof AllTableColumns){
+                break;
+            } else if (s instanceof AllTableColumns) {
                 //todo
             } else if (((SelectExpressionItem) s).getExpression() instanceof Column) {
                 String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
                 String alias = ((SelectExpressionItem) s).getAlias();
-                if (alias ==null){
+                if (alias == null) {
                     attributes.put(name, tupleLeft.getAttributes().get(name));
-                }else {
+                } else {
                     attributes.put(alias, tupleLeft.getAttributes().get(name));
                 }
-
                 newTuple.setAttributes(attributes);
+
             } else {
                 PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                 String name = ((SelectExpressionItem) s).getAlias();
                 attributes.put(name, result);
                 newTuple.setAttributes(attributes);
+
             }
 
         }
-
+        newTuple.setTableName(tupleLeft.getTableName());
         return newTuple;
     }
 

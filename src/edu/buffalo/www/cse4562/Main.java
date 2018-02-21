@@ -36,15 +36,7 @@ public class Main {
 
             // project here
             while((s = parser.Statement()) != null){
-
-                TableObject tempTable = process(s, tableMap);
-                if (tempTable!=null){
-                    Iterator<Tuple> iterator = tempTable.getIterator();
-                    while (iterator.hasNext()){
-                        iterator.next().print();
-                    }
-                }
-
+                process(s, tableMap);
                 System.out.println(prompt);
                 System.out.flush();
             }
@@ -53,7 +45,7 @@ public class Main {
 
 
 
-    public static TableObject process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
+    public static void process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
             try {
                 //HashMap<String, Object> parsedSQL = new HashMap<>();
                 while (stmt != null) {
@@ -63,6 +55,12 @@ public class Main {
                         SelectBody body = select.getSelectBody();
                         RANode raTree = SelectFunction(body);
                         TableObject tempTable = SelectData(raTree, tableMap);
+                        if (tempTable!=null){
+                            Iterator<Tuple> iterator = tempTable.getIterator();
+                            while (iterator.hasNext()){
+                                iterator.next().print(tableMap);
+                            }
+                        }
                         stmt=null;
                         //执行完清除临时表
                         for (Iterator<Map.Entry<String,TableObject>> it = tableMap.entrySet().iterator();it.hasNext();){
@@ -71,7 +69,6 @@ public class Main {
                                 it.remove();
                             }
                         }
-                        return tempTable;
                     } else if (stmt instanceof CreateTable) {
                         boolean flag = CreatFunction((CreateTable) stmt, tableMap);
                         stmt=null;
@@ -88,7 +85,6 @@ public class Main {
             }catch (Exception e){
                 e.printStackTrace();
             }
-        return null;
     }
 
 }
