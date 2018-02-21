@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.Evaluate;
 
+import edu.buffalo.www.cse4562.Main;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
@@ -13,8 +14,10 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class evaluate extends Eval {
+    static Logger logger = Logger.getLogger(evaluate.class.getName());
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
@@ -58,6 +61,7 @@ public class evaluate extends Eval {
     }
 
     public boolean whereEval() throws Exception {
+        logger.info(expression.toString());
         PrimitiveValue result = eval(expression);
         return result.toBool();
     }

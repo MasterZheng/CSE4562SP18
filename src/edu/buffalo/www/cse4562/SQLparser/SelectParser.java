@@ -17,7 +17,7 @@ public class SelectParser {
     static Logger logger = Logger.getLogger(SelectItem.class.getName());
 
     public static HashMap<String, Object> SelectFunction(SelectBody body, int tableCounter) {
-        logger.info("Use hashMap to parse SQL");
+        logger.info(body.toString());
 
         HashMap<String, Object> query = new HashMap<>();
         HashMap<String, Object> operations = new HashMap<>();
