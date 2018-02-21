@@ -61,7 +61,7 @@ public class processSelect {
                     CSVInteratorLeft = parserLeft.iterator();
                 } else {
                     // join left node is a subSelect tree
-                    leftResult = SelectData(left, tableMap);
+                    leftResult = subSelect(left, tableMap,pointer);
                     tempIteratorLeft = leftResult.getIterator();
                     //finish subSelect, stop loop.
                     break;
@@ -75,7 +75,7 @@ public class processSelect {
                         CSVInteratorRight = parserRight.iterator();
                     } else {
                         // join right node is a subSelect tree
-                        rightResult = SelectData(right, tableMap);
+                        rightResult = subSelect(right, tableMap,pointer);
                         tempIteratorRight = rightResult.getIterator();
                         break;
                     }
@@ -88,20 +88,20 @@ public class processSelect {
         while (pointer != null) {
             String operation = pointer.getOperation();
             if (operation.equals("JOIN")){
-                ((RAJoin)pointer).Eval();
                 // no action
             }else if (operation.equals("SELECTION")) {
                     Tuple tupleLeft;
                     if (CSVInteratorLeft!=null){
                         while (CSVInteratorLeft.hasNext()){
+                            //CSVrecord iterator
                             tupleLeft = new Tuple(tableLeft,CSVInteratorLeft.next());
                             queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
                         }
                     }else if (tempIteratorLeft!=null){
+                        // tuple iterator
                         while (tempIteratorLeft.hasNext()){
                             tupleLeft = tempIteratorLeft.next();
                             queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
-
                         }
                     }
             } else if (operation.equals("PROJECTION")) {
@@ -109,7 +109,6 @@ public class processSelect {
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection)pointer).getSelectItem();
                 columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
-
                 queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions);
             } else if (operation.equals("ORDERBY")) {
                 //TODO
@@ -130,6 +129,20 @@ public class processSelect {
     }
 
 
+    public static TableObject subSelect(RANode raTree, HashMap<String, TableObject> tableMap,RANode pointer)throws Exception{
+        TableObject Result = SelectData(raTree, tableMap);
+        String name = ((RAJoin)pointer).getFromItem().getAlias();
+        if (((RAJoin)pointer).getFromItem().getAlias()!=null){
+            String alias = ((RAJoin)pointer).getFromItem().getAlias();
+            Result.setTableName(alias);
+        }
+        Result.setTemp(true);
+        tableMap.put(name,Result);
+        for (int i = 0;i<Result.getTupleList().size();i++){
+            Result.getTupleList().get(i).setTableName(name);
+        }
+        return Result;
+    }
     public static List<ColumnDefinition> tempColDef(List selectItems,TableObject tableLeft,
                                                     TableObject tableRight){
         //todo create the temptable coldef

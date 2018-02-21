@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.Evaluate;
 
-import edu.buffalo.www.cse4562.Main;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
@@ -60,12 +59,11 @@ public class evaluate extends Eval {
         return Value;
     }
 
-    public boolean whereEval() throws Exception {
-        logger.info(expression.toString());
+    public boolean selectEval() throws Exception {
         PrimitiveValue result = eval(expression);
         return result.toBool();
     }
-    public Tuple selectEval(List<ColumnDefinition> list) throws Exception {
+    public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
         Tuple newTuple = new Tuple();
         newTuple.setColumnDefinitions(list);
         HashMap<String,Object> attributes = new HashMap<>();

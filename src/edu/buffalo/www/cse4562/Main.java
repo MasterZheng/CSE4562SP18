@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;
@@ -44,6 +45,7 @@ public class Main {
                         iterator.next().print();
                     }
                 }
+
                 System.out.println(prompt);
                 System.out.flush();
             }
@@ -62,6 +64,13 @@ public class Main {
                         RANode raTree = SelectFunction(body);
                         TableObject tempTable = SelectData(raTree, tableMap);
                         stmt=null;
+                        //执行完清除临时表
+                        for (Iterator<Map.Entry<String,TableObject>> it = tableMap.entrySet().iterator();it.hasNext();){
+                            Map.Entry<String,TableObject> entry = it.next();
+                            if (entry.getValue().isTemp()){
+                                it.remove();
+                            }
+                        }
                         return tempTable;
                     } else if (stmt instanceof CreateTable) {
                         boolean flag = CreatFunction((CreateTable) stmt, tableMap);

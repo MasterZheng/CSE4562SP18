@@ -18,6 +18,7 @@ public class TableObject {
     private File DBFile;//not be used
     private List<ColumnDefinition> columnDefinitions;
     private boolean empty;
+    private  boolean isTemp;
     private List<Tuple> tupleList = new ArrayList<>();
 
     static Logger logger = Logger.getLogger(TableObject.class.getName());
@@ -49,7 +50,9 @@ public class TableObject {
         this.empty = false;
 //        this.fileDir = fileDir;
 //        this.DBFile = DBFile;
+        this.isTemp= false;
     }
+
 
     public CreateTable getCreateTable() {
         return createTable;
@@ -97,6 +100,18 @@ public class TableObject {
 
     public boolean isEmpty() {
         return empty;
+    }
+
+    public boolean isTemp() {
+        return isTemp;
+    }
+
+    public void setTemp(boolean temp) {
+        isTemp = temp;
+    }
+
+    public List<Tuple> getTupleList() {
+        return tupleList;
     }
 
     public void settupleList(List<Tuple> tupleList) {

@@ -26,7 +26,7 @@ public class RAProjection extends RANode {
 
         for(int i = 0;i<queryResult.size();i++){
             evaluate eva = new evaluate(queryResult.get(i),this.selectItem);
-            result.add(eva.selectEval(columnDefinitions));
+            result.add(eva.projectEval(columnDefinitions));
         }
         return result;
     }
