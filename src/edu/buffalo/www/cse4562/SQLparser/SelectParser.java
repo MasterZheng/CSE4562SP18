@@ -2,6 +2,9 @@ package edu.buffalo.www.cse4562.SQLparser;
 
 import edu.buffalo.www.cse4562.RA.*;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.ExpressionVisitor;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
@@ -17,7 +20,6 @@ public class SelectParser {
     static Logger logger = Logger.getLogger(SelectItem.class.getName());
 
     public static HashMap<String, Object> SelectFunction(SelectBody body, int tableCounter) {
-        logger.info(body.toString());
 
         HashMap<String, Object> query = new HashMap<>();
         HashMap<String, Object> operations = new HashMap<>();
@@ -194,6 +196,13 @@ public class SelectParser {
             //process where
             if (where != null) {
                 RANode whereNode = new RASelection(where);
+                whereNode.setLeftNode(pointer);
+                pointer.setParentNode(whereNode);
+                pointer = whereNode;
+            }else {
+                // if no where ,add 1==1 as the where expression
+                EqualsTo rightWhere = new EqualsTo(new LongValue(1),new LongValue(1));
+                RANode whereNode = new RASelection(rightWhere);
                 whereNode.setLeftNode(pointer);
                 pointer.setParentNode(whereNode);
                 pointer = whereNode;
