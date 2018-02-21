@@ -109,7 +109,7 @@ public class processSelect {
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection)pointer).getSelectItem();
                 columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
-                queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions);
+                queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions,tableMap);
             } else if (operation.equals("ORDERBY")) {
                 //TODO
             } else if (operation.equals("DISTINCT")) {

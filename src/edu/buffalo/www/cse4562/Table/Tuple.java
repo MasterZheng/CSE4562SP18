@@ -24,6 +24,7 @@ public class Tuple {
             attributes.put(c.getColumnName().toUpperCase(), record.get(i++));
         }
         this.Empty = false;
+        this.tableName = tableObject.getTableName();
     }
 
 

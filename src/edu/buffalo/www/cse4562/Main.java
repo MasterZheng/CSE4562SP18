@@ -58,6 +58,7 @@ public class Main {
                 //HashMap<String, Object> parsedSQL = new HashMap<>();
                 while (stmt != null) {
                     if (stmt instanceof Select) {
+                        logger.info(stmt.toString());
                         Select select = (Select) stmt;
                         SelectBody body = select.getSelectBody();
                         RANode raTree = SelectFunction(body);

@@ -1,11 +1,13 @@
 package edu.buffalo.www.cse4562.RA;
 
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
+import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class RAProjection extends RANode {
@@ -21,11 +23,11 @@ public class RAProjection extends RANode {
         return selectItem;
     }
 
-    public List<Tuple> Eval(List<Tuple> queryResult,List<ColumnDefinition> columnDefinitions)throws Exception{
+    public List<Tuple> Eval(List<Tuple> queryResult,List<ColumnDefinition> columnDefinitions,HashMap<String, TableObject> tableMap)throws Exception{
         List<Tuple> result = new ArrayList<>();
 
         for(int i = 0;i<queryResult.size();i++){
-            evaluate eva = new evaluate(queryResult.get(i),this.selectItem);
+            evaluate eva = new evaluate(queryResult.get(i),this.selectItem,tableMap);
             result.add(eva.projectEval(columnDefinitions));
         }
         return result;

@@ -32,9 +32,10 @@ public class evaluate extends Eval {
         this.tableMap = tableMap;
     }
 
-    public evaluate(Tuple tupleLeft, List<Object> list) {
+    public evaluate(Tuple tupleLeft, List<Object> list,HashMap<String, TableObject> tableMap) {
         this.tupleLeft = tupleLeft;
         this.selectList = list;
+        this.tableMap = tableMap;
     }
 
     @Override
