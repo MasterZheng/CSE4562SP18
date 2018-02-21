@@ -95,13 +95,13 @@ public class processSelect {
                         while (CSVInteratorLeft.hasNext()){
                             //CSVrecord iterator
                             tupleLeft = new Tuple(tableLeft,CSVInteratorLeft.next());
-                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
+                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft,tableMap);
                         }
                     }else if (tempIteratorLeft!=null){
                         // tuple iterator
                         while (tempIteratorLeft.hasNext()){
                             tupleLeft = tempIteratorLeft.next();
-                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft);
+                            queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft,tableMap);
                         }
                     }
             } else if (operation.equals("PROJECTION")) {
@@ -148,7 +148,8 @@ public class processSelect {
         //todo create the temptable coldef
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
         if (selectItems.get(0) instanceof AllColumns){
-            columnDefinitions.addAll(tableLeft.getColumnDefinitions());
+            //todo
+            //columnDefinitions.addAll(tableLeft.getColumnDefinitions());
         }else{
             for (Object s:selectItems){
                 Expression expression = ((SelectExpressionItem)s).getExpression();
@@ -176,7 +177,11 @@ public class processSelect {
                         }else {
                             for (ColumnDefinition c:tableLeft.getColumnDefinitions()){
                                 if (colName.equals(c.getColumnName())){
-                                    colDef.setColumnName(colName);
+                                    if (((SelectExpressionItem) s).getAlias()!=null){
+                                        colDef.setColumnName(((SelectExpressionItem) s).getAlias());
+                                    }else {
+                                        colDef.setColumnName(colName);
+                                    }
                                     colDef.setColDataType(c.getColDataType());
                                 }
                             }

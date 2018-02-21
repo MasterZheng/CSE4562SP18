@@ -24,7 +24,7 @@ public class Main {
     static Logger logger = Logger.getLogger(Main.class.getName());
 
     static String prompt = "$> "; // expected prompt
-
+    static HashMap<String, TableObject> tableMap = new HashMap<>();
         public static void main(String[] argsArray) throws Exception {
             // ready to read stdin, print out prompt
             System.out.println(prompt);
@@ -33,7 +33,6 @@ public class Main {
             Reader in = new InputStreamReader(System.in);
             CCJSqlParser parser = new CCJSqlParser(in);
             Statement s;
-            HashMap<String, TableObject> tableMap = new HashMap<>();
 
             // project here
             while((s = parser.Statement()) != null){

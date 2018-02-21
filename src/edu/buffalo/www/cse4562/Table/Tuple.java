@@ -1,7 +1,5 @@
 package edu.buffalo.www.cse4562.Table;
 
-import com.sun.tools.javac.util.Name;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
@@ -13,7 +11,6 @@ import java.util.Map;
 public class Tuple {
     //private TableObject tableObject;
     private HashMap<String, Object> attributes = new HashMap<>();
-    private List<ColumnDefinition> columnDefinitions;
     private boolean Empty;
     private String  tableName;
     public Tuple() {
@@ -22,7 +19,6 @@ public class Tuple {
 
     public Tuple(TableObject tableObject, CSVRecord record) {
         //this.tableObject = tableObject;
-        this.columnDefinitions = tableObject.getColumnDefinitions();
         int i = 0;
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
             attributes.put(c.getColumnName().toUpperCase(), record.get(i++));
@@ -51,13 +47,6 @@ public class Tuple {
         return Empty;
     }
 
-    public List<ColumnDefinition> getColumnDefinitions() {
-        return columnDefinitions;
-    }
-
-    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) {
-        this.columnDefinitions = columnDefinitions;
-    }
 
     public String getTableName() {
         return tableName;

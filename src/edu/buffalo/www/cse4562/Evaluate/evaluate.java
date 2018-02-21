@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.Evaluate;
 
+import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
@@ -21,12 +22,14 @@ public class evaluate extends Eval {
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
+    private HashMap<String, TableObject> tableMap;
     private List<Object> selectList;
 
-    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression) {
+    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression,HashMap<String, TableObject> tableMap) {
         this.tupleLeft = tupleLeft;
         this.tupleRight = tupleRight;
         this.expression = expression;
+        this.tableMap = tableMap;
     }
 
     public evaluate(Tuple tupleLeft, List<Object> list) {
@@ -41,14 +44,18 @@ public class evaluate extends Eval {
         //according to the column name , compare the ColumnDefinitions to determine the type.
         //and get the value by column name
         HashMap tupleMap = tupleLeft.getAttributes();
+        String tableName = tupleLeft.getTableName();
         String colName = column.getColumnName().toUpperCase();
-        for (int i = 0; i < tupleLeft.getColumnDefinitions().size(); i++) {
-            ColumnDefinition def = tupleLeft.getColumnDefinitions().get(i);
+        List<ColumnDefinition> columnDefinitions = tableMap.get(tableName).getColumnDefinitions();
+        for (int i = 0; i < columnDefinitions.size(); i++) {
+            ColumnDefinition def = columnDefinitions.get(i);
             if (def.getColumnName().equals(colName)) {
                 changeType = def.getColDataType();
+                break;
             }
         }
         PrimitiveValue Value;
+        //todo modify tuple map
         if (changeType.toString().toUpperCase().equals("INT") || changeType.toString().toUpperCase().equals("LONG")) {
             Value = new LongValue(tupleMap.get(colName).toString());
         } else if (changeType.toString().toUpperCase().equals("STRING")) {
@@ -68,7 +75,6 @@ public class evaluate extends Eval {
 
     public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
         Tuple newTuple = new Tuple();
-        newTuple.setColumnDefinitions(list);
         HashMap<String, Object> attributes = new HashMap<>();
         for (Object s : selectList) {
             if (s instanceof AllColumns) {
@@ -83,12 +89,11 @@ public class evaluate extends Eval {
             } else if (((SelectExpressionItem) s).getExpression() instanceof Column) {
                 String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
                 String alias = ((SelectExpressionItem) s).getAlias();
-//                if (alias ==null){
-//                    attributes.put(name, tupleLeft.getAttributes().get(name));
-//                }else {
-//                    attributes.put(alias, tupleLeft.getAttributes().get(name));
-//                }
-                attributes.put(name, tupleLeft.getAttributes().get(name));
+                if (alias ==null){
+                    attributes.put(name, tupleLeft.getAttributes().get(name));
+                }else {
+                    attributes.put(alias, tupleLeft.getAttributes().get(name));
+                }
 
                 newTuple.setAttributes(attributes);
             } else {
