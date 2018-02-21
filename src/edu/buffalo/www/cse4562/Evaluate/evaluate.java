@@ -8,6 +8,7 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
 import java.sql.SQLException;
@@ -28,10 +29,11 @@ public class evaluate extends Eval {
         this.expression = expression;
     }
 
-    public evaluate(Tuple tupleLeft,List<Object> list){
+    public evaluate(Tuple tupleLeft, List<Object> list) {
         this.tupleLeft = tupleLeft;
         this.selectList = list;
     }
+
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
         ColDataType changeType = null;
@@ -51,9 +53,9 @@ public class evaluate extends Eval {
             Value = new LongValue(tupleMap.get(colName).toString());
         } else if (changeType.toString().toUpperCase().equals("STRING")) {
             Value = new StringValue(tupleMap.get(colName).toString());
-        } else if (changeType.toString().toUpperCase().equals("DATE")){
+        } else if (changeType.toString().toUpperCase().equals("DATE")) {
             Value = new DateValue(tupleMap.get(colName).toString());
-        }else {
+        } else {
             Value = new NullValue();
         }
         return Value;
@@ -63,29 +65,36 @@ public class evaluate extends Eval {
         PrimitiveValue result = eval(expression);
         return result.toBool();
     }
+
     public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
         Tuple newTuple = new Tuple();
         newTuple.setColumnDefinitions(list);
-        HashMap<String,Object> attributes = new HashMap<>();
-        for (Object s:selectList){
-            //todo
-            if (s instanceof AllColumns){
-                for (ColumnDefinition c:list){
-                    String name =c.getColumnName();
-                    attributes.put(name,tupleLeft.getAttributes().get(name));
-                    newTuple.setAttributes(attributes);
-                }
-            } else if (((SelectExpressionItem)s).getExpression() instanceof Column){
-                for (ColumnDefinition c:list){
-                    String name =c.getColumnName();
-                    //todo table name
-                    attributes.put(name,tupleLeft.getAttributes().get(name));
-                    newTuple.setAttributes(attributes);
-                }
-            }else {
-                PrimitiveValue result = eval(((SelectExpressionItem)s).getExpression());
-                String name =((SelectExpressionItem)s).getAlias();
-                attributes.put(name,result);
+        HashMap<String, Object> attributes = new HashMap<>();
+        for (Object s : selectList) {
+            if (s instanceof AllColumns) {
+//                for (ColumnDefinition c : list) {
+//                    String name = c.getColumnName();
+//                    attributes.put(name, tupleLeft.getAttributes().get(name));
+//                }
+//                newTuple.setAttributes(attributes);
+                newTuple = tupleLeft;
+            } else if (s instanceof AllTableColumns){
+                //todo
+            } else if (((SelectExpressionItem) s).getExpression() instanceof Column) {
+                String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
+                String alias = ((SelectExpressionItem) s).getAlias();
+//                if (alias ==null){
+//                    attributes.put(name, tupleLeft.getAttributes().get(name));
+//                }else {
+//                    attributes.put(alias, tupleLeft.getAttributes().get(name));
+//                }
+                attributes.put(name, tupleLeft.getAttributes().get(name));
+
+                newTuple.setAttributes(attributes);
+            } else {
+                PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
+                String name = ((SelectExpressionItem) s).getAlias();
+                attributes.put(name, result);
                 newTuple.setAttributes(attributes);
             }
 
