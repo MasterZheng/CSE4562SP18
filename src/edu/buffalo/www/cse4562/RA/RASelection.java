@@ -15,7 +15,7 @@ public class RASelection extends RANode {
     public List<Tuple> Eval(List<Tuple> queryResult, Tuple tuple, TableObject tableLeft) throws Exception {
             Tuple tupleRight = null;
             evaluate eva = new evaluate(tuple, tupleRight, this.getWhere());
-            if (eva.whereEval()) {
+            if (eva.selectEval()) {
                 queryResult.add(tuple);
             }
         return queryResult;
