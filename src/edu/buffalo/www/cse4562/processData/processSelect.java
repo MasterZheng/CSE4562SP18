@@ -48,7 +48,6 @@ public class processSelect {
         List<Object> selectItems = new ArrayList();
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
 
-        boolean hasSelect = false;
         while (pointer.hasNext()) {
             //find the first join
             pointer = pointer.getLeftNode();
@@ -105,16 +104,9 @@ public class processSelect {
 
                         }
                     }
-                hasSelect = true;
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
-                if (!hasSelect){
-                    while (CSVInteratorLeft.hasNext()){
-                        Tuple tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
-                        queryResult.add(tupleLeft);
-                    }
-                }
                 selectItems = ((RAProjection)pointer).getSelectItem();
                 columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
 

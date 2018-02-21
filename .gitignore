@@ -26,3 +26,7 @@ hs_err_pid*
 *.dat
 *.dat
 *.dat
+*.html
+*.html
+out/production/CSE4562SP18/commons-csv-1.5/apidocs/org/apache/commons/csv/CSVPrinter.html
+*.html
