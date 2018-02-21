@@ -42,7 +42,7 @@ public class TableObject {
 
         if (this.fileDir==null){
             //fileDir = createTable.getTable().getName()+".csv";
-            fileDir = "src/data/"+createTable.getTable().getName()+".dat";
+            fileDir = "data/"+createTable.getTable().getName()+".dat";
 
             DBFile = new File(fileDir);
         }
