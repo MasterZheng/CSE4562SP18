@@ -58,7 +58,7 @@ public class Main {
                         if (tempTable!=null){
                             Iterator<Tuple> iterator = tempTable.getIterator();
                             while (iterator.hasNext()){
-                                iterator.next().print(tableMap);
+                                iterator.next().print();
                             }
                         }
                         stmt=null;

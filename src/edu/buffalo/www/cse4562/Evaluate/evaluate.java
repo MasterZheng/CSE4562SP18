@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class evaluate extends Eval {
@@ -23,10 +24,10 @@ public class evaluate extends Eval {
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
-    private HashMap<String, TableObject> tableMap;
+    private Map<String, TableObject> tableMap;
     private List<Object> selectList;
 
-    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, HashMap<String, TableObject> tableMap) {
+    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, Map<String, TableObject> tableMap) {
         this.tupleLeft = tupleLeft;
         this.tupleRight = tupleRight;
         this.expression = expression;

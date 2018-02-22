@@ -14,7 +14,8 @@ public class Tuple {
     private HashMap<String, Object> attributes = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;
     private boolean Empty;
-    private String  tableName;
+    private String tableName;
+
     public Tuple() {
         this.Empty = true;
     }
@@ -67,32 +68,29 @@ public class Tuple {
         this.columnDefinitions = columnDefinitions;
     }
 
-    public void print(HashMap<String ,TableObject> tableMap ) {
+    public void print() {
         String row = "";
         List<ColumnDefinition> list = this.getColumnDefinitions();
-        for (Iterator<Map.Entry<String, Object>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
-            Map.Entry<String, Object> column = attIter.next();
-            for (ColumnDefinition colDef:list){
-                if (column.getKey().equals(colDef.getColumnName())){
-                    if (colDef.getColDataType().getDataType().equals("STRING")){
-                        row+="\'"+column.getValue()+"\'";
-                    }else {
-                        row+=column.getValue().toString();
-                    }
-                    if (attIter.hasNext()){
-                        row+="|";
-                    }
-                    break;
-                }
+//        for (Iterator<Map.Entry<String, Object>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
+//            Map.Entry<String, Object> column = attIter.next();
+        for (int i = 0; i < list.size();i++) {
+            if (list.get(i).getColDataType().getDataType().equals("STRING")) {
+                row += "\'" + attributes.get(list.get(i).getColumnName()) + "\'";
+            } else {
+                row += attributes.get(list.get(i).getColumnName());
+            }
+            if (list.size() != 1 && i < list.size() - 1) {
+                row += "|";
             }
         }
+        System.out.println(row);
+    }
+}
 
 //        for (Iterator<Map.Entry<String, String>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
 //            row+=attIter.next().getValue();
 //            if (attIter.hasNext()) {
 //                row += "|";
 //            }
-        System.out.println(row);
 
-    }
-}
+
