@@ -33,8 +33,7 @@ public class processSelect {
         TableObject tableLeft = new TableObject();
         TableObject tableRight = new TableObject();
 
-        TableObject leftResult;
-        TableObject rightResult;
+
 
         FileReader fileReaderLeft;
         FileReader fileReaderRight;
@@ -61,8 +60,8 @@ public class processSelect {
                     CSVInteratorLeft = parserLeft.iterator();
                 } else {
                     // join left node is a subSelect tree
-                    leftResult = subSelect(left, tableMap,pointer);
-                    tempIteratorLeft = leftResult.getIterator();
+                    tableLeft = subSelect(left, tableMap,pointer);
+                    tempIteratorLeft = tableLeft.getIterator();
                     //finish subSelect, stop loop.
                     break;
                 }
@@ -75,8 +74,8 @@ public class processSelect {
                         CSVInteratorRight = parserRight.iterator();
                     } else {
                         // join right node is a subSelect tree
-                        rightResult = subSelect(right, tableMap,pointer);
-                        tempIteratorRight = rightResult.getIterator();
+                        tableRight = subSelect(right, tableMap,pointer);
+                        tempIteratorRight = tableRight.getIterator();
                         break;
                     }
                 }
@@ -182,6 +181,7 @@ public class processSelect {
                                         colDef.setColumnName(colName);
                                     }
                                     colDef.setColDataType(c.getColDataType());
+                                    break;
                                 }
                             }
                             //todo
