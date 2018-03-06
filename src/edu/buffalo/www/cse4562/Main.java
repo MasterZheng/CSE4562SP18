@@ -25,66 +25,65 @@ public class Main {
 
     static String prompt = "$> "; // expected prompt
     static HashMap<String, TableObject> tableMap = new HashMap<>();
-        public static void main(String[] argsArray) throws Exception {
-            // ready to read stdin, print out prompt
+
+    public static void main(String[] argsArray) throws Exception {
+        // ready to read stdin, print out prompt
+        System.out.println(prompt);
+        System.out.flush();
+
+        Reader in = new InputStreamReader(System.in);
+        CCJSqlParser parser = new CCJSqlParser(in);
+        Statement s;
+
+        // project here
+        while ((s = parser.Statement()) != null) {
+            process(s, tableMap);
             System.out.println(prompt);
             System.out.flush();
-
-            Reader in = new InputStreamReader(System.in);
-            CCJSqlParser parser = new CCJSqlParser(in);
-            Statement s;
-
-            // project here
-            while((s = parser.Statement()) != null){
-                process(s, tableMap);
-                System.out.println(prompt);
-                System.out.flush();
-            }
         }
-        //todo readfile
-
+    }
 
 
     public static void process(Statement stmt, HashMap<String, TableObject> tableMap) throws Exception {
-            try {
-                //HashMap<String, Object> parsedSQL = new HashMap<>();
-                while (stmt != null) {
-                    if (stmt instanceof Select) {
-                        logger.info(stmt.toString());
-                        Select select = (Select) stmt;
-                        SelectBody body = select.getSelectBody();
-                        RANode raTree = SelectFunction(body);
-                        TableObject tempTable = SelectData(raTree, tableMap);
-                        if (tempTable!=null){
-                            Iterator<Tuple> iterator = tempTable.getIterator();
-                            while (iterator.hasNext()){
-                                iterator.next().print();
-                            }
+        try {
+            //HashMap<String, Object> parsedSQL = new HashMap<>();
+            while (stmt != null) {
+                if (stmt instanceof Select) {
+                    logger.info(stmt.toString());
+                    Select select = (Select) stmt;
+                    SelectBody body = select.getSelectBody();
+                    RANode raTree = SelectFunction(body);
+                    TableObject tempTable = SelectData(raTree, tableMap);
+                    if (tempTable != null) {
+                        Iterator<Tuple> iterator = tempTable.getIterator();
+                        while (iterator.hasNext()) {
+                            iterator.next().print();
                         }
-                        stmt=null;
-                        //执行完清除临时表
-                        for (Iterator<Map.Entry<String,TableObject>> it = tableMap.entrySet().iterator();it.hasNext();){
-                            Map.Entry<String,TableObject> entry = it.next();
-                            if (entry.getValue().isTemp()){
-                                it.remove();
-                            }
-                        }
-                    } else if (stmt instanceof CreateTable) {
-                        boolean flag = CreatFunction((CreateTable) stmt, tableMap);
-                        stmt=null;
-                        if (flag) {
-                            logger.info("Create table successfully");
-                        } else {
-                            logger.warning("Failed to create a table ");
-                        }
-                    } else {
-                        stmt=null;
-                        throw new Exception("Cannot handle the statement" + stmt);
                     }
+                    stmt = null;
+                    //执行完清除临时表
+                    for (Iterator<Map.Entry<String, TableObject>> it = tableMap.entrySet().iterator(); it.hasNext(); ) {
+                        Map.Entry<String, TableObject> entry = it.next();
+                        if (entry.getValue().isTemp()) {
+                            it.remove();
+                        }
+                    }
+                } else if (stmt instanceof CreateTable) {
+                    boolean flag = CreatFunction((CreateTable) stmt, tableMap);
+                    stmt = null;
+                    if (flag) {
+                        logger.info("Create table successfully");
+                    } else {
+                        logger.warning("Failed to create a table ");
+                    }
+                } else {
+                    stmt = null;
+                    throw new Exception("Cannot handle the statement" + stmt);
                 }
-            }catch (Exception e){
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
