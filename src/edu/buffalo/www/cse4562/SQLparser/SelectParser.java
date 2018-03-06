@@ -19,6 +19,12 @@ public class SelectParser {
      */
     static Logger logger = Logger.getLogger(SelectItem.class.getName());
 
+    /**
+     * Parse the SelectBody into HashMap
+     * @param body
+     * @param tableCounter
+     * @return
+     */
     public static HashMap<String, Object> SelectFunction(SelectBody body, int tableCounter) {
 
         HashMap<String, Object> query = new HashMap<>();
@@ -53,17 +59,6 @@ public class SelectParser {
                 //Do not need to parse the select list here,
                 operations.put("SELECTITEM", selectItem);
             }
-//            for (int i = 0; i < selectItem.size(); i++) {
-//                //todo
-//                if (selectItem.get(i) instanceof SelectExpressionItem) {
-//                    selectList.add(selectItem.get(i));
-//                } else if (selectItem.get(i) instanceof AllTableColumns) {
-//                    String schema = ((AllTableColumns) selectItem).getTable().getSchemaName();
-//                    selectList.add(selectItem.get(i));
-//                } else if (selectItem.get(i) instanceof AllColumns) {
-//                    selectList.add(selectItem.get(i));
-//                }
-//            }
 
             if (orderby != null) {
                 operations.put("ORDERBY", orderby);
@@ -109,7 +104,13 @@ public class SelectParser {
         return tableCounter;
     }
 
+    /**
+     * Parse the SelectBody into RA tree
+     * @param body
+     * @return the root node
+     */
     public static RANode SelectFunction(SelectBody body) {
+
         logger.info("Use RATree to parse SQL");
 
         if (!(body instanceof Union)) {
@@ -137,6 +138,7 @@ public class SelectParser {
                 joinNode.setLeftNode(table);
                 table.setParentNode(pointer);
             }
+
             if (joins != null) {
                 for (int i = 0; i < joins.size(); i++) {
                     FromItem join = joins.get(i).getRightItem();
@@ -199,9 +201,9 @@ public class SelectParser {
                 whereNode.setLeftNode(pointer);
                 pointer.setParentNode(whereNode);
                 pointer = whereNode;
-            }else {
+            } else {
                 // if no where ,add 1==1 as the where expression
-                EqualsTo rightWhere = new EqualsTo(new LongValue(1),new LongValue(1));
+                EqualsTo rightWhere = new EqualsTo(new LongValue(1), new LongValue(1));
                 RANode whereNode = new RASelection(rightWhere);
                 whereNode.setLeftNode(pointer);
                 pointer.setParentNode(whereNode);
