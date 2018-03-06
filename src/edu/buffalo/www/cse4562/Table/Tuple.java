@@ -85,12 +85,8 @@ public class Tuple {
         }
         System.out.println(row);
     }
+
 }
 
-//        for (Iterator<Map.Entry<String, String>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
-//            row+=attIter.next().getValue();
-//            if (attIter.hasNext()) {
-//                row += "|";
-//            }
 
 
