@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.RA;
 
+import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 
 import java.util.List;
@@ -24,6 +25,9 @@ public class RAOrderby extends RANode {
         return operation;
     }
 
+    public TableObject Eval(TableObject table){
+        return table;
+    }
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {

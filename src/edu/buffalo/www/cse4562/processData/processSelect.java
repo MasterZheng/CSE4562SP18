@@ -5,7 +5,6 @@ import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.csv.CSVFormat;
@@ -46,7 +45,7 @@ public class processSelect {
         Iterator<Tuple> tempIteratorRight = null;
         List<Object> selectItems = new ArrayList();
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
-
+        List<OrderByElement> orderBy = new ArrayList<>();
         while (pointer.hasNext()) {
             //find the first join
             pointer = pointer.getLeftNode();
@@ -96,20 +95,28 @@ public class processSelect {
                             tupleLeft = new Tuple(tableLeft,CSVInteratorLeft.next());
                             queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft,tableMap);
                         }
+                        result.settupleList(queryResult);
                     }else if (tempIteratorLeft!=null){
                         // tuple iterator
                         while (tempIteratorLeft.hasNext()){
                             tupleLeft = tempIteratorLeft.next();
                             queryResult = ((RASelection)pointer).Eval(queryResult,tupleLeft,tableLeft,tableMap);
+                            result.settupleList(queryResult);
                         }
                     }
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection)pointer).getSelectItem();
-                columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
-                queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions,tableMap);
+                //columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
+                //queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions,tableMap);
+                result.setColumnDefinitions(tempColDef(selectItems,tableLeft,tableRight));
+
+                result = ((RAProjection) pointer).Eval(result,tableMap);
+
             } else if (operation.equals("ORDERBY")) {
+                orderBy = ((RAOrderby)pointer).getOrderby();
+                result =((RAOrderby)pointer).Eval(result);
                 //TODO
             } else if (operation.equals("DISTINCT")) {
                 //todo
@@ -122,8 +129,8 @@ public class processSelect {
             pointer = pointer.getParentNode();
         }
 
-        result.settupleList(queryResult);
-        result.setColumnDefinitions(columnDefinitions);
+//        result.settupleList(queryResult);
+//        result.setColumnDefinitions(columnDefinitions);
         return result;
     }
 
