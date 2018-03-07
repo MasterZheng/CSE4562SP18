@@ -121,4 +121,10 @@ public class TableObject {
         return this.tupleList.iterator();
     }
 
+    public void print(){
+        Iterator<Tuple> iterator = this.getIterator();
+        while (iterator.hasNext()) {
+            iterator.next().printTuple(this.columnDefinitions);
+        }
+    }
 }

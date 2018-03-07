@@ -1,18 +1,14 @@
 package edu.buffalo.www.cse4562.Table;
 
 
+import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Tuple {
-    //private TableObject tableObject;
-    private HashMap<String, Object> attributes = new HashMap<>();
-    private List<ColumnDefinition> columnDefinitions;
+    private HashMap<String, PrimitiveValue> attributes = new HashMap<>();
     private boolean Empty;
     private String tableName;
 
@@ -22,28 +18,27 @@ public class Tuple {
 
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
-        this.columnDefinitions = tableObject.getColumnDefinitions();
-        for (ColumnDefinition c : this.columnDefinitions) {
-            attributes.put(c.getColumnName().toUpperCase(), record.get(i++));
+        for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
+            if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(i++)));
+            } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
+                attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(i++)));
+            } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
+                attributes.put(c.getColumnName().toUpperCase(), new DateValue(record.get(i++)));
+            } else {
+                attributes.put(c.getColumnName().toUpperCase(), new NullValue());
+            }
         }
+
         this.Empty = false;
         this.tableName = tableObject.getTableName();
     }
 
-
-    //    public TableObject getTableObject() {
-//        return tableObject;
-//    }
-//
-//    public void setTableObject(TableObject tableObject) {
-//        this.tableObject = tableObject;
-//    }
-
-    public HashMap<String, Object> getAttributes() {
+    public HashMap<String, PrimitiveValue> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(HashMap attributes) {
+    public void setAttributes(HashMap<String, PrimitiveValue> attributes) {
         this.attributes = attributes;
     }
 
@@ -60,22 +55,12 @@ public class Tuple {
         this.tableName = table;
     }
 
-    public List<ColumnDefinition> getColumnDefinitions() {
-        return columnDefinitions;
-    }
-
-    public void setColumnDefinitions(List<ColumnDefinition> columnDefinitions) {
-        this.columnDefinitions = columnDefinitions;
-    }
-
-    public void print() {
+    public void printTuple(List<ColumnDefinition> list) {
         String row = "";
-        List<ColumnDefinition> list = this.getColumnDefinitions();
-//        for (Iterator<Map.Entry<String, Object>> attIter = attributes.entrySet().iterator();attIter.hasNext();){
-//            Map.Entry<String, Object> column = attIter.next();
-        for (int i = 0; i < list.size();i++) {
+
+        for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getColDataType().getDataType().equals("STRING")) {
-                row += "\'" + attributes.get(list.get(i).getColumnName()) + "\'";
+                row += attributes.get(list.get(i).getColumnName());
             } else {
                 row += attributes.get(list.get(i).getColumnName());
             }

@@ -42,33 +42,9 @@ public class evaluate extends Eval {
 
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
-        ColDataType changeType = null;
-
-        //according to the column name , compare the ColumnDefinitions to determine the type.
-        //and get the value by column name
-        HashMap tupleMap = tupleLeft.getAttributes();
-        String tableName = tupleLeft.getTableName();
+        HashMap<String, PrimitiveValue> tupleMap = tupleLeft.getAttributes();
         String colName = column.getColumnName().toUpperCase();
-        List<ColumnDefinition> columnDefinitions = tableMap.get(tableName).getColumnDefinitions();
-        for (int i = 0; i < columnDefinitions.size(); i++) {
-            ColumnDefinition def = columnDefinitions.get(i);
-            if (def.getColumnName().equals(colName)) {
-                changeType = def.getColDataType();
-                break;
-            }
-        }
-        PrimitiveValue Value;
-        //todo modify tuple map
-        if (changeType.toString().toUpperCase().equals("INT") || changeType.toString().toUpperCase().equals("LONG")) {
-            Value = new LongValue(tupleMap.get(colName).toString());
-        } else if (changeType.toString().toUpperCase().equals("STRING")) {
-            Value = new StringValue(tupleMap.get(colName).toString());
-        } else if (changeType.toString().toUpperCase().equals("DATE")) {
-            Value = new DateValue(tupleMap.get(colName).toString());
-        } else {
-            Value = new NullValue();
-        }
-        return Value;
+        return tupleMap.get(colName);
     }
 
     public boolean selectEval() throws Exception {
@@ -78,16 +54,10 @@ public class evaluate extends Eval {
 
     public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
         Tuple newTuple = new Tuple();
-        List<ColumnDefinition> columnDefinitions = new ArrayList<>();
-
-        HashMap<String, Object> attributes = new HashMap<>();
-        for (Object s : selectList) {
+        HashMap<String, PrimitiveValue> attributes = new HashMap<>();
+        for (int i = 0; i < selectList.size(); i++) {
+            Object s = selectList.get(i);
             if (s instanceof AllColumns) {
-//                for (ColumnDefinition c : list) {
-//                    String name = c.getColumnName();
-//                    attributes.put(name, tupleLeft.getAttributes().get(name));
-//                }
-//                newTuple.setAttributes(attributes);
                 newTuple = tupleLeft;
                 break;
             } else if (s instanceof AllTableColumns) {
@@ -97,34 +67,21 @@ public class evaluate extends Eval {
                 if (((SelectExpressionItem) s).getExpression() instanceof Column) {
                     String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
                     String alias = ((SelectExpressionItem) s).getAlias();
+
                     if (alias == null) {
                         attributes.put(name, tupleLeft.getAttributes().get(name));
                     } else {
                         attributes.put(alias, tupleLeft.getAttributes().get(name));
-                        name =alias;
                     }
-                    for (ColumnDefinition c:list){
-                        if (c.getColumnName().equals(name)){
-                            columnDefinitions.add(c);
-                        }
-                    }
+
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
                     attributes.put(name, result);
-                    ColumnDefinition colDef = new ColumnDefinition();
-                    if (((SelectExpressionItem) s).getAlias()!=null){
-                        colDef.setColumnName(((SelectExpressionItem) s).getAlias());
-                        ColDataType colDataType = new ColDataType();
-                        colDataType.setDataType("LONG");
-                        colDef.setColDataType(colDataType);
-                    }
-                    columnDefinitions.add(colDef);
+
                 }
             }
             newTuple.setAttributes(attributes);
-
-            newTuple.setColumnDefinitions(columnDefinitions);
         }
 
         newTuple.setTableName(tupleLeft.getTableName());
