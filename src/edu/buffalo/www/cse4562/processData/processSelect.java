@@ -32,19 +32,14 @@ public class processSelect {
 
         TableObject tableLeft = new TableObject();
         TableObject tableRight = new TableObject();
+        ArrayList<TableObject> involvedTables = new ArrayList<>();
 
-
-        FileReader fileReaderLeft;
-        FileReader fileReaderRight;
         CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
         CSVParser parserLeft;
         CSVParser parserRight;
-        Iterator<CSVRecord> CSVInteratorLeft = null;
-        Iterator<CSVRecord> CSVInteratorRight = null;
-        Iterator<Tuple> tempIteratorLeft = null;
-        Iterator<Tuple> tempIteratorRight = null;
+        Iterator leftIterator = null;
+        Iterator rightIterator = null;
         List<Object> selectItems = new ArrayList();
-        List<OrderByElement> orderBy = new ArrayList<>();
         while (pointer.hasNext()) {
             //find the first join
             pointer = pointer.getLeftNode();
@@ -53,13 +48,14 @@ public class processSelect {
                 if (left.getOperation().equals("TABLE")) {
                     //join left node is a table
                     tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
-                    fileReaderLeft = new FileReader(tableLeft.getFileDir());
-                    parserLeft = new CSVParser(fileReaderLeft, formator);
-                    CSVInteratorLeft = parserLeft.iterator();
+                    parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
+                    leftIterator = parserLeft.iterator();
+                    involvedTables.add(tableLeft);
                 } else {
                     // join left node is a subSelect tree
                     tableLeft = subSelect(left, tableMap, pointer);
-                    tempIteratorLeft = tableLeft.getIterator();
+                    leftIterator = tableLeft.getIterator();
+                    involvedTables.add(tableLeft);
                     //finish subSelect, stop loop.
                     break;
                 }
@@ -67,13 +63,16 @@ public class processSelect {
                     RANode right = pointer.getRightNode();
                     if (right.getOperation().equals("TABLE")) {
                         // join right node is a table
-                        fileReaderRight = new FileReader(tableRight.getFileDir());
-                        parserRight = new CSVParser(fileReaderRight, formator);
-                        CSVInteratorRight = parserRight.iterator();
+                        tableRight = tableMap.get(((RATable) right).getTable().getName().toUpperCase());
+                        parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+                        rightIterator = parserRight.iterator();
+                        involvedTables.add(tableRight);
+
                     } else {
                         // join right node is a subSelect tree
                         tableRight = subSelect(right, tableMap, pointer);
-                        tempIteratorRight = tableRight.getIterator();
+                        rightIterator = tableRight.getIterator();
+                        involvedTables.add(tableRight);
                         break;
                     }
                 }
@@ -88,30 +87,38 @@ public class processSelect {
                 // no action
             } else if (operation.equals("SELECTION")) {
                 Tuple tupleLeft;
-                if (CSVInteratorLeft != null) {
-                    while (CSVInteratorLeft.hasNext()) {
-                        //CSVrecord iterator
-                        tupleLeft = new Tuple(tableLeft, CSVInteratorLeft.next());
-                        queryResult = ((RASelection) pointer).Eval(queryResult, tupleLeft, tableLeft, tableMap);
+                Tuple tupleRight;
+                while (leftIterator != null && leftIterator.hasNext()) {
+                    //get left tuple
+                    if (leftIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")){
+                        //CSV iterator
+                        tupleLeft = new Tuple(tableLeft, (CSVRecord) leftIterator.next());
+                    }else {
+                        //list iterator
+                        tupleLeft = (Tuple) leftIterator.next();
                     }
-                    result.settupleList(queryResult);
-                } else if (tempIteratorLeft != null) {
-                    // tuple iterator
-                    while (tempIteratorLeft.hasNext()) {
-                        tupleLeft = tempIteratorLeft.next();
-                        queryResult = ((RASelection) pointer).Eval(queryResult, tupleLeft, tableLeft, tableMap);
-                        result.settupleList(queryResult);
+
+                    while (rightIterator != null && rightIterator.hasNext()){
+                        if (rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")){
+                            //CSV iterator
+                            tupleRight = new Tuple(tableRight, (CSVRecord) rightIterator.next());
+                        }else {
+                            //list iterator
+                            tupleRight = (Tuple) rightIterator.next();
+                        }
+                        queryResult = ((RASelection) pointer).Eval(queryResult, tupleLeft, tupleRight, involvedTables);
+                    }
+                    if (rightIterator == null){
+                        queryResult = ((RASelection) pointer).Eval(queryResult, tupleLeft, null, involvedTables);
                     }
                 }
+                result.settupleList(queryResult);
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
-                //columnDefinitions = tempColDef(selectItems,tableLeft,tableRight);
-                //queryResult = ((RAProjection) pointer).Eval(queryResult,columnDefinitions,tableMap);
-                result.setColumnDefinitions(tempColDef(selectItems, tableLeft, tableRight));
-
-                result = ((RAProjection) pointer).Eval(result, tableMap);
+                result.setColumnDefinitions(tempColDef(selectItems, involvedTables));
+                result = ((RAProjection) pointer).Eval(result, involvedTables);
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
@@ -119,7 +126,7 @@ public class processSelect {
             } else if (operation.equals("DISTINCT")) {
                 //todo
             } else if (operation.equals("LIMIT")) {
-                //todo
+                result = ((RALimit) pointer).Eval(result);
             }
             if (pointer == endPointer) {
                 break;
@@ -148,12 +155,12 @@ public class processSelect {
         return Result;
     }
 
-    public static List<ColumnDefinition> tempColDef(List selectItems, TableObject tableLeft,
-                                                    TableObject tableRight) {
+    public static List<ColumnDefinition> tempColDef(List selectItems, ArrayList<TableObject> involvedTables) {
         //todo create the temptable coldef
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
         if (selectItems.get(0) instanceof AllColumns) {
-            columnDefinitions.addAll(tableLeft.getColumnDefinitions());
+            for (TableObject t : involvedTables)
+                columnDefinitions.addAll(t.getColumnDefinitions());
         } else {
             for (Object s : selectItems) {
                 Expression expression = ((SelectExpressionItem) s).getExpression();
@@ -167,36 +174,72 @@ public class processSelect {
 //                    }
                 } else {
                     ColumnDefinition colDef = new ColumnDefinition();
+                    //todo Select R.S
                     if (expression instanceof Column) {
                         Column column = (Column) expression;
                         String colName = column.getColumnName();
-                        if (column.getTable().getName() != null) {
-                            colDef.setColumnName(colName);
-                            for (int i = 0; i < tableLeft.getColumnDefinitions().size(); i++) {
-                                if (tableLeft.getColumnDefinitions().get(i).getColumnName().equals(colName)) {
-                                    colDef.setColDataType(tableLeft.getColumnDefinitions().get(i).getColDataType());
+                        String tableName = column.getTable().getName();
+                        if (tableName == null) {
+                            //SELECT A FROM B,C
+                            for (TableObject t : involvedTables) {
+                                for (ColumnDefinition c : t.getColumnDefinitions()) {
+                                    if (c.getColumnName().equals(colName)) {
+
+                                        if (((SelectExpressionItem) s).getAlias() != null) {
+                                            colDef.setColumnName(((SelectExpressionItem) s).getAlias());
+                                        } else {
+                                            colDef.setColumnName(colName);
+                                        }
+                                        colDef.setColDataType(c.getColDataType());
+                                        break;
+                                    }
                                 }
                             }
+
                         } else {
-                            for (ColumnDefinition c : tableLeft.getColumnDefinitions()) {
-                                if (colName.equals(c.getColumnName())) {
-                                    if (((SelectExpressionItem) s).getAlias() != null) {
-                                        colDef.setColumnName(((SelectExpressionItem) s).getAlias());
-                                    } else {
-                                        colDef.setColumnName(colName);
+                            //SELECT B.A FROM B,C
+                            for (TableObject t : involvedTables) {
+                                if (t.getTableName().equals(tableName)) {
+                                    colDef.setColumnName(colName);
+                                    for (int i = 0; i < t.getColumnDefinitions().size(); i++) {
+                                        if (t.getColumnDefinitions().get(i).getColumnName().equals(colName)) {
+                                            colDef.setColDataType(t.getColumnDefinitions().get(i).getColDataType());
+                                            break;
+                                        }
                                     }
-                                    colDef.setColDataType(c.getColDataType());
                                     break;
                                 }
                             }
-                            //todo
-//                            for (ColumnDefinition c:tableRight.getColumnDefinitions()){
-//                                if (colName.equals(c.getColumnName())){
-//                                    colDef.setColumnName(colName);
-//                                    colDef.setColDataType(c.getColDataType());
+
+                        }
+
+//                        if (column.getTable().getName() != null) {
+//                            colDef.setColumnName(colName);
+//                            for (int i = 0; i < tableLeft.getColumnDefinitions().size(); i++) {
+//                                if (tableLeft.getColumnDefinitions().get(i).getColumnName().equals(colName)) {
+//                                    colDef.setColDataType(tableLeft.getColumnDefinitions().get(i).getColDataType());
 //                                }
 //                            }
-                        }
+//                        } else {
+//                            for (ColumnDefinition c : tableLeft.getColumnDefinitions()) {
+//                                if (colName.equals(c.getColumnName())) {
+//                                    if (((SelectExpressionItem) s).getAlias() != null) {
+//                                        colDef.setColumnName(((SelectExpressionItem) s).getAlias());
+//                                    } else {
+//                                        colDef.setColumnName(colName);
+//                                    }
+//                                    colDef.setColDataType(c.getColDataType());
+//                                    break;
+//                                }
+//                            }
+//                            //todo
+////                            for (ColumnDefinition c:tableRight.getColumnDefinitions()){
+////                                if (colName.equals(c.getColumnName())){
+////                                    colDef.setColumnName(colName);
+////                                    colDef.setColDataType(c.getColDataType());
+////                                }
+////                            }
+//                        }
                     } else {
                         colDef.setColumnName(((SelectExpressionItem) s).getAlias());
                         ColDataType colDataType = new ColDataType();

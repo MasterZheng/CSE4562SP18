@@ -9,13 +9,11 @@ import java.util.*;
 
 public class Tuple {
     private HashMap<String, PrimitiveValue> attributes = new HashMap<>();
-    private boolean Empty;
-    private String tableName;
+    private ArrayList<String> tableName = new ArrayList<>();
 
-    public Tuple() {
-        this.Empty = true;
+    public Tuple(){
+        
     }
-
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
@@ -30,8 +28,18 @@ public class Tuple {
             }
         }
 
-        this.Empty = false;
-        this.tableName = tableObject.getTableName();
+        this.tableName.add(tableObject.getTableName());
+    }
+
+    public Tuple joinTuple(Tuple right){
+        Tuple newTuple = new Tuple();
+        HashMap<String, PrimitiveValue> attributes = new HashMap<>();
+        attributes.putAll(this.getAttributes());
+        attributes.putAll(right.getAttributes());
+        newTuple.setTableName(this.getTableName());
+        newTuple.setTableName(right.getTableName());
+        newTuple.setAttributes(attributes);
+        return newTuple;
     }
 
     public HashMap<String, PrimitiveValue> getAttributes() {
@@ -42,19 +50,18 @@ public class Tuple {
         this.attributes = attributes;
     }
 
-    public boolean isEmpty() {
-        return Empty;
-    }
 
-
-    public String getTableName() {
+    public ArrayList<String> getTableName() {
         return tableName;
     }
 
-    public void setTableName(String table) {
-        this.tableName = table;
+    public void setTableName(ArrayList<String> tableName) {
+        this.tableName.addAll(tableName);
     }
 
+    public void setTableName(String tableName) {
+        this.tableName.add(tableName);
+    }
     public void printTuple(List<ColumnDefinition> list) {
         String row = "";
 

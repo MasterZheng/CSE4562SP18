@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.RA;
 
+import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.statement.select.Limit;
 
 public class RALimit extends RANode {
@@ -19,7 +20,10 @@ public class RALimit extends RANode {
         this.limit = limit;
     }
 
-
+    public TableObject Eval(TableObject unLimit){
+        unLimit.settupleList(unLimit.getTupleList().subList(0,(int) this.limit.getRowCount()));
+        return unLimit;
+    }
     public String getOperation() {
         return operation;
     }

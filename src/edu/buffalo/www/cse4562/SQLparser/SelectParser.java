@@ -117,7 +117,7 @@ public class SelectParser {
             List<Join> joins = ((PlainSelect) body).getJoins();
             List<SelectItem> selectItem = ((PlainSelect) body).getSelectItems();
             Expression where = ((PlainSelect) body).getWhere();
-            List orderby = ((PlainSelect) body).getOrderByElements();
+            List orderBy = ((PlainSelect) body).getOrderByElements();
             Distinct dist = ((PlainSelect) body).getDistinct();
             Limit lim = ((PlainSelect) body).getLimit();
             FromItem fromItem = ((PlainSelect) body).getFromItem();
@@ -143,7 +143,6 @@ public class SelectParser {
                 for (int i = 0; i < joins.size(); i++) {
                     FromItem join = joins.get(i).getRightItem();
 
-                    //if the leftchild is empty, insert the node into leftchild position.
                     if (join instanceof SubSelect) {
                         if (joinNode.getLeftNode() == null) {
                             //todo
@@ -217,8 +216,8 @@ public class SelectParser {
             pointer = projNode;
 
             //process orderby
-            if (orderby != null) {
-                RANode orderbyNode = new RAOrderby(orderby);
+            if (orderBy != null) {
+                RANode orderbyNode = new RAOrderby(orderBy);
                 orderbyNode.setLeftNode(pointer);
                 pointer.setParentNode(orderbyNode);
                 pointer = orderbyNode;

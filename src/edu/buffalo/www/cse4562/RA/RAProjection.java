@@ -23,24 +23,24 @@ public class RAProjection extends RANode {
         return selectItem;
     }
 
-    public List<Tuple> Eval(List<Tuple> queryResult,List<ColumnDefinition> columnDefinitions,HashMap<String, TableObject> tableMap)throws Exception{
+//    public List<Tuple> Eval(List<Tuple> queryResult,List<ColumnDefinition> columnDefinitions,ArrayList<TableObject> tableList)throws Exception{
+//        List<Tuple> result = new ArrayList<>();
+//
+//        for(int i = 0;i<queryResult.size();i++){
+//            evaluate eva = new evaluate(queryResult.get(i),this.selectItem,tableList);
+//            result.add(eva.projectEval(columnDefinitions));
+//        }
+//        return result;
+//    }
+    public TableObject Eval(TableObject OutputTable,ArrayList<TableObject> tableList)throws Exception{
         List<Tuple> result = new ArrayList<>();
 
-        for(int i = 0;i<queryResult.size();i++){
-            evaluate eva = new evaluate(queryResult.get(i),this.selectItem,tableMap);
-            result.add(eva.projectEval(columnDefinitions));
+        for(int i = 0;i<OutputTable.getTupleList().size();i++){
+            evaluate eva = new evaluate(OutputTable.getTupleList().get(i),this.selectItem,tableList);
+            result.add(eva.projectEval(tableList));
         }
-        return result;
-    }
-    public TableObject Eval(TableObject tableObject,HashMap<String, TableObject> tableMap)throws Exception{
-        List<Tuple> result = new ArrayList<>();
-
-        for(int i = 0;i<tableObject.getTupleList().size();i++){
-            evaluate eva = new evaluate(tableObject.getTupleList().get(i),this.selectItem,tableMap);
-            result.add(eva.projectEval(tableObject.getColumnDefinitions()));
-        }
-        tableObject.settupleList(result);
-        return tableObject;
+        OutputTable.settupleList(result);
+        return OutputTable;
     }
     public void setSelectItem(List selectItem) {
         this.selectItem = selectItem;

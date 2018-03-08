@@ -53,9 +53,9 @@ public class Main {
                     Select select = (Select) stmt;
                     SelectBody body = select.getSelectBody();
                     RANode raTree = SelectFunction(body);
-                    TableObject tempTable = SelectData(raTree, tableMap);
-                    if (tempTable != null) {
-                        tempTable.print();
+                    TableObject queryResult = SelectData(raTree, tableMap);
+                    if (queryResult != null) {
+                        queryResult.print();
                     }
                     stmt = null;
                     //执行完清除临时表

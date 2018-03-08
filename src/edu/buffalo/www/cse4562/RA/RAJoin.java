@@ -46,10 +46,6 @@ public class RAJoin extends RANode {
         }
     }
 
-    @Override
-    public void setRightNode(RANode rightNode) {
-        super.setLeftNode(leftNode);
-    }
 
     @Override
     public RANode next() {

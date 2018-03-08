@@ -6,8 +6,6 @@ import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
 
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.create.table.ColDataType;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
@@ -16,7 +14,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class evaluate extends Eval {
@@ -24,27 +21,39 @@ public class evaluate extends Eval {
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
-    private Map<String, TableObject> tableMap;
+    private ArrayList<TableObject> tableList;
     private List<Object> selectList;
 
-    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, Map<String, TableObject> tableMap) {
+    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, ArrayList<TableObject> tableList) {
         this.tupleLeft = tupleLeft;
         this.tupleRight = tupleRight;
         this.expression = expression;
-        this.tableMap = tableMap;
+        this.tableList = tableList;
     }
 
-    public evaluate(Tuple tupleLeft, List<Object> list, HashMap<String, TableObject> tableMap) {
+    public evaluate(Tuple tupleLeft, List<Object> list, ArrayList<TableObject> tableList) {
         this.tupleLeft = tupleLeft;
         this.selectList = list;
-        this.tableMap = tableMap;
+        this.tableList = tableList;
     }
 
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
-        HashMap<String, PrimitiveValue> tupleMap = tupleLeft.getAttributes();
         String colName = column.getColumnName().toUpperCase();
-        return tupleMap.get(colName);
+        String colTable = column.getTable().getName();
+        if (colTable != null) {
+            if (tupleLeft.getTableName().equals(colTable) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(colName);
+            } else {
+                return tupleRight.getAttributes().get(colName);
+            }
+        } else {
+            if (tupleLeft.getAttributes().containsKey(colName) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(colName);
+            } else {
+                return tupleRight.getAttributes().get(colName);
+            }
+        }
     }
 
     public boolean selectEval() throws Exception {
@@ -52,7 +61,8 @@ public class evaluate extends Eval {
         return result.toBool();
     }
 
-    public Tuple projectEval(List<ColumnDefinition> list) throws Exception {
+    public Tuple projectEval(List<TableObject> involvedTable) throws Exception {
+        //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         Tuple newTuple = new Tuple();
         HashMap<String, PrimitiveValue> attributes = new HashMap<>();
         for (int i = 0; i < selectList.size(); i++) {
@@ -73,12 +83,10 @@ public class evaluate extends Eval {
                     } else {
                         attributes.put(alias, tupleLeft.getAttributes().get(name));
                     }
-
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
                     attributes.put(name, result);
-
                 }
             }
             newTuple.setAttributes(attributes);
