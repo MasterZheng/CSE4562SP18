@@ -158,7 +158,6 @@ public class SelectParser {
             if (joins != null) {
                 for (int i = 0; i < joins.size(); i++) {
                     FromItem join = joins.get(i).getRightItem();
-
                     if (join instanceof SubSelect) {
                         if (joinNode.getRightNode() == null) {
                             RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());

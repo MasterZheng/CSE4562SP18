@@ -14,6 +14,7 @@ public class TableObject {
     private Table table;
     private String tableName;
     private String fileDir;
+    private String alisa;
     private List<ColumnDefinition> columnDefinitions;
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo= new ArrayList<>();
@@ -36,6 +37,14 @@ public class TableObject {
         }
     }
 
+
+    public String getAlisa() {
+        return alisa;
+    }
+
+    public void setAlisa(String alisa) {
+        this.alisa = alisa;
+    }
 
     public Table getTable() {
         return table;

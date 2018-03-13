@@ -7,6 +7,7 @@ public class RATable extends RANode{
     private String operation = "TABLE";
     private Table table;
 
+
     public RATable(Table table) {
         this.table = table;
     }
@@ -14,6 +15,7 @@ public class RATable extends RANode{
     public Table getTable() {
         return table;
     }
+
 
     public void setTable(Table table) {
         this.table = table;

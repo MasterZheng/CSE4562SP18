@@ -1,7 +1,9 @@
 package edu.buffalo.www.cse4562.RA;
 
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.select.FromItem;
 
 import java.util.List;
@@ -15,6 +17,7 @@ public class RAJoin extends RANode {
     public RAJoin(FromItem fromItem, List join) {
         this.fromItem = fromItem;
         this.join = join;
+        this.expression = new EqualsTo(new LongValue(1), new LongValue(1));
     }
 
     public void addAndExpression(Expression e){
@@ -26,6 +29,15 @@ public class RAJoin extends RANode {
     public void Eval(){
 
     }
+
+    public List getJoin() {
+        return join;
+    }
+
+    public void setJoin(List join) {
+        this.join = join;
+    }
+
     public FromItem getFromItem() {
         return fromItem;
     }

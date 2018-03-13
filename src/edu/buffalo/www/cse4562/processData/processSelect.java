@@ -60,10 +60,13 @@ public class processSelect {
                 if (left.getOperation().equals("TABLE")) {
                     //join left node is a table
                     tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
+                    tableLeft.setAlisa(((RATable) left).getTable().getAlias());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     leftIterator = parserLeft.iterator();
                     involvedTables.add(tableLeft);
-                } else {
+                } else if (left.getOperation().equals("JOIN")){
+                    leftIterator = result.getIterator();
+                }else {
                     // join left node is a subSelect tree
                     tableLeft = subSelect(left, tableMap, pointer);
                     leftIterator = tableLeft.getIterator();
@@ -75,18 +78,19 @@ public class processSelect {
                     if (right.getOperation().equals("TABLE")) {
                         // join right node is a table
                         tableRight = tableMap.get(((RATable) right).getTable().getName().toUpperCase());
+                        tableRight.setAlisa(((RATable) right).getTable().getAlias());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
                         rightIterator = parserRight.iterator();
                         involvedTables.add(tableRight);
-
-                    } else {
+                    }else {
                         // join right node is a subSelect tree
                         tableRight = subSelect(right, tableMap, pointer);
                         rightIterator = tableRight.getIterator();
                         involvedTables.add(tableRight);
                     }
                 }
-                if (pointer.getExpression() != null) {
+                if (((RAJoin)pointer).getJoin()!=null&&pointer.getExpression() != null) {
+                    //the join has 2 children,skip 1=1 in join.expression
                     result = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
                     leftIterator = null;
                     rightIterator = null;
@@ -148,7 +152,8 @@ public class processSelect {
                 if (s instanceof AllTableColumns) {
                     Table allColumnsTable = ((AllTableColumns) s).getTable();
                     for(int i = 0;i<involvedTables.size();i++){
-                        if (involvedTables.get(i).getTableName().equals(allColumnsTable.getName())){
+                        if (involvedTables.get(i).getTableName().equals(allColumnsTable.getName())
+                                ||involvedTables.get(i).getAlisa().equals(allColumnsTable.getName())){
                             List<Column> c = involvedTables.get(i).getColumnInfo();
                             for(int j = 0;j<c.size();j++){
                                 c.get(j).setTable(allColumnsTable);
@@ -191,7 +196,7 @@ public class processSelect {
                         } else {
                             //SELECT B.A FROM B,C
                             for (TableObject t : involvedTables) {
-                                if (t.getTableName().equals(tableName)) {
+                                if (t.getTableName().equals(tableName)||t.getAlisa().equals(tableName)) {
                                     colDef.setColumnName(colName);
                                     colInfo.setColumnName(colName);
                                     colInfo.setTable(t.getTable());

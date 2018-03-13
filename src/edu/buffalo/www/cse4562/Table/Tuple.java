@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.Table;
 
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
@@ -18,16 +19,20 @@ public class Tuple {
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
+            Table table = tableObject.getTable();
+            if (tableObject.getAlisa()!=null){
+                table.setName(tableObject.getAlisa());
+            }
             if (c.getColDataType().toString().toUpperCase().equals("INT") ||c.getColDataType().toString().toUpperCase().equals("INTEGER")|| c.getColDataType().toString().toUpperCase().equals("LONG")) {
-                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
+                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
-                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
+                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
-                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
+                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
-                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
+                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
             } else {
-                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new NullValue());
+                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new NullValue());
             }
         }
 
