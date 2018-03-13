@@ -6,6 +6,7 @@ import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.*;
@@ -25,6 +26,7 @@ public class processSelect {
     static Logger logger = Logger.getLogger(processSelect.class.getName());
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
+
     public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
         //TODO
         List<Tuple> queryResult = new ArrayList<>();
@@ -44,7 +46,7 @@ public class processSelect {
         while (pointer.hasNext()) {
             //find the first join
             pointer = pointer.getLeftNode();
-            if (pointer.getOperation().equals("JOIN")&&!pointer.getLeftNode().getOperation().equals("JOIN")) {
+            if (pointer.getOperation().equals("JOIN") && !pointer.getLeftNode().getOperation().equals("JOIN")) {
                 break;
             }
         }
@@ -84,56 +86,22 @@ public class processSelect {
                         involvedTables.add(tableRight);
                     }
                 }
-                if (pointer.getExpression()!=null){
-                    result = SelectAndJoin(leftIterator,rightIterator,tableLeft,tableRight,pointer);
-                    leftIterator= null;
+                if (pointer.getExpression() != null) {
+                    result = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                    leftIterator = null;
                     rightIterator = null;
                 }
-            } else if (operation.equals("SELECTION")&&pointer.getExpression()!=null) {
-                    TableObject tableObject =SelectAndJoin(leftIterator,rightIterator,tableLeft,tableRight,pointer);
-                    if (tableObject!=null){
-                        result = tableObject;
+            } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
+                TableObject tableObject = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                if (tableObject != null) {
+                    result = tableObject;
                 }
-//                Tuple tupleLeft, tupleRight;
-//                while (leftIterator != null && leftIterator.hasNext()) {
-//                    //get left tuple
-//                    if (leftIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-//                        //CSV iterator
-//                        tupleLeft = new Tuple(tableLeft, (CSVRecord) leftIterator.next());
-//                    } else {
-//                        //list iterator
-//                        tupleLeft = (Tuple) leftIterator.next();
-//                    }
-//
-//                    if (rightIterator != null) {
-//                        while (rightIterator.hasNext()) {
-//                            if (rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-//                                //CSV iterator
-//                                tupleRight = new Tuple(tableRight, (CSVRecord) rightIterator.next());
-//                            } else {
-//                                //list iterator
-//                                tupleRight = (Tuple) rightIterator.next();
-//                            }
-//                            queryResult = ((RASelection) pointer).Eval(queryResult, tupleLeft, tupleRight, involvedTables);
-//                        }
-//                        if(parserRight == null){
-//                            rightIterator = tableRight.getIterator();
-//                        }else {
-//                            parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-//                            rightIterator = parserRight.iterator();
-//                        }
-//                    }
-//                    if (rightIterator == null) {
-//                        ((RASelection) pointer).Eval(queryResult, tupleLeft, null, involvedTables);
-//                    }
-//                }
-//                result.settupleList(queryResult);
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
                 tempColDef(result, selectItems, involvedTables);
-                result = ((RAProjection) pointer).Eval(result, involvedTables);
+                result = ((RAProjection) pointer).Eval(result);
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
@@ -143,7 +111,7 @@ public class processSelect {
             } else if (operation.equals("LIMIT")) {
                 result = ((RALimit) pointer).Eval(result);
             }
-            if (pointer==end) {
+            if (pointer == end) {
                 break;
             }
             pointer = pointer.getParentNode();
@@ -177,10 +145,22 @@ public class processSelect {
             }
         } else {
             for (Object s : selectItems) {
-                Expression expression = ((SelectExpressionItem) s).getExpression();
-                if (s.toString().contains("*")) {
-                    //todo SELECT X.*
+                if (s instanceof AllTableColumns) {
+                    Table allColumnsTable = ((AllTableColumns) s).getTable();
+                    for(int i = 0;i<involvedTables.size();i++){
+                        if (involvedTables.get(i).getTableName().equals(allColumnsTable.getName())){
+                            List<Column> c = involvedTables.get(i).getColumnInfo();
+                            for(int j = 0;j<c.size();j++){
+                                c.get(j).setTable(allColumnsTable);
+                            }
+                            columnDefinitions.addAll(involvedTables.get(i).getColumnDefinitions());
+                            columnInfo.addAll(c);
+                            break;
+                        }
+                    }
                 } else {
+                    Expression expression = ((SelectExpressionItem) s).getExpression();
+
                     ColumnDefinition colDef = new ColumnDefinition();
                     Column colInfo = new Column();
                     //todo Select R.S
@@ -243,12 +223,11 @@ public class processSelect {
         tableObject.setColumnDefinitions(columnDefinitions);
     }
 
-    public static TableObject SelectAndJoin(Iterator leftIterator,Iterator rightIterator,TableObject tableLeft,TableObject tableRight,RANode pointer) throws Exception{
+    public static TableObject SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
 
         TableObject result = new TableObject();
-        ArrayList<TableObject> involvedTables = new ArrayList<>();
-        if (leftIterator==null&&rightIterator==null){
+        if (leftIterator == null && rightIterator == null) {
             return null;
         }
         Tuple tupleLeft, tupleRight;
@@ -274,9 +253,9 @@ public class processSelect {
                     evaluate eva = new evaluate(tupleLeft, tupleRight, pointer.getExpression());
                     queryResult = eva.Eval(queryResult);
                 }
-                if(!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")){
+                if (!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
                     rightIterator = tableRight.getIterator();
-                }else {
+                } else {
                     CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
                     rightIterator = parserRight.iterator();
                 }

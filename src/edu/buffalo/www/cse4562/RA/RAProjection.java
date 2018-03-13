@@ -32,12 +32,12 @@ public class RAProjection extends RANode {
 //        }
 //        return result;
 //    }
-    public TableObject Eval(TableObject OutputTable,ArrayList<TableObject> tableList)throws Exception{
+    public TableObject Eval(TableObject OutputTable)throws Exception{
         List<Tuple> result = new ArrayList<>();
 
         for(int i = 0;i<OutputTable.getTupleList().size();i++){
-            evaluate eva = new evaluate(OutputTable.getTupleList().get(i),this.selectItem,tableList);
-            result.add(eva.projectEval(tableList));
+            evaluate eva = new evaluate(OutputTable.getTupleList().get(i),this.selectItem);
+            result.add(eva.projectEval(OutputTable.getColumnInfo()));
         }
         OutputTable.settupleList(result);
         return OutputTable;

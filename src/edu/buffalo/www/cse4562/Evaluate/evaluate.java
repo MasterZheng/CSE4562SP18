@@ -31,11 +31,10 @@ public class evaluate extends Eval {
         this.expression = expression;
     }
 
-    public evaluate(Tuple tupleLeft, List<Object> list, ArrayList<TableObject> tableList) {
+    public evaluate(Tuple tupleLeft, List<Object> list) {
         //projection
         this.tupleLeft = tupleLeft;
         this.selectList = list;
-        this.tableList = tableList;
 
     }
 
@@ -68,7 +67,7 @@ public class evaluate extends Eval {
     }
 
 
-    public Tuple projectEval(List<TableObject> involvedTable) throws Exception {
+    public Tuple projectEval(List<Column> columns) throws Exception {
         //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         Tuple newTuple = new Tuple();
         HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
@@ -78,7 +77,12 @@ public class evaluate extends Eval {
                 newTuple = tupleLeft;
                 break;
             } else if (s instanceof AllTableColumns) {
-                //todo
+                String tableName = ((AllTableColumns) s).getTable().getName();
+                for (int j = 0;j<columns.size();j++){
+                    if (columns.get(j).getTable().getName().equals(tableName)){
+                        attributes.put(columns.get(j),tupleLeft.getAttributes().get(columns.get(j)));
+                    }
+                }
             } else {
                 //  todo 优化
                 if (((SelectExpressionItem) s).getExpression() instanceof Column) {
