@@ -22,6 +22,8 @@ public class Tuple {
                 attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
                 attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
+            } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
+                attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
                 attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
             } else {
