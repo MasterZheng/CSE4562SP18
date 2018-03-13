@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.RA;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
@@ -32,12 +33,12 @@ public class RAProjection extends RANode {
 //        }
 //        return result;
 //    }
-    public TableObject Eval(TableObject OutputTable)throws Exception{
+    public TableObject Eval(TableObject OutputTable,String tableName)throws Exception{
         List<Tuple> result = new ArrayList<>();
-
+        Table table = new Table(tableName);
         for(int i = 0;i<OutputTable.getTupleList().size();i++){
             evaluate eva = new evaluate(OutputTable.getTupleList().get(i),this.selectItem);
-            result.add(eva.projectEval(OutputTable.getColumnInfo()));
+            result.add(eva.projectEval(OutputTable.getColumnInfo(),table));
         }
         OutputTable.settupleList(result);
         return OutputTable;

@@ -27,9 +27,8 @@ public class processSelect {
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
-    public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap) throws Exception {
-        //TODO
-        List<Tuple> queryResult = new ArrayList<>();
+    public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap,String tableName) throws Exception {
+        //tableName 子查询结果表的 alisa
         TableObject result = new TableObject();
         RANode pointer = raTree;
         RANode end = pointer;
@@ -105,7 +104,7 @@ public class processSelect {
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
                 tempColDef(result, selectItems, involvedTables);
-                result = ((RAProjection) pointer).Eval(result);
+                result = ((RAProjection) pointer).Eval(result,tableName);
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
@@ -120,21 +119,26 @@ public class processSelect {
             }
             pointer = pointer.getParentNode();
         }
+        result.setTableName(tableName);
         return result;
     }
 
 
     private static TableObject subSelect(RANode raTree, HashMap<String, TableObject> tableMap, RANode pointer) throws Exception {
-        TableObject Result = SelectData(raTree, tableMap);
         String name = ((RAJoin) pointer).getFromItem().getAlias();
+        TableObject Result = SelectData(raTree, tableMap,name);
         if (((RAJoin) pointer).getFromItem().getAlias() != null) {
             String alias = ((RAJoin) pointer).getFromItem().getAlias();
             Result.setTableName(alias);
         }
-        tableMap.put(name, Result);
         for (int i = 0; i < Result.getTupleList().size(); i++) {
             Result.getTupleList().get(i).setTableName(name);
         }
+        Table table = new Table(name);
+        for(int i = 0;i<Result.getColumnInfo().size();i++){
+            Result.getColumnInfo().get(i).setTable(table);
+        }
+        tableMap.put(name, Result);
         return Result;
     }
 

@@ -6,6 +6,7 @@ import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
 
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
@@ -67,20 +68,23 @@ public class evaluate extends Eval {
     }
 
 
-    public Tuple projectEval(List<Column> columns) throws Exception {
+    public Tuple projectEval(List<Column> columns,Table table) throws Exception {
         //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         Tuple newTuple = new Tuple();
         HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
         for (int i = 0; i < selectList.size(); i++) {
             Object s = selectList.get(i);
             if (s instanceof AllColumns) {
+                //todo
                 newTuple = tupleLeft;
                 break;
             } else if (s instanceof AllTableColumns) {
                 String tableName = ((AllTableColumns) s).getTable().getName();
-                for (int j = 0;j<columns.size();j++){
-                    if (columns.get(j).getTable().getName().equals(tableName)){
-                        attributes.put(columns.get(j),tupleLeft.getAttributes().get(columns.get(j)));
+                for (int j = 0; j < columns.size(); j++) {
+                    if (columns.get(j).getTable().getName().equals(tableName)) {
+                        Column column = columns.get(j);
+                        attributes.put(column, tupleLeft.getAttributes().get(column));
+                        column.setTable(table);
                     }
                 }
             } else {
@@ -91,13 +95,14 @@ public class evaluate extends Eval {
                     if (alias == null) {
                         attributes.put(column, tupleLeft.getAttributes().get(column));
                     } else {
-                        Column newCol = new Column(column.getTable(), alias);
-                        attributes.put(newCol, tupleLeft.getAttributes().get(column));
+                        column.setColumnName(alias);
+                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     }
+                    column.setTable(table);
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
-                    attributes.put(new Column(null, name), result);
+                    attributes.put(new Column(table, name), result);
                 }
             }
             newTuple.setAttributes(attributes);
