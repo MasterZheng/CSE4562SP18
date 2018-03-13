@@ -19,9 +19,9 @@ public class TupleComparator implements Comparator<Tuple> {
         if (orderByElements == null) return 0;
 
         for (OrderByElement element : orderByElements) {
-            String colName = ((Column) element.getExpression()).getColumnName().toUpperCase();
-            PrimitiveValue leftValue = left.getAttributes().get(colName);
-            PrimitiveValue rightValue = right.getAttributes().get(colName);
+            Column column = ((Column) element.getExpression());
+            PrimitiveValue leftValue = left.getAttributes().get(column);
+            PrimitiveValue rightValue = right.getAttributes().get(column);
 
             try {
                 if (leftValue instanceof LongValue) {

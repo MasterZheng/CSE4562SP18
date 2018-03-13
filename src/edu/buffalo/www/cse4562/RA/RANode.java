@@ -1,13 +1,26 @@
 package edu.buffalo.www.cse4562.RA;
 
 
+import javafx.geometry.VPos;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+
 import java.util.Iterator;
 
 public abstract class RANode implements Iterator{
     public RANode leftNode;
     public RANode rightNode;
-    public String operation;
-    public RANode parentNode;
+    private String operation;
+    private RANode parentNode;
+    private Expression expression;
+
+    public Expression getExpression() {
+        return expression;
+    }
+
+    public void setExpression(Expression e) {
+        this.expression = e;
+    }
 
     public RANode getParentNode() {
         return parentNode;

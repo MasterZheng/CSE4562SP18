@@ -1,5 +1,7 @@
 package edu.buffalo.www.cse4562.RA;
 
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.statement.select.FromItem;
 
 import java.util.List;
@@ -8,12 +10,19 @@ public class RAJoin extends RANode {
     private String operation = "JOIN";
     private FromItem fromItem;
     private List join;
+    private Expression expression;
 
     public RAJoin(FromItem fromItem, List join) {
         this.fromItem = fromItem;
         this.join = join;
     }
 
+    public void addAndExpression(Expression e){
+        if (this.expression!=null){
+            this.expression = new AndExpression(this.expression,e);
+        }else
+            this.expression = e;
+    }
     public void Eval(){
 
     }
@@ -21,17 +30,6 @@ public class RAJoin extends RANode {
         return fromItem;
     }
 
-    public void setFromItem(FromItem fromItem) {
-        this.fromItem = fromItem;
-    }
-
-    public List getJoin() {
-        return join;
-    }
-
-    public void setJoin(List join) {
-        this.join = join;
-    }
 
     public String getOperation() {
         return operation;
@@ -46,6 +44,13 @@ public class RAJoin extends RANode {
         }
     }
 
+    public Expression getExpression() {
+        return expression;
+    }
+
+    public void setExpression(Expression expression) {
+        this.expression = expression;
+    }
 
     @Override
     public RANode next() {

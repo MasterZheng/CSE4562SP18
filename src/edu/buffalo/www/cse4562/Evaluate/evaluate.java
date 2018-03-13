@@ -21,50 +21,57 @@ public class evaluate extends Eval {
     private Tuple tupleLeft;
     private Tuple tupleRight;
     private Expression expression;
-    private ArrayList<TableObject> tableList;
     private List<Object> selectList;
+    private ArrayList<TableObject> tableList;
 
-    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression, ArrayList<TableObject> tableList) {
+    public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression) {
+        //selection
         this.tupleLeft = tupleLeft;
         this.tupleRight = tupleRight;
         this.expression = expression;
-        this.tableList = tableList;
     }
 
     public evaluate(Tuple tupleLeft, List<Object> list, ArrayList<TableObject> tableList) {
+        //projection
         this.tupleLeft = tupleLeft;
         this.selectList = list;
         this.tableList = tableList;
+
     }
 
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
-        String colName = column.getColumnName().toUpperCase();
         String colTable = column.getTable().getName();
         if (colTable != null) {
-            if (tupleLeft.getTableName().equals(colTable) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(colName);
+            if (tupleLeft.getTableName().contains(colTable) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(column);
             } else {
-                return tupleRight.getAttributes().get(colName);
+                return tupleRight.getAttributes().get(column);
             }
         } else {
-            if (tupleLeft.getAttributes().containsKey(colName) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(colName);
+            if (tupleLeft.getAttributes().containsKey(column) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(column);
             } else {
-                return tupleRight.getAttributes().get(colName);
+                return tupleRight.getAttributes().get(column);
             }
         }
     }
 
-    public boolean selectEval() throws Exception {
-        PrimitiveValue result = eval(expression);
-        return result.toBool();
+    public List<Tuple> Eval(List<Tuple> queryResult) throws Exception {
+        //Select and Join expression evaluate.
+        PrimitiveValue result = eval(this.expression);
+        if (result.toBool()) {
+            Tuple tuple = this.tupleRight != null ? this.tupleLeft.joinTuple(this.tupleRight) : this.tupleLeft;
+            queryResult.add(tuple);
+        }
+        return queryResult;
     }
+
 
     public Tuple projectEval(List<TableObject> involvedTable) throws Exception {
         //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         Tuple newTuple = new Tuple();
-        HashMap<String, PrimitiveValue> attributes = new HashMap<>();
+        HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
         for (int i = 0; i < selectList.size(); i++) {
             Object s = selectList.get(i);
             if (s instanceof AllColumns) {
@@ -75,18 +82,18 @@ public class evaluate extends Eval {
             } else {
                 //  todo 优化
                 if (((SelectExpressionItem) s).getExpression() instanceof Column) {
-                    String name = ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName();
                     String alias = ((SelectExpressionItem) s).getAlias();
-
+                    Column column = (Column) ((SelectExpressionItem) s).getExpression();
                     if (alias == null) {
-                        attributes.put(name, tupleLeft.getAttributes().get(name));
+                        attributes.put(column, tupleLeft.getAttributes().get(column));
                     } else {
-                        attributes.put(alias, tupleLeft.getAttributes().get(name));
+                        Column newCol = new Column(column.getTable(), alias);
+                        attributes.put(newCol, tupleLeft.getAttributes().get(column));
                     }
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
-                    attributes.put(name, result);
+                    attributes.put(new Column(null, name), result);
                 }
             }
             newTuple.setAttributes(attributes);

@@ -2,6 +2,7 @@ package edu.buffalo.www.cse4562;
 
 
 import edu.buffalo.www.cse4562.RA.RANode;
+import edu.buffalo.www.cse4562.SQLparser.SelectParser;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;
-import static edu.buffalo.www.cse4562.SQLparser.SelectParser.SelectFunction;
 import static edu.buffalo.www.cse4562.processData.processSelect.SelectData;
 
 public class Main {
@@ -52,7 +52,8 @@ public class Main {
                     logger.info(stmt.toString());
                     Select select = (Select) stmt;
                     SelectBody body = select.getSelectBody();
-                    RANode raTree = SelectFunction(body);
+                    SelectParser parser = new SelectParser(body);
+                    RANode raTree = parser.SelectFunction(body);
                     TableObject queryResult = SelectData(raTree, tableMap);
                     if (queryResult != null) {
                         queryResult.print();
