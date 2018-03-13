@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.RA;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.statement.select.Limit;
 
@@ -21,7 +22,9 @@ public class RALimit extends RANode {
     }
 
     public TableObject Eval(TableObject unLimit){
-        unLimit.settupleList(unLimit.getTupleList().subList(0,(int) this.limit.getRowCount()));
+        if (unLimit.getTupleList().size()>this.limit.getRowCount()){
+            unLimit.settupleList(unLimit.getTupleList().subList(0,(int) this.limit.getRowCount()));
+        }
         return unLimit;
     }
     public String getOperation() {

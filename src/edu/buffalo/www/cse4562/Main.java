@@ -4,7 +4,6 @@ package edu.buffalo.www.cse4562;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.SQLparser.SelectParser;
 import edu.buffalo.www.cse4562.Table.TableObject;
-import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -13,8 +12,6 @@ import net.sf.jsqlparser.statement.select.*;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;

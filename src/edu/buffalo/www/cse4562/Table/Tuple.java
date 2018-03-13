@@ -18,7 +18,7 @@ public class Tuple {
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
-            if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+            if (c.getColDataType().toString().toUpperCase().equals("INT") ||c.getColDataType().toString().toUpperCase().equals("INTEGER")|| c.getColDataType().toString().toUpperCase().equals("LONG")) {
                 attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
                 attributes.put(new Column(tableObject.getTable(),c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
