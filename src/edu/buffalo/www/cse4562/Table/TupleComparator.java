@@ -30,16 +30,16 @@ public class TupleComparator implements Comparator<Tuple> {
                     } else if (leftValue.toLong() < rightValue.toLong()) {
                         return element.isAsc() ? -1 : 1;
                     }
-                } else if (leftValue instanceof StringValue) {
-                    if (leftValue.toString().compareTo(rightValue.toString()) > 0) {
-                        return element.isAsc() ? 1 : -1;
-                    } else if (leftValue.toString().compareTo(rightValue.toString()) < 0) {
-                        return element.isAsc() ? -1 : 1;
-                    }
                 } else if (leftValue instanceof DoubleValue) {
                     if (leftValue.toDouble() > rightValue.toDouble()) {
                         return element.isAsc() ? 1 : -1;
                     } else if (leftValue.toDouble() < rightValue.toDouble()) {
+                        return element.isAsc() ? -1 : 1;
+                    }
+                } else if (leftValue instanceof StringValue) {
+                    if (leftValue.toString().compareTo(rightValue.toString()) > 0) {
+                        return element.isAsc() ? 1 : -1;
+                    } else if (leftValue.toString().compareTo(rightValue.toString()) < 0) {
                         return element.isAsc() ? -1 : 1;
                     }
                 } else if (leftValue instanceof DateValue) {

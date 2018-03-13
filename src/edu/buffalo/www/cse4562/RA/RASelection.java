@@ -1,15 +1,7 @@
 package edu.buffalo.www.cse4562.RA;
 
-import edu.buffalo.www.cse4562.Evaluate.evaluate;
-import edu.buffalo.www.cse4562.Evaluate.expProcess;
-import edu.buffalo.www.cse4562.Table.TableObject;
-import edu.buffalo.www.cse4562.Table.Tuple;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.PrimitiveValue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import net.sf.jsqlparser.expression.Expression;
 
 public class RASelection extends RANode {
 

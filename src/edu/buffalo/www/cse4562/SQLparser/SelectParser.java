@@ -144,7 +144,8 @@ public class SelectParser {
             RANode pointer = joinNode;
             if (fromItem instanceof SubSelect) {
                 // subSelect
-                RANode subSelect = SelectFunction(((SubSelect) fromItem).getSelectBody());
+                SelectParser subParser = new SelectParser(((SubSelect) fromItem).getSelectBody());
+                RANode subSelect = subParser.SelectFunction(((SubSelect) fromItem).getSelectBody());
                 joinNode.setLeftNode(subSelect);
                 subSelect.setParentNode(pointer);
             } else {

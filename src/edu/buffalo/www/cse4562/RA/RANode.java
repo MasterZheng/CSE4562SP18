@@ -1,9 +1,7 @@
 package edu.buffalo.www.cse4562.RA;
 
 
-import javafx.geometry.VPos;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 
 import java.util.Iterator;
 
