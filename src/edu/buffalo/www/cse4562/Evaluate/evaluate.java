@@ -11,7 +11,6 @@ import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
-import java.security.interfaces.ECKey;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +36,11 @@ public class evaluate extends Eval {
         //projection
         this.tupleLeft = tupleLeft;
         this.selectList = list;
-
     }
 
+    public evaluate(List<Object> list){
+        this.selectList = list;
+    }
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
         String colTable = column.getTable().getName();
@@ -83,7 +84,7 @@ public class evaluate extends Eval {
                 String tableName = ((AllTableColumns) s).getTable().getName();
                 for (int j = 0; j < columns.size(); j++) {
                     if (columns.get(j).getTable().getName().equals(tableName)) {
-                        Column column = new Column(columns.get(j).getTable(),columns.get(j).getColumnName());
+                        Column column = new Column(columns.get(j).getTable(), columns.get(j).getColumnName());
 //                        Column column = columns.get(j);
                         attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
                         if (!table.toString().equals("null")) {
@@ -95,7 +96,7 @@ public class evaluate extends Eval {
                 //  todo 优化
                 if (((SelectExpressionItem) s).getExpression() instanceof Column) {
                     String alias = ((SelectExpressionItem) s).getAlias();
-                    Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(),((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
+                    Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(), ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
                     if (alias == null) {
                         attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     } else {
@@ -117,4 +118,27 @@ public class evaluate extends Eval {
         return newTuple;
     }
 
+    public List project(List<Tuple> tupleList,List<Expression> columnList,List<Column> columnInfo)throws Exception{
+        List<Tuple> newTupleList = new ArrayList<>();
+        for (int i = 0;i<tupleList.size();i++){
+            Tuple newTuple = new Tuple();
+            HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+            for (int j = 0;j<columnList.size();j++){
+                if (columnList.get(j)!=null){
+                    attributes.put(columnInfo.get(j),tupleList.get(i).getAttributes().get(columnList.get(j)));
+                }else {
+                    Expression e= ((SelectExpressionItem) selectList.get(j)).getExpression();
+                    this.tupleLeft = tupleList.get(i);
+                    attributes.put(columnInfo.get(j),eval(e));
+                }
+            }
+            newTuple.setAttributes(attributes);
+            newTupleList.add(newTuple);
+        }
+        return newTupleList;
+    }
+
 }
+
+
+

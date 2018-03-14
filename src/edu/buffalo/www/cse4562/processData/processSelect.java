@@ -110,13 +110,12 @@ public class processSelect {
                     rightIterator = null;
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                if (!pointer.getExpression().toString().equals("1 = 1")) {
                     //当 where 不为 null 且不为1=1时，执行 selection
                     List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
                     if (queryResult != null) {
                         result.settupleList(queryResult);
                     }
-                }
+
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
@@ -260,10 +259,6 @@ public class processSelect {
 
     public static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
-
-        if (rightIterator == null && pointer.getExpression().toString().equals("1 = 1")){
-            return null;
-        }
         Tuple tupleLeft, tupleRight;
         while (leftIterator != null && leftIterator.hasNext()) {
             //get left tuple
