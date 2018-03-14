@@ -21,10 +21,11 @@ public class RAJoin extends RANode {
     }
 
     public void addAndExpression(Expression e){
-        if (this.expression!=null){
-            this.expression = new AndExpression(this.expression,e);
-        }else
+        if (this.expression.toString().equals("1 = 1")){
             this.expression = e;
+        }else {
+            this.expression = new AndExpression(this.expression,e);
+        }
     }
     public void Eval(){
 

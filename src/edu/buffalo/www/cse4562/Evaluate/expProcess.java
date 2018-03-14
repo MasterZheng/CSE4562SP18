@@ -15,34 +15,42 @@ public class expProcess {
 
     public expProcess(Expression expression) {
         this.expressions = new ArrayList<>();
-        while (expression instanceof AndExpression) {
-            Expression left = ((AndExpression) expression).getLeftExpression();
-            Expression right = ((AndExpression) expression).getRightExpression();
-            //the left and right subExpression of OrExpression should be with the same table.Should not be divided
-            if (!(right instanceof AndExpression)) {
-                expressions.add(right);
+        if (expression instanceof AndExpression){
+            while (expression instanceof AndExpression) {
+                Expression left = ((AndExpression) expression).getLeftExpression();
+                Expression right = ((AndExpression) expression).getRightExpression();
+                //the left and right subExpression of OrExpression should be with the same table.Should not be divided
+                if (!(right instanceof AndExpression)) {
+                    expressions.add(right);
+                }
+                if (!(left instanceof AndExpression)) {
+                    expressions.add(left);
+                    break;
+                } else {
+                    expression = left;
+                }
             }
-            if (!(left instanceof AndExpression)) {
-                expressions.add(left);
-                break;
-            } else {
-                expression = left;
-            }
+        }else {
+            expressions.add(expression);
         }
+
     }
 
     public boolean isRelated(Table t, Expression e) {
         boolean flag = false;
         if (e instanceof EqualsTo) {
+            String alisa = t.getAlias();
             if (((EqualsTo) e).getLeftExpression() instanceof Column) {
                 Table left = ((Column) ((EqualsTo) e).getLeftExpression()).getTable();
-                if (left != null && left.getName().equals(t.getName())) {
+                if (left != null && left.getName().equals(t.getName())
+                        ||(alisa!= null && left.getName().equals(alisa))) {
                     flag = true;
                 }
             }
             if (((EqualsTo) e).getRightExpression() instanceof Column) {
                 Table right = ((Column) ((EqualsTo) e).getRightExpression()).getTable();
-                if (right != null && right.getName().equals(t.getName())) {
+                if (right != null && right.getName().equals(t.getName())
+                        ||(alisa!= null && right.getName().equals(alisa))) {
                     flag = true;
                 }
             }

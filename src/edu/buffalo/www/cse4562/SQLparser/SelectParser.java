@@ -264,17 +264,19 @@ public class SelectParser {
             flag = false;
             if (pointer.getRightNode() instanceof RATable){
                 flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(),expList.get(i));
+                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
             }else if (pointer.getRightNode() instanceof RAJoin){
                 flag = optimize(pointer.getRightNode(),expList.get(i));
             }
-            if (pointer.getLeftNode() instanceof RATable){
+            //加入！flag 防止同样条件被添加2次
+            if (!flag&&pointer.getLeftNode() instanceof RATable){
                 flag = flag||exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
-            }else if (pointer.getLeftNode() instanceof RAJoin){
+                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
+            }else if (!flag&&pointer.getLeftNode() instanceof RAJoin){
                 flag = flag||optimize(pointer.getLeftNode(),expList.get(i));
             }
             if (flag){
                 deleteExp.add(i);
-                ((RAJoin)pointer).addAndExpression(expList.get(i));
             }
         }
 

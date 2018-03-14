@@ -22,6 +22,7 @@ public class Tuple {
             Table table = tableObject.getTable();
             if (tableObject.getAlisa()!=null){
                 table.setName(tableObject.getAlisa());
+                this.setTableName(tableObject.getAlisa());
             }
             if (c.getColDataType().toString().toUpperCase().equals("INT") ||c.getColDataType().toString().toUpperCase().equals("INTEGER")|| c.getColDataType().toString().toUpperCase().equals("LONG")) {
                 attributes.put(new Column(table,c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));

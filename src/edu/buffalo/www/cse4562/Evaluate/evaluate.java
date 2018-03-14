@@ -11,6 +11,7 @@ import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
+import java.security.interfaces.ECKey;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,8 +84,10 @@ public class evaluate extends Eval {
                 for (int j = 0; j < columns.size(); j++) {
                     if (columns.get(j).getTable().getName().equals(tableName)) {
                         Column column = columns.get(j);
-                        attributes.put(column, tupleLeft.getAttributes().get(column));
-                        column.setTable(table);
+                        attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
+                        if (table.equals("null")){
+                            column.setTable(table);
+                        }
                     }
                 }
             } else {
@@ -98,16 +101,15 @@ public class evaluate extends Eval {
                         column.setColumnName(alias);
                         attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     }
-                    column.setTable(table);
+                    if (table!=null) column.setTable(table);
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
                     attributes.put(new Column(table, name), result);
                 }
             }
-            newTuple.setAttributes(attributes);
         }
-
+        newTuple.setAttributes(attributes);
         newTuple.setTableName(tupleLeft.getTableName());
         return newTuple;
     }

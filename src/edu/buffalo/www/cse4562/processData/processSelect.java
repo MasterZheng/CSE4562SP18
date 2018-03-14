@@ -94,7 +94,7 @@ public class processSelect {
                     leftIterator = null;
                     rightIterator = null;
                 }
-            } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
+            } else if (operation.equals("SELECTION") && pointer.getExpression() != null&&!pointer.getExpression().equals("1 = 1")) {
                 TableObject tableObject = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
                 if (tableObject != null) {
                     result = tableObject;
