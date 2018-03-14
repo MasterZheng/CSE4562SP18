@@ -253,29 +253,74 @@ public class SelectParser {
         }
     }
 
-    public boolean optimize(RANode pointer,Expression where){
+//    public boolean optimize(RANode pointer,Expression where){
+//        //存在 join 情况
+//        Expression newWhere = null;
+//        expProcess exp = new expProcess(where);
+//        List<Expression> expList = exp.getExpressions();
+//        boolean flag =false;
+//        List<Integer> deleteExp = new ArrayList<>();
+//        for (int i = 0;i<expList.size();i++){
+//            flag = false;
+//            if (pointer.getRightNode() instanceof RATable){
+//                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(),expList.get(i));
+//                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
+//            }else if (pointer.getRightNode() instanceof RAJoin){
+//                flag = optimize(pointer.getRightNode(),expList.get(i));
+//            }
+//            //加入！flag 防止同样条件被添加2次
+//            if (!flag&&pointer.getLeftNode() instanceof RATable){
+//                flag = flag||exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
+//                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
+//            }else if (!flag&&pointer.getLeftNode() instanceof RAJoin){
+//                flag = flag||optimize(pointer.getLeftNode(),expList.get(i));
+//            }
+//            if (flag){
+//                deleteExp.add(i);
+//            }
+//        }
+//
+//        for (int i = deleteExp.size()-1;i>-1;i--){//从大往小删
+//            expList.remove(i);
+//        }
+//        for (Expression e:expList){
+//            newWhere = exp.mergeAndExpression(newWhere,e);
+//        }
+//        this.where = newWhere;
+//        return flag;
+//    }
+
+    public int optimize(RANode pointer,Expression where){
         //存在 join 情况
         Expression newWhere = null;
         expProcess exp = new expProcess(where);
         List<Expression> expList = exp.getExpressions();
-        boolean flag =false;
+        // 0 not related,1 join on condition ,2 table filter
+        int flag =0;
         List<Integer> deleteExp = new ArrayList<>();
         for (int i = 0;i<expList.size();i++){
-            flag = false;
+            flag = 0;
             if (pointer.getRightNode() instanceof RATable){
                 flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(),expList.get(i));
-                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
+                if (flag==1)
+                    ((RAJoin)pointer).addAndExpression(expList.get(i));
+                else if (flag==2)
+                    ((RATable)pointer.getRightNode()).addAndExpression(expList.get(i));
+
             }else if (pointer.getRightNode() instanceof RAJoin){
                 flag = optimize(pointer.getRightNode(),expList.get(i));
             }
             //加入！flag 防止同样条件被添加2次
-            if (!flag&&pointer.getLeftNode() instanceof RATable){
-                flag = flag||exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
-                if (flag)((RAJoin)pointer).addAndExpression(expList.get(i));
-            }else if (!flag&&pointer.getLeftNode() instanceof RAJoin){
-                flag = flag||optimize(pointer.getLeftNode(),expList.get(i));
+            if (flag==0&&pointer.getLeftNode() instanceof RATable){
+                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
+                if (flag==1)
+                    ((RAJoin)pointer).addAndExpression(expList.get(i));
+                else if (flag==2)
+                    ((RATable)pointer.getLeftNode()).addAndExpression(expList.get(i));
+            }else if (flag==0&&pointer.getLeftNode() instanceof RAJoin){
+                flag = optimize(pointer.getLeftNode(),expList.get(i));
             }
-            if (flag){
+            if (flag!=0){
                 deleteExp.add(i);
             }
         }

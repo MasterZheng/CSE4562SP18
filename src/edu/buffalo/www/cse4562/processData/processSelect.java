@@ -28,8 +28,9 @@ public class processSelect {
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
-    public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap,String tableName) throws Exception {
+    public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap, String tableName) throws Exception {
         //tableName 子查询结果表的 alisa
+        logger.info("processSelect");
         TableObject result = new TableObject();
         RANode pointer = raTree;
         RANode end = pointer;
@@ -59,14 +60,19 @@ public class processSelect {
                 RANode left = pointer.getLeftNode();
                 if (left.getOperation().equals("TABLE")) {
                     //join left node is a table
-                    tableLeft = new TableObject(tableMap.get(((RATable) left).getTable().getName().toUpperCase()),left);
+                    tableLeft = new TableObject(tableMap.get(((RATable) left).getTable().getName().toUpperCase()), left);
                     tableLeft.setAlisa(((RATable) left).getTable().getAlias());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-                    leftIterator = parserLeft.iterator();
+                    if (left.getExpression() == null) {
+                        leftIterator = parserLeft.iterator();
+                    } else {
+                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left));
+                        leftIterator = tableLeft.getIterator();
+                    }
                     involvedTables.add(tableLeft);
-                } else if (left.getOperation().equals("JOIN")){
+                } else if (left.getOperation().equals("JOIN")) {
                     leftIterator = result.getIterator();
-                }else {
+                } else {
                     // join left node is a subSelect tree
                     tableLeft = subSelect(left, tableMap, pointer);
                     result = tableLeft;
@@ -78,32 +84,37 @@ public class processSelect {
                     RANode right = pointer.getRightNode();
                     if (right.getOperation().equals("TABLE")) {
                         // join right node is a table
-                        tableRight = new TableObject(tableMap.get(((RATable) right).getTable().getName().toUpperCase()),right);
+                        tableRight = new TableObject(tableMap.get(((RATable) right).getTable().getName().toUpperCase()), right);
                         tableRight.setAlisa(((RATable) right).getTable().getAlias());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                        rightIterator = parserRight.iterator();
+                        if (right.getExpression() == null) {
+                            rightIterator = parserRight.iterator();
+                        } else {
+                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right));;
+                            rightIterator = tableRight.getIterator();
+                        }
                         involvedTables.add(tableRight);
-                    }else {
+                    } else {
                         // join right node is a subSelect tree
                         tableRight = subSelect(right, tableMap, pointer);
                         rightIterator = tableRight.getIterator();
                         involvedTables.add(tableRight);
                     }
-                }else {
+                } else {
                     rightIterator = null;
                 }
-                if (((RAJoin)pointer).getJoin()!=null&&pointer.getExpression() != null) {
+                if (((RAJoin) pointer).getJoin() != null && pointer.getExpression() != null) {
                     //the join has 2 children,skip 1=1 in join.expression
-                    result = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                    result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));;
                     leftIterator = result.getIterator();
                     rightIterator = null;
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                if (!pointer.getExpression().toString().equals("1 = 1")){
+                if (!pointer.getExpression().toString().equals("1 = 1")) {
                     //当 where 不为 null 且不为1=1时，执行 selection
-                    TableObject tableObject = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
-                    if (tableObject != null) {
-                        result = tableObject;
+                    List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                    if (queryResult != null) {
+                        result.settupleList(queryResult);
                     }
                 }
             } else if (operation.equals("PROJECTION")) {
@@ -111,7 +122,7 @@ public class processSelect {
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
                 tempColDef(result, selectItems, involvedTables);
-                result = ((RAProjection) pointer).Eval(result,tableName);
+                result = ((RAProjection) pointer).Eval(result, tableName);
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
@@ -133,7 +144,7 @@ public class processSelect {
 
     private static TableObject subSelect(RANode raTree, HashMap<String, TableObject> tableMap, RANode pointer) throws Exception {
         String name = ((RAJoin) pointer).getFromItem().getAlias();
-        TableObject Result = SelectData(raTree, tableMap,name);
+        TableObject Result = SelectData(raTree, tableMap, name);
         if (((RAJoin) pointer).getFromItem().getAlias() != null) {
             String alias = ((RAJoin) pointer).getFromItem().getAlias();
             Result.setTableName(alias);
@@ -143,10 +154,12 @@ public class processSelect {
         }
         Table table = new Table(name);
         Result.setTable(table);
-        for(int i = 0;i<Result.getColumnInfo().size();i++){
+        for (int i = 0; i < Result.getColumnInfo().size(); i++) {
             Result.getColumnInfo().get(i).setTable(table);
         }
         tableMap.put(name, Result);
+        logger.info("SubSelect result size:" + Result.getTupleList().size());
+
         return Result;
     }
 
@@ -163,11 +176,11 @@ public class processSelect {
             for (Object s : selectItems) {
                 if (s instanceof AllTableColumns) {
                     Table allColumnsTable = ((AllTableColumns) s).getTable();
-                    for(int i = 0;i<involvedTables.size();i++){
+                    for (int i = 0; i < involvedTables.size(); i++) {
                         if (involvedTables.get(i).getTableName().equals(allColumnsTable.getName())
-                                ||involvedTables.get(i).getAlisa().equals(allColumnsTable.getName())){
+                                || involvedTables.get(i).getAlisa().equals(allColumnsTable.getName())) {
                             List<Column> c = involvedTables.get(i).getColumnInfo();
-                            for(int j = 0;j<c.size();j++){
+                            for (int j = 0; j < c.size(); j++) {
                                 c.get(j).setTable(allColumnsTable);
                             }
                             columnDefinitions.addAll(involvedTables.get(i).getColumnDefinitions());
@@ -177,7 +190,7 @@ public class processSelect {
                     }
                 } else {
                     Expression expression = ((SelectExpressionItem) s).getExpression();
-                    String columnAlisa =( (SelectExpressionItem) s).getAlias();
+                    String columnAlisa = ((SelectExpressionItem) s).getAlias();
                     ColumnDefinition colDef = new ColumnDefinition();
                     Column colInfo = new Column();
                     //todo Select R.S
@@ -207,11 +220,11 @@ public class processSelect {
                         } else {
                             //SELECT B.A FROM B,C
                             for (TableObject t : involvedTables) {
-                                if (t.getTableName().equals(tableName)||t.getAlisa().equals(tableName)) {
+                                if (t.getTableName().equals(tableName) || t.getAlisa().equals(tableName)) {
                                     if (columnAlisa != null) {
                                         colDef.setColumnName(columnAlisa);
                                         colInfo.setColumnName(columnAlisa);
-                                    }else {
+                                    } else {
                                         colDef.setColumnName(colName);
                                         colInfo.setColumnName(colName);
                                     }
@@ -245,11 +258,10 @@ public class processSelect {
         tableObject.setColumnDefinitions(columnDefinitions);
     }
 
-    public static TableObject SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
+    public static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
 
-        TableObject result = new TableObject();
-        if (rightIterator == null&&!(pointer.getExpression() instanceof AndExpression)) {
+        if (rightIterator == null && pointer.getExpression().toString().equals("1 = 1")){
             return null;
         }
         Tuple tupleLeft, tupleRight;
@@ -287,8 +299,7 @@ public class processSelect {
                 queryResult = eva.Eval(queryResult);
             }
         }
-        result.settupleList(queryResult);
-        return result;
+        return queryResult;
     }
 
 }
