@@ -135,6 +135,7 @@ public class processSelect {
             Result.getTupleList().get(i).setTableName(name);
         }
         Table table = new Table(name);
+        Result.setTable(table);
         for(int i = 0;i<Result.getColumnInfo().size();i++){
             Result.getColumnInfo().get(i).setTable(table);
         }

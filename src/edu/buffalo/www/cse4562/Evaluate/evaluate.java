@@ -69,7 +69,7 @@ public class evaluate extends Eval {
     }
 
 
-    public Tuple projectEval(List<Column> columns,Table table) throws Exception {
+    public Tuple projectEval(List<Column> columns, Table table) throws Exception {
         //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         Tuple newTuple = new Tuple();
         HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
@@ -83,9 +83,10 @@ public class evaluate extends Eval {
                 String tableName = ((AllTableColumns) s).getTable().getName();
                 for (int j = 0; j < columns.size(); j++) {
                     if (columns.get(j).getTable().getName().equals(tableName)) {
-                        Column column = columns.get(j);
+                        Column column = new Column(columns.get(j).getTable(),columns.get(j).getColumnName());
+//                        Column column = columns.get(j);
                         attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
-                        if (table.equals("null")){
+                        if (!table.equals("null")) {
                             column.setTable(table);
                         }
                     }
@@ -94,14 +95,16 @@ public class evaluate extends Eval {
                 //  todo 优化
                 if (((SelectExpressionItem) s).getExpression() instanceof Column) {
                     String alias = ((SelectExpressionItem) s).getAlias();
-                    Column column = (Column) ((SelectExpressionItem) s).getExpression();
+                    Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(),((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
                     if (alias == null) {
-                        attributes.put(column, tupleLeft.getAttributes().get(column));
+                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     } else {
                         column.setColumnName(alias);
                         attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     }
-                    if (table!=null) column.setTable(table);
+                    if (!table.equals("null")) {
+                        column.setTable(table);
+                    }
                 } else {
                     PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
                     String name = ((SelectExpressionItem) s).getAlias();
