@@ -56,13 +56,8 @@ public class Main {
                         queryResult.print();
                     }
                     stmt = null;
+                    logger.info("Print Query result");
                     //执行完清除临时表
-//                    for (Iterator<Map.Entry<String, TableObject>> it = tableMap.entrySet().iterator(); it.hasNext(); ) {
-//                        Map.Entry<String, TableObject> entry = it.next();
-//                        if (entry.getValue().isTemp()) {
-//                            it.remove();
-//                        }
-//                    }
                 } else if (stmt instanceof CreateTable) {
                     boolean flag = CreatFunction((CreateTable) stmt, tableMap);
                     stmt = null;

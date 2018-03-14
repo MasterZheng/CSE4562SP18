@@ -86,7 +86,7 @@ public class evaluate extends Eval {
                         Column column = new Column(columns.get(j).getTable(),columns.get(j).getColumnName());
 //                        Column column = columns.get(j);
                         attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
-                        if (!table.equals("null")) {
+                        if (!table.toString().equals("null")) {
                             column.setTable(table);
                         }
                     }
@@ -102,7 +102,7 @@ public class evaluate extends Eval {
                         column.setColumnName(alias);
                         attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
                     }
-                    if (!table.equals("null")) {
+                    if (!table.toString().equals("null")) {
                         column.setTable(table);
                     }
                 } else {

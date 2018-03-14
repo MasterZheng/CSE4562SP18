@@ -10,37 +10,43 @@ import org.apache.commons.csv.CSVRecord;
 import java.util.*;
 
 public class Tuple {
+
     private HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
     private ArrayList<String> tableName = new ArrayList<>();
 
-    public Tuple(){
-        
+    public Tuple() {
+
     }
+
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
+        Table table = new Table();
+        if (tableObject.getAlisa() != null) {
+            table.setName(tableObject.getAlisa());
+            this.setTableName(tableObject.getAlisa());
+        }else {
+            table.setName(tableObject.getTableName());
+        }
+        this.tableName.add(tableObject.getTableName());
+
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
-            Table table = tableObject.getTable();
-            if (tableObject.getAlisa()!=null){
-                table.setName(tableObject.getAlisa());
-                this.setTableName(tableObject.getAlisa());
-            }
-            if (c.getColDataType().toString().toUpperCase().equals("INT") ||c.getColDataType().toString().toUpperCase().equals("INTEGER")|| c.getColDataType().toString().toUpperCase().equals("LONG")) {
-                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
+
+            if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
-                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
+                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
-                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
+                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
-                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
+                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
             } else {
-                attributes.put(new Column(table,c.getColumnName().toUpperCase()), new NullValue());
+                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
             }
         }
 
-        this.tableName.add(tableObject.getTableName());
     }
 
-    public Tuple joinTuple(Tuple right){
+    public Tuple joinTuple(Tuple right) {
         Tuple newTuple = new Tuple();
         HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
         attributes.putAll(this.getAttributes());
@@ -71,7 +77,8 @@ public class Tuple {
     public void setTableName(String tableName) {
         this.tableName.add(tableName);
     }
-    public void printTuple(List<ColumnDefinition> colDef,List<Column> colInfo) {
+
+    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo) {
         String row = "";
 
         for (int i = 0; i < colDef.size(); i++) {

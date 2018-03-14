@@ -5,6 +5,7 @@ import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -58,7 +59,7 @@ public class processSelect {
                 RANode left = pointer.getLeftNode();
                 if (left.getOperation().equals("TABLE")) {
                     //join left node is a table
-                    tableLeft = tableMap.get(((RATable) left).getTable().getName().toUpperCase());
+                    tableLeft = new TableObject(tableMap.get(((RATable) left).getTable().getName().toUpperCase()),left);
                     tableLeft.setAlisa(((RATable) left).getTable().getAlias());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     leftIterator = parserLeft.iterator();
@@ -76,7 +77,7 @@ public class processSelect {
                     RANode right = pointer.getRightNode();
                     if (right.getOperation().equals("TABLE")) {
                         // join right node is a table
-                        tableRight = tableMap.get(((RATable) right).getTable().getName().toUpperCase());
+                        tableRight = new TableObject(tableMap.get(((RATable) right).getTable().getName().toUpperCase()),right);
                         tableRight.setAlisa(((RATable) right).getTable().getAlias());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
                         rightIterator = parserRight.iterator();
@@ -87,18 +88,30 @@ public class processSelect {
                         rightIterator = tableRight.getIterator();
                         involvedTables.add(tableRight);
                     }
+                }else {
+                    rightIterator = null;
                 }
                 if (((RAJoin)pointer).getJoin()!=null&&pointer.getExpression() != null) {
                     //the join has 2 children,skip 1=1 in join.expression
                     result = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
-                    leftIterator = null;
+                    leftIterator = result.getIterator();
                     rightIterator = null;
                 }
-            } else if (operation.equals("SELECTION") && pointer.getExpression() != null&&!pointer.getExpression().equals("1 = 1")) {
-                TableObject tableObject = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
-                if (tableObject != null) {
-                    result = tableObject;
+            } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
+                if (!pointer.getExpression().toString().equals("1 = 1")){
+                    //当 where 不为 null 且不为1=1时，执行 selection
+                    TableObject tableObject = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                    if (tableObject != null) {
+                        result = tableObject;
+                    }
+                }else {
+                    //当 where 为1=1时，不作操作,将子查询获得的结果作为 result
+                    //            join
+                    //          /     \
+                    // subselection   null
+                    result = tableLeft;
                 }
+
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
@@ -170,7 +183,7 @@ public class processSelect {
                     }
                 } else {
                     Expression expression = ((SelectExpressionItem) s).getExpression();
-
+                    String columnAlisa =( (SelectExpressionItem) s).getAlias();
                     ColumnDefinition colDef = new ColumnDefinition();
                     Column colInfo = new Column();
                     //todo Select R.S
@@ -183,28 +196,33 @@ public class processSelect {
                             for (TableObject t : involvedTables) {
                                 for (ColumnDefinition c : t.getColumnDefinitions()) {
                                     if (c.getColumnName().equals(colName)) {
-                                        if (((SelectExpressionItem) s).getAlias() != null) {
-                                            colDef.setColumnName(((SelectExpressionItem) s).getAlias());
-                                            colInfo.setTable(t.getTable());
-                                            colInfo.setColumnName(colDef.getColumnName());
+                                        if (columnAlisa != null) {
+                                            colDef.setColumnName(columnAlisa);
+                                            colInfo.setColumnName(columnAlisa);
                                         } else {
                                             colDef.setColumnName(colName);
-                                            colInfo.setTable(t.getTable());
                                             colInfo.setColumnName(colName);
                                         }
+                                        colInfo.setTable(new Table(t.getTable().getName()));
+
                                         colDef.setColDataType(c.getColDataType());
                                         break;
                                     }
                                 }
                             }
-
                         } else {
                             //SELECT B.A FROM B,C
                             for (TableObject t : involvedTables) {
                                 if (t.getTableName().equals(tableName)||t.getAlisa().equals(tableName)) {
-                                    colDef.setColumnName(colName);
-                                    colInfo.setColumnName(colName);
-                                    colInfo.setTable(t.getTable());
+                                    if (columnAlisa != null) {
+                                        colDef.setColumnName(columnAlisa);
+                                        colInfo.setColumnName(columnAlisa);
+                                    }else {
+                                        colDef.setColumnName(colName);
+                                        colInfo.setColumnName(colName);
+                                    }
+                                    colInfo.setTable(new Table(tableName));
+
                                     for (int i = 0; i < t.getColumnDefinitions().size(); i++) {
                                         if (t.getColumnDefinitions().get(i).getColumnName().equals(colName)) {
                                             colDef.setColDataType(t.getColumnDefinitions().get(i).getColDataType());
@@ -237,7 +255,7 @@ public class processSelect {
         List<Tuple> queryResult = new ArrayList<>();
 
         TableObject result = new TableObject();
-        if (leftIterator == null && rightIterator == null) {
+        if (rightIterator == null&&!(pointer.getExpression() instanceof AndExpression)) {
             return null;
         }
         Tuple tupleLeft, tupleRight;

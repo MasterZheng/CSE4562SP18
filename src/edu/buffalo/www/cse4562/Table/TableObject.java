@@ -1,5 +1,7 @@
 package edu.buffalo.www.cse4562.Table;
 
+import edu.buffalo.www.cse4562.RA.RANode;
+import edu.buffalo.www.cse4562.RA.RATable;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -22,6 +24,16 @@ public class TableObject {
 
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
+    public TableObject(TableObject tableObject, RANode raTable){
+
+        this.table = ((RATable)raTable).getTable();
+        this.tableName = ((RATable)raTable).getTable().getName();
+        this.alisa = this.table.getAlias();
+        this.columnDefinitions = tableObject.getColumnDefinitions();
+        this.columnInfo = tableObject.getColumnInfo();
+        this.fileDir = tableObject.getFileDir();
+
+    }
     public TableObject(){
 
     }
