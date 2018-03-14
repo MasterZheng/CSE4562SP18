@@ -2,7 +2,7 @@ package edu.buffalo.www.cse4562.Evaluate;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 
@@ -38,21 +38,38 @@ public class expProcess {
 
     public boolean isRelated(Table t, Expression e) {
         boolean flag = false;
+        //todo finish the condition
         if (e instanceof EqualsTo) {
-            String alisa = t.getAlias();
-            if (((EqualsTo) e).getLeftExpression() instanceof Column) {
-                Table left = ((Column) ((EqualsTo) e).getLeftExpression()).getTable();
-                if (left != null && left.getName().equals(t.getName())
-                        ||(alisa!= null && left.getName().equals(alisa))) {
-                    flag = true;
-                }
+            flag = judge(t,((EqualsTo) e).getLeftExpression(),((EqualsTo) e).getRightExpression());
+        }else if (e instanceof NotEqualsTo){
+            flag = judge(t,((NotEqualsTo) e).getLeftExpression(),((NotEqualsTo) e).getRightExpression());
+        }else if (e instanceof GreaterThan){
+            flag = judge(t,((GreaterThan) e).getLeftExpression(),((GreaterThan) e).getRightExpression());
+        }else if (e instanceof  GreaterThanEquals){
+            flag = judge(t,((GreaterThanEquals) e).getLeftExpression(),((GreaterThanEquals) e).getRightExpression());
+        }else if (e instanceof MinorThan){
+            flag = judge(t,((MinorThan) e).getLeftExpression(),((MinorThan) e).getRightExpression());
+        }else if (e instanceof MinorThanEquals){
+            flag = judge(t,((MinorThanEquals) e).getLeftExpression(),((MinorThanEquals) e).getRightExpression());
+        }
+        return flag;
+    }
+
+    private boolean judge(Table t,Expression le,Expression re){
+        Boolean flag = false;
+        String alisa = t.getAlias();
+        if (le instanceof Column) {
+            Table left = ((Column)le).getTable();
+            if (left != null && left.getName().equals(t.getName())
+                    ||(alisa!= null && left.getName().equals(alisa))) {
+                flag = true;
             }
-            if (((EqualsTo) e).getRightExpression() instanceof Column) {
-                Table right = ((Column) ((EqualsTo) e).getRightExpression()).getTable();
-                if (right != null && right.getName().equals(t.getName())
-                        ||(alisa!= null && right.getName().equals(alisa))) {
-                    flag = true;
-                }
+        }
+        if (re instanceof Column) {
+            Table right = ((Column)re).getTable();
+            if (right != null && right.getName().equals(t.getName())
+                    ||(alisa!= null && right.getName().equals(alisa))) {
+                flag = true;
             }
         }
         return flag;
