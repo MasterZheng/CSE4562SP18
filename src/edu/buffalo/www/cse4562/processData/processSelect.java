@@ -69,6 +69,7 @@ public class processSelect {
                 }else {
                     // join left node is a subSelect tree
                     tableLeft = subSelect(left, tableMap, pointer);
+                    result = tableLeft;
                     leftIterator = tableLeft.getIterator();
                     involvedTables.add(tableLeft);
                     //finish subSelect, stop loop.
@@ -104,14 +105,7 @@ public class processSelect {
                     if (tableObject != null) {
                         result = tableObject;
                     }
-                }else {
-                    //当 where 为1=1时，不作操作,将子查询获得的结果作为 result
-                    //            join
-                    //          /     \
-                    // subselection   null
-                    result = tableLeft;
                 }
-
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
