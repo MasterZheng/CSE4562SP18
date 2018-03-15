@@ -19,6 +19,7 @@ import static edu.buffalo.www.cse4562.processData.processSelect.SelectData;
 
 public class Main {
     static Logger logger = Logger.getLogger(Main.class.getName());
+    static int c = 1;
 
     static String prompt = "$> "; // expected prompt
     static HashMap<String, TableObject> tableMap = new HashMap<>();
@@ -45,9 +46,7 @@ public class Main {
         try {
             //HashMap<String, Object> parsedSQL = new HashMap<>();
             while (stmt != null) {
-                int c = 1;
                 if (stmt instanceof Select) {
-
                     logger.info(stmt.toString());
                     Select select = (Select) stmt;
                     SelectBody body = select.getSelectBody();
@@ -57,8 +56,9 @@ public class Main {
                     if (queryResult != null) {
                         queryResult.print(c);
                     }
+                    c=c+1;
                     stmt = null;
-                    c++;
+
                     //执行完清除临时表
                 } else if (stmt instanceof CreateTable) {
                     boolean flag = CreatFunction((CreateTable) stmt, tableMap);
