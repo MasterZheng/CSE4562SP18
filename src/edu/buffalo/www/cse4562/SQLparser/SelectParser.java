@@ -288,7 +288,7 @@ public class SelectParser {
         }
 
         for (int i = deleteExp.size()-1;i>-1;i--){//从大往小删
-            expList.remove(i);
+            expList.remove(deleteExp.get(i));
         }
         for (Expression e:expList){
             newWhere = exp.mergeAndExpression(newWhere,e);

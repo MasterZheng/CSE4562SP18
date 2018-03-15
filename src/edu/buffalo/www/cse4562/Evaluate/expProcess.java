@@ -16,26 +16,42 @@ public class expProcess {
     public expProcess(Expression expression) {
         this.expressions = new ArrayList<>();
         if (expression instanceof AndExpression) {
-            while (expression instanceof AndExpression) {
                 Expression left = ((AndExpression) expression).getLeftExpression();
                 Expression right = ((AndExpression) expression).getRightExpression();
                 //the left and right subExpression of OrExpression should be with the same table.Should not be divided
                 if (!(right instanceof AndExpression)) {
                     expressions.add(right);
+                }else {
+                    expressions.addAll(parseAndExpression(right));
                 }
                 if (!(left instanceof AndExpression)) {
                     expressions.add(left);
-                    break;
                 } else {
-                    expression = left;
+                    expressions.addAll(parseAndExpression(left));
                 }
-            }
         } else {
             expressions.add(expression);
         }
-
     }
 
+    public List<Expression> parseAndExpression(Expression expression){
+        List<Expression> list = new ArrayList<>();
+        if (expression instanceof AndExpression){
+            Expression left = ((AndExpression) expression).getLeftExpression();
+            Expression right = ((AndExpression) expression).getRightExpression();
+            if (left instanceof AndExpression){
+                list.addAll(parseAndExpression(left));
+            }else {
+                list.add(left);
+            }
+            if (right instanceof AndExpression){
+                list.addAll(parseAndExpression(right));
+            }else {
+                list.add(right);
+            }
+        }
+        return list;
+    }
 //    public boolean isRelated(Table t, Expression e) {
 //        boolean flag = false;
 //        //todo finish the condition
