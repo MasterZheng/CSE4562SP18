@@ -6,9 +6,6 @@ import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
 
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
 import java.sql.SQLException;
@@ -70,53 +67,53 @@ public class evaluate extends Eval {
     }
 
 
-    public Tuple projectEval(List<Column> columns, Table table) throws Exception {
-        //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
-        Tuple newTuple = new Tuple();
-        HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
-        for (int i = 0; i < selectList.size(); i++) {
-            Object s = selectList.get(i);
-            if (s instanceof AllColumns) {
-                //todo
-                newTuple = tupleLeft;
-                break;
-            } else if (s instanceof AllTableColumns) {
-                String tableName = ((AllTableColumns) s).getTable().getName();
-                for (int j = 0; j < columns.size(); j++) {
-                    if (columns.get(j).getTable().getName().equals(tableName)) {
-                        Column column = new Column(columns.get(j).getTable(), columns.get(j).getColumnName());
-//                        Column column = columns.get(j);
-                        attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
-                        if (!table.toString().equals("null")) {
-                            column.setTable(table);
-                        }
-                    }
-                }
-            } else {
-                //  todo 优化
-                if (((SelectExpressionItem) s).getExpression() instanceof Column) {
-                    String alias = ((SelectExpressionItem) s).getAlias();
-                    Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(), ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
-                    if (alias == null) {
-                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
-                    } else {
-                        column.setColumnName(alias);
-                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
-                    }
-                    if (!table.toString().equals("null")) {
-                        column.setTable(table);
-                    }
-                } else {
-                    PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
-                    String name = ((SelectExpressionItem) s).getAlias();
-                    attributes.put(new Column(table, name), result);
-                }
-            }
-        }
-        newTuple.setAttributes(attributes);
-        newTuple.setTableName(tupleLeft.getTableName());
-        return newTuple;
-    }
+//    public Tuple projectEval(List<Column> columns, Table table) throws Exception {
+//        //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
+//        Tuple newTuple = new Tuple();
+//        HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+//        for (int i = 0; i < selectList.size(); i++) {
+//            Object s = selectList.get(i);
+//            if (s instanceof AllColumns) {
+//                //todo
+//                newTuple = tupleLeft;
+//                break;
+//            } else if (s instanceof AllTableColumns) {
+//                String tableName = ((AllTableColumns) s).getTable().getName();
+//                for (int j = 0; j < columns.size(); j++) {
+//                    if (columns.get(j).getTable().getName().equals(tableName)) {
+//                        Column column = new Column(columns.get(j).getTable(), columns.get(j).getColumnName());
+////                        Column column = columns.get(j);
+//                        attributes.put(column, tupleLeft.getAttributes().get(columns.get(j)));
+//                        if (!table.toString().equals("null")) {
+//                            column.setTable(table);
+//                        }
+//                    }
+//                }
+//            } else {
+//                //  todo 优化
+//                if (((SelectExpressionItem) s).getExpression() instanceof Column) {
+//                    String alias = ((SelectExpressionItem) s).getAlias();
+//                    Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(), ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
+//                    if (alias == null) {
+//                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
+//                    } else {
+//                        column.setColumnName(alias);
+//                        attributes.put(column, tupleLeft.getAttributes().get(((SelectExpressionItem) s).getExpression()));
+//                    }
+//                    if (!table.toString().equals("null")) {
+//                        column.setTable(table);
+//                    }
+//                } else {
+//                    PrimitiveValue result = eval(((SelectExpressionItem) s).getExpression());
+//                    String name = ((SelectExpressionItem) s).getAlias();
+//                    attributes.put(new Column(table, name), result);
+//                }
+//            }
+//        }
+//        newTuple.setAttributes(attributes);
+//        newTuple.setTableName(tupleLeft.getTableName());
+//        return newTuple;
+//    }
 
     public List project(List<Tuple> tupleList,List<Expression> columnList,List<Column> columnInfo)throws Exception{
         List<Tuple> newTupleList = new ArrayList<>();
