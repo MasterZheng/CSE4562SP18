@@ -56,6 +56,8 @@ public class TableObject {
 
     public void setAlisa(String alisa) {
         this.alisa = alisa;
+//        for (int i = 0;i<this.getColumnInfo().size();i++)
+//            this.getColumnInfo().get(i).getTable().setAlias(this.alisa);
     }
 
     public Table getTable() {

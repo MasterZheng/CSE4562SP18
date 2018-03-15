@@ -40,14 +40,13 @@ public class RAProjection extends RANode {
             projectionParser(OutputTable.getColumnInfo(),new Table(tableName));
             evaluate eva = new evaluate(this.selectItem);
             OutputTable.settupleList(eva.project(OutputTable.getTupleList(),this.columnList,this.columnInfo));
+        }else {
+            if (tableName!=null){
+                for (int i = 0;i<OutputTable.getColumnInfo().size();i++){
+                    OutputTable.getColumnInfo().get(i).setTable(new Table(tableName));
+                }
+            }
         }
-//        List<Tuple> result = new ArrayList<>();
-//        Table table = new Table(tableName);
-//        for(int i = 0;i<OutputTable.getTupleList().size();i++){
-//            evaluate eva = new evaluate(OutputTable.getTupleList().get(i),this.selectItem);
-//            result.add(eva.projectEval(OutputTable.getColumnInfo(),table));
-//        }
-//        OutputTable.settupleList(result);
         return OutputTable;
     }
     public void setSelectItem(List selectItem) {

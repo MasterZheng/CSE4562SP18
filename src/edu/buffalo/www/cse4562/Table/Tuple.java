@@ -30,7 +30,6 @@ public class Tuple {
         this.tableName.add(tableObject.getTableName());
 
         for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
-
             if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
                 attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
             } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
@@ -43,6 +42,22 @@ public class Tuple {
                 attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
             }
         }
+//        for (int k = 0;k<tableObject.getColumnDefinitions().size();k++) {
+//            ColumnDefinition colDef = tableObject.getColumnDefinitions().get(k);
+//            Column col = tableObject.getColumnInfo().get(k);
+//
+//            if (colDef.getColDataType().toString().toUpperCase().equals("INT") || colDef.getColDataType().toString().toUpperCase().equals("INTEGER") || colDef.getColDataType().toString().toUpperCase().equals("LONG")) {
+//                attributes.put(col, new LongValue(record.get(i++)));
+//            } else if (colDef.getColDataType().toString().toUpperCase().equals("STRING")) {
+//                attributes.put(col, new StringValue(record.get(i++)));
+//            } else if (colDef.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
+//                attributes.put(col, new DoubleValue(record.get(i++)));
+//            } else if (colDef.getColDataType().toString().toUpperCase().equals("DATE")) {
+//                attributes.put(col, new DateValue(record.get(i++)));
+//            } else {
+//                attributes.put(col, new NullValue());
+//            }
+//        }
 
     }
 
