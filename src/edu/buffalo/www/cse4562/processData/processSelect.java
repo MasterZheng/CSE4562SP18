@@ -156,7 +156,6 @@ public class processSelect {
             Result.getColumnInfo().get(i).setTable(table);
         }
         tableMap.put(name, Result);
-        logger.info("SubSelect result size:" + Result.getTupleList().size());
 
         return Result;
     }
