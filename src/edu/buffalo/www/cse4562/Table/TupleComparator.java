@@ -32,9 +32,9 @@ public class TupleComparator implements Comparator<Tuple> {
                             return -1;
                     } else if (leftValue.toLong() < rightValue.toLong()) {
                         if (element.isAsc())
-                            return 1;
-                        else
                             return -1;
+                        else
+                            return 1;
                     }
                 } else if (leftValue instanceof DoubleValue) {
                     if (leftValue.toDouble() > rightValue.toDouble()) {
@@ -44,9 +44,9 @@ public class TupleComparator implements Comparator<Tuple> {
                             return -1;
                     } else if (leftValue.toDouble() < rightValue.toDouble()) {
                         if (element.isAsc())
-                            return 1;
-                        else
                             return -1;
+                        else
+                            return 1;
                     }
                 } else if (leftValue instanceof StringValue) {
                     if (leftValue.toString().compareTo(rightValue.toString()) > 0) {
@@ -56,9 +56,9 @@ public class TupleComparator implements Comparator<Tuple> {
                             return -1;
                     } else if (leftValue.toString().compareTo(rightValue.toString()) < 0) {
                         if (element.isAsc())
-                            return 1;
-                        else
                             return -1;
+                        else
+                            return 1;
                     }
                 } else if (leftValue instanceof DateValue) {
                     if (((DateValue) leftValue).getValue().getTime() > ((DateValue) rightValue).getValue().getTime()) {
@@ -68,9 +68,9 @@ public class TupleComparator implements Comparator<Tuple> {
                             return -1;
                     } else if (((DateValue) leftValue).getValue().getTime() < ((DateValue) rightValue).getValue().getTime()) {
                         if (element.isAsc())
-                            return 1;
-                        else
                             return -1;
+                        else
+                            return 1;
                     }
                 }
             } catch (Exception e) {

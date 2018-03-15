@@ -95,7 +95,7 @@ public class Tuple {
         this.tableName.add(tableName);
     }
 
-    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo,int c) {
+    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo) {
         String row = "";
 
         for (int i = 0; i < colDef.size(); i++) {
@@ -108,9 +108,7 @@ public class Tuple {
                 row += "|";
             }
         }
-        if (c==1||c==4){
-            logger.info(row);
-        }
+
         System.out.println(row);
     }
 
