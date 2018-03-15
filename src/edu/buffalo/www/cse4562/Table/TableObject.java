@@ -108,10 +108,10 @@ public class TableObject {
         return this.tupleList.iterator();
     }
 
-    public void print() {
+    public void print(int c) {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions,this.columnInfo);
+            iterator.next().printTuple(this.columnDefinitions,this.columnInfo,c);
         }
     }
 }
