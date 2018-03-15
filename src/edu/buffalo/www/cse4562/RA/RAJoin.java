@@ -26,6 +26,7 @@ public class RAJoin extends RANode {
         }else {
             this.expression = new AndExpression(this.expression,e);
         }
+
     }
     public void Eval(){
 

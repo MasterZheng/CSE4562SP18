@@ -108,7 +108,7 @@ public class Tuple {
                 row += "|";
             }
         }
-        if (c==4){
+        if (false){
             logger.info(row);
         }
         System.out.println(row);

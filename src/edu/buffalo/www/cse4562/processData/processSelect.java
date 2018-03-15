@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import sun.jvm.hotspot.debugger.posix.elf.ELFException;
 
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -104,9 +105,14 @@ public class processSelect {
                 }
                 if (((RAJoin) pointer).getJoin() != null && pointer.getExpression() != null) {
                     //the join has 2 children,skip 1=1 in join.expression
-                    result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));;
-                    leftIterator = result.getIterator();
-                    rightIterator = null;
+                    if (pointer.getParentNode().getOperation().equals("SELECTION")&&pointer.getExpression().toString().equals("1 = 1")){
+
+                    }else {
+                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));;
+                        leftIterator = result.getIterator();
+                        rightIterator = null;
+                    }
+
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
                     //当 where 不为 null 且不为1=1时，执行 selection
