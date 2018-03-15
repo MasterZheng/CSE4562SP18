@@ -8,8 +8,10 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class Tuple {
+    static Logger logger = Logger.getLogger(Tuple.class.getName());
 
     private HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
     private ArrayList<String> tableName = new ArrayList<>();
@@ -93,7 +95,7 @@ public class Tuple {
         this.tableName.add(tableName);
     }
 
-    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo) {
+    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo,int c) {
         String row = "";
 
         for (int i = 0; i < colDef.size(); i++) {
@@ -105,6 +107,9 @@ public class Tuple {
             if (colDef.size() != 1 && i < colDef.size() - 1) {
                 row += "|";
             }
+        }
+        if (c==1||c==4){
+            logger.info(row);
         }
         System.out.println(row);
     }

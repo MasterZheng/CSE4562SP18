@@ -30,7 +30,6 @@ public class processSelect {
 
     public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap, String tableName) throws Exception {
         //tableName 子查询结果表的 alisa
-        logger.info("processSelect");
         TableObject result = new TableObject();
         RANode pointer = raTree;
         RANode end = pointer;

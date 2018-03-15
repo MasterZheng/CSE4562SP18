@@ -45,6 +45,7 @@ public class Main {
         try {
             //HashMap<String, Object> parsedSQL = new HashMap<>();
             while (stmt != null) {
+                int counter= 1;
                 if (stmt instanceof Select) {
                     logger.info(stmt.toString());
                     Select select = (Select) stmt;
@@ -53,10 +54,10 @@ public class Main {
                     RANode raTree = parser.SelectFunction(body);
                     TableObject queryResult = SelectData(raTree, tableMap,null);
                     if (queryResult != null) {
-                        queryResult.print();
+                        queryResult.print(counter);
                     }
                     stmt = null;
-                    logger.info("Print Query result");
+                    counter++;
                     //执行完清除临时表
                 } else if (stmt instanceof CreateTable) {
                     boolean flag = CreatFunction((CreateTable) stmt, tableMap);
