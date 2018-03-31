@@ -8,7 +8,6 @@ public class RASelection extends RANode {
     private String operation = "SELECTION";
     private Expression expression;
 
-
     public RASelection(Expression where) {
         this.expression = where;
     }

@@ -40,7 +40,8 @@ public class processSelect {
         CSVParser parserRight;
         Iterator leftIterator = null;
         Iterator rightIterator = null;
-        List<Object> selectItems;
+        List<SelectExpressionItem> selectItems;
+        List<Column> groupByReferences;
 
         while (pointer.hasNext()) {
             //find the first join
@@ -113,12 +114,14 @@ public class processSelect {
 
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                    //当 where 不为 null 且不为1=1时，执行 selection
                     List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
                     if (queryResult != null) {
                         result.settupleList(queryResult);
                     }
 
+            } else if (operation.equals("GROUPBY")){
+                groupByReferences = ((RAGroupBy)pointer).getGroupByReferences();
+                result = ((RAGroupBy)pointer).Eval(result,groupByReferences);
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List

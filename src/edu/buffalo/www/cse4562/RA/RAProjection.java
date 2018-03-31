@@ -24,6 +24,8 @@ public class RAProjection extends RANode {
     private boolean flag = false;//record select *
     private List<Expression> columnList = new ArrayList<>();
     private List<Column> columnInfo = new ArrayList<>();
+    private boolean hash = false;
+
     public RAProjection(List<SelectItem> selectItem) {
         this.selectItem = selectItem;
         if (selectItem!=null&&selectItem.get(0) instanceof AllColumns){
@@ -53,7 +55,13 @@ public class RAProjection extends RANode {
         this.selectItem = selectItem;
     }
 
+    public boolean isHash() {
+        return hash;
+    }
 
+    public void setHash(boolean hash) {
+        this.hash = hash;
+    }
     public String getOperation() {
         return this.operation;
     }

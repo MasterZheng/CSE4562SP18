@@ -111,6 +111,8 @@ public class expProcess {
     }
 
     private int judge(Table t, Expression le, Expression re) {
+        //flag==1: le re are columns,the expression is related with t
+        //flag==2: le or re is column,the expression is related with t only.
         int flag = 0;
         String alisa = t.getAlias();
         if (le instanceof Column && re instanceof Column) {

@@ -21,7 +21,7 @@ public class TableObject {
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo= new ArrayList<>();
     private List<Tuple> tupleList = new ArrayList<>();
-
+    //private HashMap<,ArrayList<Tuple>> hashMap =
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
     public TableObject(TableObject tableObject, RANode raTable){

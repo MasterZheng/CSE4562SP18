@@ -5,6 +5,7 @@ import edu.buffalo.www.cse4562.RA.*;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
@@ -18,7 +19,7 @@ public class SelectParser {
     /*
     implement 2 ways to parse SQL
      */
-    private SelectBody body;
+    private PlainSelect body;
     private List<Join> joins;
     private List<SelectItem> selectItem;
     private Expression where;
@@ -26,18 +27,18 @@ public class SelectParser {
     private Distinct dist;
     private Limit lim;
     private FromItem fromItem;
+    private List<Column> groupByColumnReference;
+    public SelectParser(SelectBody selectBody){
 
-    public SelectParser(SelectBody body){
-        this.body = body;
-        this.joins = ((PlainSelect) body).getJoins();
-        this.selectItem = ((PlainSelect) body).getSelectItems();
-        this.where = ((PlainSelect) body).getWhere();
-        this.orderBy = ((PlainSelect) body).getOrderByElements();
-        this.dist = ((PlainSelect) body).getDistinct();
-        this.lim = ((PlainSelect) body).getLimit();
-        this.fromItem = ((PlainSelect) body).getFromItem();
-
-
+        this.body = (PlainSelect) selectBody;
+        this.joins = body.getJoins();
+        this.selectItem = body.getSelectItems();
+        this.where = body.getWhere();
+        this.orderBy = body.getOrderByElements();
+        this.dist = body.getDistinct();
+        this.lim = body.getLimit();
+        this.fromItem = body.getFromItem();
+        this.groupByColumnReference = body.getGroupByColumnReferences();
     }
     static Logger logger = Logger.getLogger(SelectItem.class.getName());
 
@@ -208,18 +209,32 @@ public class SelectParser {
                 pointer = whereNode;
             } else {
                 // if no where ,add 1==1 as the where expression
-                EqualsTo rightWhere = new EqualsTo(new LongValue(1), new LongValue(1));
-                RANode whereNode = new RASelection(rightWhere);
-                whereNode.setLeftNode(pointer);
-                pointer.setParentNode(whereNode);
-                pointer = whereNode;
+                // 1==1 has been moved to join Node
+//                EqualsTo rightWhere = new EqualsTo(new LongValue(1), new LongValue(1));
+//                RANode whereNode = new RASelection(rightWhere);
+//                whereNode.setLeftNode(pointer);
+//                pointer.setParentNode(whereNode);
+//                pointer = whereNode;
+            }
+
+            //process groupBy
+            if (groupByColumnReference!=null){
+                RAGroupBy groupNode = new RAGroupBy(groupByColumnReference,selectItem);
+                groupNode.setLeftNode(pointer);
+                pointer.setParentNode(groupNode);
+                pointer = groupNode;
             }
 
             //process projection
             RANode projNode = new RAProjection(selectItem);
+            // if groupby exist, when process where ,the result should be hash and groupBy to reduce time cost.
+            if (groupByColumnReference!=null){
+                ((RAProjection)projNode).setHash(true);
+            }
             projNode.setLeftNode(pointer);
             pointer.setParentNode(projNode);
             pointer = projNode;
+
 
             //process orderby
             if (orderBy != null) {
@@ -288,7 +303,7 @@ public class SelectParser {
         }
 
         for (int i = deleteExp.size()-1;i>-1;i--){//从大往小删
-            expList.remove(deleteExp.get(i));
+            expList.remove((int)deleteExp.get(i));
         }
         for (Expression e:expList){
             newWhere = exp.mergeAndExpression(newWhere,e);
