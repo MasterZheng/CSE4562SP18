@@ -2,6 +2,7 @@ package edu.buffalo.www.cse4562.Table;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
+import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -19,22 +20,23 @@ public class TableObject {
     private String alisa;
     private List<ColumnDefinition> columnDefinitions;
     //when the table is a query result, it is necessary to record the table info about the column
-    private List<Column> columnInfo= new ArrayList<>();
+    private List<Column> columnInfo = new ArrayList<>();
     private List<Tuple> tupleList = new ArrayList<>();
-    //private HashMap<,ArrayList<Tuple>> hashMap =
+    private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
-    public TableObject(TableObject tableObject, RANode raTable){
+    public TableObject(TableObject tableObject, RANode raTable) {
 
-        this.table = ((RATable)raTable).getTable();
-        this.tableName = ((RATable)raTable).getTable().getName();
+        this.table = ((RATable) raTable).getTable();
+        this.tableName = ((RATable) raTable).getTable().getName();
         this.alisa = this.table.getAlias();
         this.columnDefinitions = tableObject.getColumnDefinitions();
         this.columnInfo = tableObject.getColumnInfo();
         this.fileDir = tableObject.getFileDir();
 
     }
-    public TableObject(){
+
+    public TableObject() {
 
     }
 
@@ -42,8 +44,8 @@ public class TableObject {
         this.table = table;
         this.tableName = tableName;
         this.columnDefinitions = createTable.getColumnDefinitions();
-        for (ColumnDefinition c:this.columnDefinitions)
-            columnInfo.add(new Column(table,c.getColumnName()));
+        for (ColumnDefinition c : this.columnDefinitions)
+            columnInfo.add(new Column(table, c.getColumnName()));
         if (this.fileDir == null) {
             fileDir = "data/" + createTable.getTable().getName() + ".dat";
         }
@@ -108,10 +110,18 @@ public class TableObject {
         return this.tupleList.iterator();
     }
 
+    public HashMap<Integer, ArrayList<Tuple>> getHashMap() {
+        return this.hashMap;
+    }
+
+    public void setHashMap(HashMap<Integer, ArrayList<Tuple>> hashMap) {
+        this.hashMap = hashMap;
+    }
+
     public void print(int c) {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions,this.columnInfo,c);
+            iterator.next().printTuple(this.columnDefinitions, this.columnInfo, c);
         }
     }
 }

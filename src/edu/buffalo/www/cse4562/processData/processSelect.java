@@ -5,6 +5,7 @@ import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -121,17 +122,19 @@ public class processSelect {
 
             } else if (operation.equals("GROUPBY")){
                 groupByReferences = ((RAGroupBy)pointer).getGroupByReferences();
-                result = ((RAGroupBy)pointer).Eval(result,groupByReferences);
+                if (result.getTupleList()!=null){
+                    result = ((RAGroupBy)pointer).Eval(result,groupByReferences);
+                }
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
+                //todo columninfo
                 tempColDef(result, selectItems, involvedTables);
                 result = ((RAProjection) pointer).Eval(result, tableName);
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
-                //TODO
             } else if (operation.equals("DISTINCT")) {
                 //todo
             } else if (operation.equals("LIMIT")) {
@@ -244,7 +247,21 @@ public class processSelect {
                                 }
                             }
                         }
-                    } else {
+                    } else if (expression instanceof Function) {
+                        //todo
+                        if (((SelectExpressionItem) s).getAlias()!=null){
+                            colDef.setColumnName(((SelectExpressionItem) s).getAlias());
+
+                        }else {
+                            colDef.setColumnName(s.toString());
+                        }
+                        colInfo.setTable(null);
+                        colInfo.setColumnName(colDef.getColumnName());
+                        ColDataType colDataType = new ColDataType();
+                        colDataType.setDataType("LONG");
+                        colDef.setColDataType(colDataType);
+
+                    }else{
                         colDef.setColumnName(((SelectExpressionItem) s).getAlias());
                         colInfo.setTable(null);
                         colInfo.setColumnName(colDef.getColumnName());
