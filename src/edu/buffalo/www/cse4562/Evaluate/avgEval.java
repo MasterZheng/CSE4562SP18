@@ -3,7 +3,6 @@ package edu.buffalo.www.cse4562.Evaluate;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.PrimitiveValue;
 
 import java.util.*;
 

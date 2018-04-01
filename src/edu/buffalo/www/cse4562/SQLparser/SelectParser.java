@@ -1,10 +1,8 @@
 package edu.buffalo.www.cse4562.SQLparser;
 
-import edu.buffalo.www.cse4562.Evaluate.expProcess;
+import edu.buffalo.www.cse4562.Evaluate.expEval;
 import edu.buffalo.www.cse4562.RA.*;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
@@ -270,7 +268,7 @@ public class SelectParser {
     public int optimize(RANode pointer,Expression where){
         //存在 join 情况
         Expression newWhere = null;
-        expProcess exp = new expProcess(where);
+        expEval exp = new expEval(where);
         List<Expression> expList = exp.getExpressions();
         // 0 not related,1 join on condition ,2 table filter
         int flag =0;

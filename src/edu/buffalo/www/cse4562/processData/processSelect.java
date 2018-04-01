@@ -90,7 +90,8 @@ public class processSelect {
                         if (right.getExpression() == null) {
                             rightIterator = parserRight.iterator();
                         } else {
-                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right));;
+                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right));
+                            ;
                             rightIterator = tableRight.getIterator();
                         }
                         involvedTables.add(tableRight);
@@ -105,25 +106,26 @@ public class processSelect {
                 }
                 if (((RAJoin) pointer).getJoin() != null && pointer.getExpression() != null) {
                     //the join has 2 children,skip 1=1 in join.expression
-                    if (pointer.getParentNode().getOperation().equals("SELECTION")&&pointer.getExpression().toString().equals("1 = 1")){
+                    if (pointer.getParentNode().getOperation().equals("SELECTION") && pointer.getExpression().toString().equals("1 = 1")) {
 
-                    }else {
-                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));;
+                    } else {
+                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));
+                        ;
                         leftIterator = result.getIterator();
                         rightIterator = null;
                     }
 
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                    List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
-                    if (queryResult != null) {
-                        result.settupleList(queryResult);
-                    }
+                List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                if (queryResult != null) {
+                    result.settupleList(queryResult);
+                }
 
-            } else if (operation.equals("GROUPBY")){
-                groupByReferences = ((RAGroupBy)pointer).getGroupByReferences();
-                if (result.getTupleList()!=null){
-                    result = ((RAGroupBy)pointer).Eval(result,groupByReferences);
+            } else if (operation.equals("GROUPBY")) {
+                groupByReferences = ((RAGroupBy) pointer).getGroupByReferences();
+                if (result.getTupleList() != null) {
+                    result = ((RAGroupBy) pointer).Eval(result, groupByReferences);
                 }
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
@@ -249,10 +251,10 @@ public class processSelect {
                         }
                     } else if (expression instanceof Function) {
                         //todo
-                        if (((SelectExpressionItem) s).getAlias()!=null){
+                        if (((SelectExpressionItem) s).getAlias() != null) {
                             colDef.setColumnName(((SelectExpressionItem) s).getAlias());
 
-                        }else {
+                        } else {
                             colDef.setColumnName(s.toString());
                         }
                         colInfo.setTable(null);
@@ -261,7 +263,7 @@ public class processSelect {
                         colDataType.setDataType("LONG");
                         colDef.setColDataType(colDataType);
 
-                    }else{
+                    } else {
                         colDef.setColumnName(((SelectExpressionItem) s).getAlias());
                         colInfo.setTable(null);
                         colInfo.setColumnName(colDef.getColumnName());

@@ -9,11 +9,11 @@ import net.sf.jsqlparser.schema.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-public class expProcess {
+public class expEval {
 
     private List<Expression> expressions;
 
-    public expProcess(Expression expression) {
+    public expEval(Expression expression) {
         this.expressions = new ArrayList<>();
         if (expression instanceof AndExpression) {
                 Expression left = ((AndExpression) expression).getLeftExpression();

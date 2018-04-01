@@ -18,9 +18,9 @@ public class TableObject {
     private String tableName;
     private String fileDir;
     private String alisa;
-    private List<ColumnDefinition> columnDefinitions;
+    private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
-    private List<Column> columnInfo = new ArrayList<>();
+    private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
     private List<Tuple> tupleList = new ArrayList<>();
     private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
     static Logger logger = Logger.getLogger(TableObject.class.getName());
