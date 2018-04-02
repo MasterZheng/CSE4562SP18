@@ -1,16 +1,12 @@
 package edu.buffalo.www.cse4562.Evaluate;
 
-import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
 
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -20,7 +16,6 @@ public class evaluate extends Eval {
     private Tuple tupleRight;
     private Expression expression;
     private List<Object> selectList;
-    private ArrayList<TableObject> tableList;
 
     public evaluate(Tuple tupleLeft, Tuple tupleRight, Expression expression) {
         //selection
@@ -29,10 +24,9 @@ public class evaluate extends Eval {
         this.expression = expression;
     }
 
-    public evaluate(Tuple tupleLeft, List<Object> list) {
+    public evaluate(Tuple tupleLeft) {
         //projection
         this.tupleLeft = tupleLeft;
-        this.selectList = list;
     }
 
     public evaluate(List<Object> list){
@@ -115,25 +109,25 @@ public class evaluate extends Eval {
 //        return newTuple;
 //    }
 
-    public List project(List<Tuple> tupleList,List<Expression> columnList,List<Column> columnInfo)throws Exception{
-        List<Tuple> newTupleList = new ArrayList<>();
-        for (int i = 0;i<tupleList.size();i++){
-            Tuple newTuple = new Tuple();
-            HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
-            for (int j = 0;j<columnList.size();j++){
-                if (columnList.get(j)!=null){
-                    attributes.put(columnInfo.get(j),tupleList.get(i).getAttributes().get(columnList.get(j)));
-                }else {
-                    Expression e= ((SelectExpressionItem) selectList.get(j)).getExpression();
-                    this.tupleLeft = tupleList.get(i);
-                    attributes.put(columnInfo.get(j),eval(e));
-                }
-            }
-            newTuple.setAttributes(attributes);
-            newTupleList.add(newTuple);
-        }
-        return newTupleList;
-    }
+//    public List project(List<Tuple> tupleList,List<Expression> columnList,List<Column> columnInfo)throws Exception{
+//        List<Tuple> newTupleList = new ArrayList<>();
+//        for (int i = 0;i<tupleList.size();i++){
+//            Tuple newTuple = new Tuple();
+//            HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+//            for (int j = 0;j<columnList.size();j++){
+//                if (columnList.get(j)!=null){
+//                    attributes.put(columnInfo.get(j),tupleList.get(i).getAttributes().get(columnList.get(j)));
+//                }else {
+//                    Expression e= ((SelectExpressionItem) selectList.get(j)).getExpression();
+//                    this.tupleLeft = tupleList.get(i);
+//                    attributes.put(columnInfo.get(j),eval(e));
+//                }
+//            }
+//            newTuple.setAttributes(attributes);
+//            newTupleList.add(newTuple);
+//        }
+//        return newTupleList;
+//    }
 
 }
 

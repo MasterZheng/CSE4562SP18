@@ -11,12 +11,10 @@ import java.util.List;
 public class RAJoin extends RANode {
     private String operation = "JOIN";
     private FromItem fromItem;
-    private List join;
     private Expression expression;
 
-    public RAJoin(FromItem fromItem, List join) {
+    public RAJoin(FromItem fromItem) {
         this.fromItem = fromItem;
-        this.join = join;
         this.expression = new EqualsTo(new LongValue(1), new LongValue(1));
     }
 
@@ -30,14 +28,6 @@ public class RAJoin extends RANode {
     }
     public void Eval(){
 
-    }
-
-    public List getJoin() {
-        return join;
-    }
-
-    public void setJoin(List join) {
-        this.join = join;
     }
 
     public FromItem getFromItem() {

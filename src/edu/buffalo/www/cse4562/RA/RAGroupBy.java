@@ -52,6 +52,8 @@ public class RAGroupBy extends RANode {
                 hashMap.put(key,grouplist);
             }
         }
+        //todo optimize
+        OutputTable.settupleList(new ArrayList<>());
         return OutputTable;
     }
 

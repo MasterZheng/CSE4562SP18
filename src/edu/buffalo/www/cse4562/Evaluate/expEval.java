@@ -63,7 +63,7 @@ public class expEval {
 //            flag = judge(t,((GreaterThan) e).getLeftExpression(),((GreaterThan) e).getRightExpression());
 //        }else if (e instanceof  GreaterThanEquals){
 //            flag = judge(t,((GreaterThanEquals) e).getLeftExpression(),((GreaterThanEquals) e).getRightExpression());
-//        }else if (e instanceof MinorThan){
+//        }else                                                                                                                                                                                                                                                                                                                                                                                            if (e instanceof MinorThan){
 //            flag = judge(t,((MinorThan) e).getLeftExpression(),((MinorThan) e).getRightExpression());
 //        }else if (e instanceof MinorThanEquals){
 //            flag = judge(t,((MinorThanEquals) e).getLeftExpression(),((MinorThanEquals) e).getRightExpression());

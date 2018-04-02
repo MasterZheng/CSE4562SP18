@@ -6,7 +6,6 @@ import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -105,13 +104,13 @@ public class processSelect {
                 } else {
                     rightIterator = null;
                 }
-                if (((RAJoin) pointer).getJoin() != null && pointer.getExpression() != null) {
+//                if (((RAJoin) pointer).getJoin() != null && pointer.getExpression() != null) {
+                if (pointer.getExpression() != null) {
                     //the join has 2 children,skip 1=1 in join.expression
                     if (pointer.getParentNode().getOperation().equals("SELECTION") && pointer.getExpression().toString().equals("1 = 1")) {
 
                     } else {
                         result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));
-                        ;
                         leftIterator = result.getIterator();
                         rightIterator = null;
                     }
@@ -260,12 +259,12 @@ public class processSelect {
                         } else {
                             colDef.setColumnName(s.toString());
                         }
-                        List<Expression> paramList =((Function)expression).getParameters().getExpressions();
-                        if (paramList!=null){
+                        List<Expression> paramList = ((Function) expression).getParameters().getExpressions();
+                        if (paramList != null) {
                             Column paramCol = (Column) paramList.get(0);
-                            if(paramCol.getTable()!=null){
+                            if (paramCol.getTable() != null) {
                                 colInfo.setTable(paramCol.getTable());
-                            }else {
+                            } else {
                                 colInfo.setTable(null);
                             }
                         }

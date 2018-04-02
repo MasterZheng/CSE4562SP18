@@ -2,14 +2,11 @@ package edu.buffalo.www.cse4562.Table;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
-import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
-import java.io.File;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -104,6 +101,9 @@ public class TableObject {
 
     public void settupleList(List<Tuple> tupleList) {
         this.tupleList = tupleList;
+    }
+    public void addTupleList(List<Tuple> tupleList){
+        this.tupleList.addAll(tupleList);
     }
 
     public Iterator getIterator() {

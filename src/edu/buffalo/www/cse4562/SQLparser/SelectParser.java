@@ -137,7 +137,7 @@ public class SelectParser {
         if (!(body instanceof Union)) {
             //parse the SQL and build the tree down to up
             //process fromItem joins
-            RANode joinNode = new RAJoin(fromItem, this.joins);
+            RANode joinNode = new RAJoin(fromItem);
             RANode pointer = joinNode;
             if (fromItem instanceof SubSelect) {
                 // subSelect
@@ -162,7 +162,7 @@ public class SelectParser {
                             subSelect.setParentNode(pointer);
                         } else {
                             //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
-                            RANode joinNew = new RAJoin(fromItem, joins);
+                            RANode joinNew = new RAJoin(fromItem);
                             while (joinNode.getLeftNode() != null) {
                                 joinNode = joinNode.getLeftNode();
                             }
@@ -181,7 +181,7 @@ public class SelectParser {
                             table.setParentNode(pointer);
                         } else {
                             //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
-                            RANode joinNew = new RAJoin(fromItem, joins);
+                            RANode joinNew = new RAJoin(fromItem);
                             while (joinNode.getLeftNode() != null) {
                                 joinNode = joinNode.getLeftNode();
                             }
@@ -227,7 +227,7 @@ public class SelectParser {
             RANode projNode = new RAProjection(selectItem);
             // if groupby exist, when process where ,the result should be hash and groupBy to reduce time cost.
             if (groupByColumnReference!=null){
-                ((RAProjection)projNode).setHash(true);
+                ((RAProjection)projNode).setisGroupBy(true);
             }
             projNode.setLeftNode(pointer);
             pointer.setParentNode(projNode);

@@ -1,34 +1,33 @@
 package edu.buffalo.www.cse4562.RA;
 
+import edu.buffalo.www.cse4562.Evaluate.aggEval;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class RAProjection extends RANode {
 
     private String operation = "PROJECTION";
-    private List selectItem;
+    private List<SelectItem> selectItem;
     private boolean flag = false;//record select *
     private List<Expression> columnList = new ArrayList<>();
     private List<Column> columnInfo = new ArrayList<>();
-    private boolean hash = false;
+    private boolean isGroupBy = false;
 
     public RAProjection(List<SelectItem> selectItem) {
         this.selectItem = selectItem;
-        if (selectItem!=null&&selectItem.get(0) instanceof AllColumns){
+        if (selectItem != null && selectItem.get(0) instanceof AllColumns) {
             this.flag = true;
         }
     }
@@ -37,31 +36,49 @@ public class RAProjection extends RANode {
         return selectItem;
     }
 
-    public TableObject Eval(TableObject OutputTable,String tableName)throws Exception{
-        if (!flag){
-            projectionParser(OutputTable.getColumnInfo(),new Table(tableName));
-            evaluate eva = new evaluate(this.selectItem);
-            OutputTable.settupleList(eva.project(OutputTable.getTupleList(),this.columnList,this.columnInfo));
-        }else {
-            if (tableName!=null){
-                for (int i = 0;i<OutputTable.getColumnInfo().size();i++){
+    public TableObject Eval(TableObject OutputTable, String tableName) throws Exception {
+        //table name :the sub query's alisa
+        if (!flag) {
+            if (isGroupBy) {
+                projectionParser(OutputTable.getColumnInfo(), new Table(tableName));
+                Iterator<Map.Entry<Integer, ArrayList<Tuple>>> iterator = OutputTable.getHashMap().entrySet().iterator();
+                ArrayList<Function> functions = extractFunc();
+                while (iterator.hasNext()) {
+                    //process aggregate
+                    List<Tuple> tupleList = iterator.next().getValue();
+                    aggEval aggEval = new aggEval(tupleList, functions);
+                    List funcVal = aggEval.eval();
+                    OutputTable.addTupleList(project(tupleList.subList(0,1), this.columnList, this.columnInfo, funcVal));
+                }
+            } else {
+                projectionParser(OutputTable.getColumnInfo(), new Table(tableName));
+                //evaluate eva = new evaluate(this.selectItem);
+                //OutputTable.settupleList(eva.project(OutputTable.getTupleList(),this.columnList,this.columnInfo));
+                OutputTable.settupleList(project(OutputTable.getTupleList(), this.columnList, this.columnInfo, null));
+
+            }
+        } else {
+            if (tableName != null) {
+                for (int i = 0; i < OutputTable.getColumnInfo().size(); i++) {
                     OutputTable.getColumnInfo().get(i).setTable(new Table(tableName));
                 }
             }
         }
         return OutputTable;
     }
+
     public void setSelectItem(List selectItem) {
         this.selectItem = selectItem;
     }
 
-    public boolean isHash() {
-        return hash;
+    public boolean isGroupBy() {
+        return isGroupBy;
     }
 
-    public void setHash(boolean hash) {
-        this.hash = hash;
+    public void setisGroupBy(boolean isGroupBy) {
+        this.isGroupBy = isGroupBy;
     }
+
     public String getOperation() {
         return this.operation;
     }
@@ -81,10 +98,12 @@ public class RAProjection extends RANode {
     }
 
     public void projectionParser(List<Column> columns, Table table) throws Exception {
+        //columns：the columnInfo of result
         //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         for (int i = 0; i < selectItem.size(); i++) {
             Object s = selectItem.get(i);
             if (s instanceof AllTableColumns) {
+                //select R.*
                 String tableName = ((AllTableColumns) s).getTable().getName();
                 for (int j = 0; j < columns.size(); j++) {
                     if (columns.get(j).getTable().getName().equals(tableName)) {
@@ -97,6 +116,7 @@ public class RAProjection extends RANode {
                     }
                 }
             } else if (((SelectExpressionItem) s).getExpression() instanceof Column) {
+                //SELECT *
                 String alias = ((SelectExpressionItem) s).getAlias();
                 Column column = new Column(((Column) ((SelectExpressionItem) s).getExpression()).getTable(), ((Column) ((SelectExpressionItem) s).getExpression()).getColumnName());
                 if (alias == null) {
@@ -110,6 +130,14 @@ public class RAProjection extends RANode {
                 if (!table.toString().equals("null")) {
                     column.setTable(table);
                 }
+            } else if (((SelectExpressionItem) s).getExpression() instanceof Function) {
+                //todo
+                if (((SelectExpressionItem) s).getAlias() != null) {
+                    columnInfo.add(new Column(table, ((SelectExpressionItem) s).getAlias()));
+                } else {
+                    columnInfo.add(new Column(table, s.toString()));
+                }
+                columnList.add(((SelectExpressionItem) s).getExpression());
             } else {
                 String name = ((SelectExpressionItem) s).getAlias();
                 columnList.add(null);
@@ -118,4 +146,56 @@ public class RAProjection extends RANode {
         }
     }
 
+    public List project(List<Tuple> tupleList, List<Expression> columnList, List<Column> columnInfo, List<PrimitiveValue> funcVals) throws Exception {
+        List<Tuple> newTupleList = new ArrayList<>();
+//        if (funcVals==null){
+//            for (int i = 0; i < tupleList.size(); i++) {
+//                Tuple newTuple = new Tuple();
+//                HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+//                for (int j = 0; j < columnList.size(); j++) {
+//                    if (columnList.get(j) != null) {
+//                        attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(columnList.get(j)));
+//                    } else {
+//                        Expression e = ((SelectExpressionItem) selectItem.get(j)).getExpression();
+//                        evaluate eval = new evaluate(tupleList.get(i));
+//                        attributes.put(columnInfo.get(j), eval.eval(e));
+//                    }
+//                }
+//                newTuple.setAttributes(attributes);
+//                newTupleList.add(newTuple);
+//            }
+//        }else {
+        for (int i = 0; i < tupleList.size(); i++) {
+            Tuple newTuple = new Tuple();
+            HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+            int index = 0;
+            for (int j = 0; j < columnList.size(); j++) {
+                if (columnList.get(j) == null) {
+                    Expression e = ((SelectExpressionItem) selectItem.get(j)).getExpression();
+                    evaluate eval = new evaluate(tupleList.get(i));
+                    attributes.put(columnInfo.get(j), eval.eval(e));
+                } else if (columnList.get(j) instanceof Column) {
+                    attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(columnList.get(j)));
+                } else if (columnList.get(j) instanceof Function) {
+                    attributes.put(columnInfo.get(j), funcVals.get(index++));
+                }
+            }
+            newTuple.setAttributes(attributes);
+            newTupleList.add(newTuple);
+        }
+        //}
+
+        return newTupleList;
+    }
+
+    public ArrayList<Function> extractFunc() {
+        ArrayList<Function> functionList = new ArrayList<>();
+        for (SelectItem s : selectItem) {
+            Expression exp = ((SelectExpressionItem) s).getExpression();
+            if (exp instanceof Function) {
+                functionList.add((Function) exp);
+            }
+        }
+        return functionList;
+    }
 }
