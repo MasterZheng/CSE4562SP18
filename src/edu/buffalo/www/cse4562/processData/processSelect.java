@@ -6,6 +6,7 @@ import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -177,6 +178,7 @@ public class processSelect {
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
         List<Column> columnInfo = new ArrayList<>();
         if (selectItems.get(0) instanceof AllColumns) {
+            // select *
             for (TableObject t : involvedTables) {
                 columnDefinitions.addAll(t.getColumnDefinitions());
                 columnInfo.addAll(t.getColumnInfo());
@@ -184,6 +186,7 @@ public class processSelect {
         } else {
             for (Object s : selectItems) {
                 if (s instanceof AllTableColumns) {
+                    // select R.*
                     Table allColumnsTable = ((AllTableColumns) s).getTable();
                     for (int i = 0; i < involvedTables.size(); i++) {
                         if (involvedTables.get(i).getTableName().equals(allColumnsTable.getName())
@@ -257,9 +260,18 @@ public class processSelect {
                         } else {
                             colDef.setColumnName(s.toString());
                         }
-                        colInfo.setTable(null);
+                        List<Expression> paramList =((Function)expression).getParameters().getExpressions();
+                        if (paramList!=null){
+                            Column paramCol = (Column) paramList.get(0);
+                            if(paramCol.getTable()!=null){
+                                colInfo.setTable(paramCol.getTable());
+                            }else {
+                                colInfo.setTable(null);
+                            }
+                        }
                         colInfo.setColumnName(colDef.getColumnName());
                         ColDataType colDataType = new ColDataType();
+                        //todo type
                         colDataType.setDataType("LONG");
                         colDef.setColDataType(colDataType);
 

@@ -13,36 +13,36 @@ import java.util.logging.Logger;
 public class CreatParser {
     static Logger logger = Logger.getLogger(CreatParser.class.getName());
 
-            public static HashMap<String,Object> CreatFunction(CreateTable create){
-            HashMap<String,Object> createMap = new HashMap<String,Object>();
+    public static HashMap<String, Object> CreatFunction(CreateTable create) {
+        HashMap<String, Object> createMap = new HashMap<String, Object>();
 
-            //todo
-            List<ColumnDefinition> colDefList = create.getColumnDefinitions();
-            String tableName = create.getTable().getName();
-            String alias = create.getTable().getAlias();
-              String schemaName= create.getTable().getSchemaName();
-              List<Index> indexList = create.getIndexes();
-              List tblOptStr = create.getTableOptionsStrings();
+        List<ColumnDefinition> colDefList = create.getColumnDefinitions();
+        String tableName = create.getTable().getName();
+        String alias = create.getTable().getAlias();
+        String schemaName = create.getTable().getSchemaName();
+        List<Index> indexList = create.getIndexes();
+        List tblOptStr = create.getTableOptionsStrings();
 
-            createMap.put("TABLENAME",tableName);
-            if (colDefList!=null) {
-                for (int i = 0;i<colDefList.size();i++){
-                    createMap.put("COLNAME"+i,colDefList.get(i));
-                }
+        createMap.put("TABLENAME", tableName);
+        if (colDefList != null) {
+            for (int i = 0; i < colDefList.size(); i++) {
+                createMap.put("COLNAME" + i, colDefList.get(i));
             }
-            if (alias!=null){
-                createMap.put("ALIAS",alias);
-            }
-            return createMap;
         }
-    public static boolean CreatFunction(CreateTable create, HashMap<String,TableObject> tableMap) {
+        if (alias != null) {
+            createMap.put("ALIAS", alias);
+        }
+        return createMap;
+    }
+
+    public static boolean CreatFunction(CreateTable create, HashMap<String, TableObject> tableMap) {
         String tableName = create.getTable().getName().toUpperCase();
-        if (tableMap.containsKey(tableName)){
+        if (tableMap.containsKey(tableName)) {
             return false;
         }
         Table table = create.getTable();
-        TableObject tableObject = new TableObject(create,table,tableName);
-        tableMap.put(tableName,tableObject);
+        TableObject tableObject = new TableObject(create, table, tableName);
+        tableMap.put(tableName, tableObject);
         logger.info(create.toString());
         return true;
     }
