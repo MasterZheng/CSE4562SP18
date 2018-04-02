@@ -9,11 +9,14 @@ import net.sf.jsqlparser.schema.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-public class expEval {
+public class selectionEval {
 
     private List<Expression> expressions;
-
-    public expEval(Expression expression) {
+    // selection pushdown
+    // divide expression in selection into several subexpressions
+    // check if the subexpression is related with the table
+    // if yes assign the subexpression to the join
+    public selectionEval(Expression expression) {
         this.expressions = new ArrayList<>();
         if (expression instanceof AndExpression) {
                 Expression left = ((AndExpression) expression).getLeftExpression();
@@ -52,44 +55,6 @@ public class expEval {
         }
         return list;
     }
-//    public boolean isRelated(Table t, Expression e) {
-//        boolean flag = false;
-//        //todo finish the condition
-//        if (e instanceof EqualsTo) {
-//            flag = judge(t,((EqualsTo) e).getLeftExpression(),((EqualsTo) e).getRightExpression());
-//        }else if (e instanceof NotEqualsTo){
-//            flag = judge(t,((NotEqualsTo) e).getLeftExpression(),((NotEqualsTo) e).getRightExpression());
-//        }else if (e instanceof GreaterThan){
-//            flag = judge(t,((GreaterThan) e).getLeftExpression(),((GreaterThan) e).getRightExpression());
-//        }else if (e instanceof  GreaterThanEquals){
-//            flag = judge(t,((GreaterThanEquals) e).getLeftExpression(),((GreaterThanEquals) e).getRightExpression());
-//        }else                                                                                                                                                                                                                                                                                                                                                                                            if (e instanceof MinorThan){
-//            flag = judge(t,((MinorThan) e).getLeftExpression(),((MinorThan) e).getRightExpression());
-//        }else if (e instanceof MinorThanEquals){
-//            flag = judge(t,((MinorThanEquals) e).getLeftExpression(),((MinorThanEquals) e).getRightExpression());
-//        }
-//        return flag;
-//    }
-//
-//    private boolean judge(Table t,Expression le,Expression re){
-//        Boolean flag = false;
-//        String alisa = t.getAlias();
-//        if (le instanceof Column) {
-//            Table left = ((Column)le).getTable();
-//            if (left != null && left.getName().equals(t.getName())
-//                    ||(alisa!= null && left.getName().equals(alisa))) {
-//                flag = true;
-//            }
-//        }
-//        if (re instanceof Column) {
-//            Table right = ((Column)re).getTable();
-//            if (right != null && right.getName().equals(t.getName())
-//                    ||(alisa!= null && right.getName().equals(alisa))) {
-//                flag = true;
-//            }
-//        }
-//        return flag;
-//    }
 
     public int isRelated(Table t, Expression e) {
         int flag = 0;

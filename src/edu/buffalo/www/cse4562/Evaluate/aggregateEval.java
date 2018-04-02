@@ -6,14 +6,14 @@ import net.sf.jsqlparser.expression.*;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class aggEval {
-    static Logger logger = Logger.getLogger(aggEval.class.getName());
+public class aggregateEval {
+    static Logger logger = Logger.getLogger(aggregateEval.class.getName());
 
     private List<Tuple> tupleList = new ArrayList<>();
     private List<Function> functionList = new ArrayList<>();
 
 
-    public aggEval(List<Tuple> tupleList, List<Function> functionList) {
+    public aggregateEval(List<Tuple> tupleList, List<Function> functionList) {
         this.tupleList = tupleList;
         this.functionList = functionList;
     }

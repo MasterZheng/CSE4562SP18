@@ -1,6 +1,6 @@
 package edu.buffalo.www.cse4562.RA;
 
-import edu.buffalo.www.cse4562.Evaluate.aggEval;
+import edu.buffalo.www.cse4562.Evaluate.aggregateEval;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
@@ -46,7 +46,7 @@ public class RAProjection extends RANode {
                 while (iterator.hasNext()) {
                     //process aggregate
                     List<Tuple> tupleList = iterator.next().getValue();
-                    aggEval aggEval = new aggEval(tupleList, functions);
+                    aggregateEval aggEval = new aggregateEval(tupleList, functions);
                     List funcVal = aggEval.eval();
                     OutputTable.addTupleList(project(tupleList.subList(0,1), this.columnList, this.columnInfo, funcVal));
                 }
