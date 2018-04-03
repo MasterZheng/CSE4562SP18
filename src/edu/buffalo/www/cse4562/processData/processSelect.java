@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
+    private static int BLOCKSIZE = 100;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -231,7 +232,7 @@ public class processSelect {
                         } else {
                             //SELECT B.A FROM B,C
                             for (TableObject t : involvedTables) {
-                                if (t.getTableName().equals(tableName) || t.getAlisa().equals(tableName)) {
+                                if (t.getTableName().equals(tableName) || tableName.equals(t.getAlisa())) {
                                     if (columnAlisa != null) {
                                         colDef.setColumnName(columnAlisa);
                                         colInfo.setColumnName(columnAlisa);
@@ -292,44 +293,89 @@ public class processSelect {
         tableObject.setColumnDefinitions(columnDefinitions);
     }
 
-    public static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
-        List<Tuple> queryResult = new ArrayList<>();
-        Tuple tupleLeft, tupleRight;
-        while (leftIterator != null && leftIterator.hasNext()) {
-            //get left tuple
-            if (leftIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-                //CSV iterator
-                tupleLeft = new Tuple(tableLeft, (CSVRecord) leftIterator.next());
-            } else {
-                //list iterator
-                tupleLeft = (Tuple) leftIterator.next();
-            }
+//    private static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
+//        List<Tuple> queryResult = new ArrayList<>();
+//        Tuple tupleLeft, tupleRight;
+//        //original
+//        while (leftIterator != null && leftIterator.hasNext())
+//
+//        {
+//            //get left tuple
+//            if (leftIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+//                //CSV iterator
+//                tupleLeft = new Tuple(tableLeft, (CSVRecord) leftIterator.next());
+//            } else {
+//                //list iterator
+//                tupleLeft = (Tuple) leftIterator.next();
+//            }
+//
+//            if (rightIterator != null) {
+//                while (rightIterator.hasNext()) {
+//                    if (rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+//                        //CSV iterator
+//                        tupleRight = new Tuple(tableRight, (CSVRecord) rightIterator.next());
+//                    } else {
+//                        //list iterator
+//                        tupleRight = (Tuple) rightIterator.next();
+//                    }
+//                    evaluate eva = new evaluate(tupleLeft, tupleRight, pointer.getExpression());
+//                    queryResult = eva.Eval(queryResult);
+//                }
+//                //when the loop finish,the iterator should be initiated.
+//                if (!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+//                    rightIterator = tableRight.getIterator();
+//                } else {
+//                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+//                    rightIterator = parserRight.iterator();
+//                }
+//            }
+//            if (rightIterator == null) {
+//                evaluate eva = new evaluate(tupleLeft, null, pointer.getExpression());
+//                queryResult = eva.Eval(queryResult);
+//            }
+//        }
+//        return queryResult;
+//    }
 
-            if (rightIterator != null) {
-                while (rightIterator.hasNext()) {
-                    if (rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-                        //CSV iterator
-                        tupleRight = new Tuple(tableRight, (CSVRecord) rightIterator.next());
-                    } else {
-                        //list iterator
-                        tupleRight = (Tuple) rightIterator.next();
-                    }
-                    evaluate eva = new evaluate(tupleLeft, tupleRight, pointer.getExpression());
+    private static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
+        List<Tuple> queryResult = new ArrayList<>();
+        List<Tuple> leftBlock, rightBlock;
+        if (rightIterator == null) {
+            //if no right table ,just evaluate left tuple
+            while (leftIterator.hasNext()) {
+                leftBlock = getTupleBlock(leftIterator, tableLeft);
+                for (int i = 0; i < leftBlock.size(); i++) {
+                    evaluate eva = new evaluate(leftBlock.get(i), null, pointer.getExpression());
                     queryResult = eva.Eval(queryResult);
                 }
-                if (!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-                    rightIterator = tableRight.getIterator();
-                } else {
-                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                    rightIterator = parserRight.iterator();
-                }
             }
-            if (rightIterator == null) {
-                evaluate eva = new evaluate(tupleLeft, null, pointer.getExpression());
-                queryResult = eva.Eval(queryResult);
+        } else {
+            while (leftIterator.hasNext()) {
+                leftBlock = getTupleBlock(leftIterator, tableLeft);
+                rightBlock = getTupleBlock(rightIterator,tableRight);
+                for (int i = 0; i < leftBlock.size(); i++) {
+                    for(int j = 0;j<rightBlock.size();j++){
+                        evaluate eva = new evaluate(leftBlock.get(i), rightBlock.get(j), pointer.getExpression());
+                        queryResult = eva.Eval(queryResult);
+                    }
+                }
             }
         }
         return queryResult;
     }
 
+    private static List<Tuple> getTupleBlock(Iterator iterator, TableObject tableObject) {
+        List<Tuple> tupleBlock = new ArrayList<>();
+        int counter = 0;
+        if (iterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+            while (iterator.hasNext() && counter < BLOCKSIZE) {
+                tupleBlock.add(new Tuple(tableObject, (CSVRecord) iterator.next()));
+            }
+        } else {
+            while (iterator.hasNext() && counter < BLOCKSIZE) {
+                tupleBlock.add((Tuple) iterator.next());
+            }
+        }
+        return tupleBlock;
+    }
 }
