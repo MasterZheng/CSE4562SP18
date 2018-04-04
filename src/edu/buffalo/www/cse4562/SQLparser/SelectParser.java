@@ -1,7 +1,9 @@
 package edu.buffalo.www.cse4562.SQLparser;
 
+import edu.buffalo.www.cse4562.Evaluate.projectionEval;
 import edu.buffalo.www.cse4562.Evaluate.selectionEval;
 import edu.buffalo.www.cse4562.RA.*;
+import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -21,11 +23,12 @@ public class SelectParser {
     private List<Join> joins;
     private List<SelectItem> selectItem;
     private Expression where;
-    private List orderBy;
+    private List<OrderByElement> orderBy;
     private Distinct dist;
     private Limit lim;
     private FromItem fromItem;
     private List<Column> groupByColumnReference;
+
     public SelectParser(SelectBody selectBody){
 
         this.body = (PlainSelect) selectBody;
@@ -132,7 +135,8 @@ public class SelectParser {
      * @param body
      * @return the root node
      */
-    public RANode SelectFunction(SelectBody body) {
+    public RANode SelectFunction(SelectBody body,HashMap<String, TableObject> tableMap) {
+        List<TableObject> involvedTables = new ArrayList<>();
 
         if (!(body instanceof Union)) {
             //parse the SQL and build the tree down to up
@@ -141,27 +145,42 @@ public class SelectParser {
             RANode pointer = joinNode;
             if (fromItem instanceof SubSelect) {
                 // subSelect
+                RASubSelect subSelectNode = new RASubSelect(fromItem.getAlias());
                 SelectParser subParser = new SelectParser(((SubSelect) fromItem).getSelectBody());
-                RANode subSelect = subParser.SelectFunction(((SubSelect) fromItem).getSelectBody());
-                joinNode.setLeftNode(subSelect);
-                subSelect.setParentNode(pointer);
+                RANode subSelectBody = subParser.SelectFunction(((SubSelect) fromItem).getSelectBody(),tableMap);
+                subSelectNode.setLeftNode(subSelectBody);
+                subSelectBody.setParentNode(subSelectNode);
+                joinNode.setLeftNode(subSelectNode);
+                subSelectNode.setParentNode(pointer);
             } else {
                 //table
                 RATable table = new RATable((Table) fromItem);
                 joinNode.setLeftNode(table);
                 table.setParentNode(pointer);
+                String tableName= table.getTable().getName().toUpperCase();
+                involvedTables.add(new TableObject(tableMap.get(tableName),table,fromItem.getAlias()));
             }
 
             if (joins != null) {
                 for (int i = 0; i < joins.size(); i++) {
                     FromItem join = joins.get(i).getRightItem();
+                    // process SubSelect
                     if (join instanceof SubSelect) {
                         if (joinNode.getRightNode() == null) {
-                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());
-                            joinNode.setRightNode(subSelect);
-                            subSelect.setParentNode(pointer);
+                            //     join
+                            //    /   \
+                            //        null
+                            RASubSelect subSelectNode = new RASubSelect(join.getAlias());
+                            RANode subSelectBody = SelectFunction(((SubSelect) join).getSelectBody(),tableMap);
+                            subSelectNode.setLeftNode(subSelectBody);
+                            subSelectBody.setParentNode(subSelectNode);
+                            joinNode.setRightNode(subSelectNode);
+                            subSelectNode.setParentNode(pointer);
                         } else {
                             //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
+                            //     join
+                            //    /   \
+                            //        somethings
                             RANode joinNew = new RAJoin(fromItem);
                             while (joinNode.getLeftNode() != null) {
                                 joinNode = joinNode.getLeftNode();
@@ -169,18 +188,27 @@ public class SelectParser {
                             pointer.setParentNode(joinNew);
                             joinNew.setLeftNode(pointer);
                             pointer = joinNew;
-                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody());
+                            RANode subSelect = SelectFunction(((SubSelect) join).getSelectBody(),tableMap);
                             pointer.setRightNode(subSelect);
                             subSelect.setParentNode(pointer);
 
                         }
                     } else {
+                        // not SubSelect
                         if (joinNode.getRightNode() == null) {
+                            //     join
+                            //    /   \
+                            //        null
                             RATable table = new RATable((Table) join);
                             joinNode.setRightNode(table);
                             table.setParentNode(pointer);
+                            String tableName= table.getTable().getName().toUpperCase();
+                            involvedTables.add(new TableObject(tableMap.get(tableName),table,join.getAlias()));
                         } else {
                             //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
+                            //           join
+                            //          /   \
+                            // add join       null
                             RANode joinNew = new RAJoin(fromItem);
                             while (joinNode.getLeftNode() != null) {
                                 joinNode = joinNode.getLeftNode();
@@ -191,28 +219,39 @@ public class SelectParser {
                             RATable table = new RATable((Table) join);
                             pointer.setRightNode(table);
                             table.setParentNode(pointer);
+                            String tableName= table.getTable().getName().toUpperCase();
+                            involvedTables.add(new TableObject(tableMap.get(tableName),table,join.getAlias()));
                         }
 
                     }
                 }
             }
-            if (where!=null&&joins!=null){
-                optimize(pointer,where);
+            //****************************Optimize******************************//
+            projectionEval projEval = new projectionEval(selectItem);
+            //find the columns which will be used
+            List<Column> columnList = projEval.usefulCol(where,orderBy,groupByColumnReference,involvedTables);
+            //find the first JOIN Node
+            RANode joinRoot = pointer;
+            while (!joinRoot.getOperation().equals("JOIN")){
+                joinRoot = joinRoot.getLeftNode();
             }
+            //todo Select A match the table
+            projEval.pushdownProject(joinRoot,columnList,involvedTables);
+
+            if (where!=null&&joins!=null){
+                //pushdown selection
+                selectionEval selectEval = new selectionEval();
+                selectEval.pushdownSelect(pointer,where);
+                this.where = selectEval.getWhere();
+            }
+            //****************************Optimize******************************//
+
             //process where
             if (where != null) {
                 RANode whereNode = new RASelection(where);
                 whereNode.setLeftNode(pointer);
                 pointer.setParentNode(whereNode);
                 pointer = whereNode;
-            } else {
-                // if no where ,add 1==1 as the where expression
-                // 1==1 has been moved to join Node
-//                EqualsTo rightWhere = new EqualsTo(new LongValue(1), new LongValue(1));
-//                RANode whereNode = new RASelection(rightWhere);
-//                whereNode.setLeftNode(pointer);
-//                pointer.setParentNode(whereNode);
-//                pointer = whereNode;
             }
 
             //process groupBy
@@ -232,7 +271,6 @@ public class SelectParser {
             projNode.setLeftNode(pointer);
             pointer.setParentNode(projNode);
             pointer = projNode;
-
 
             //process orderby
             if (orderBy != null) {
@@ -262,51 +300,5 @@ public class SelectParser {
             //todo UNION
             return null;
         }
-    }
-
-
-    public int optimize(RANode pointer,Expression where){
-        //存在 join 情况
-        Expression newWhere = null;
-        selectionEval exp = new selectionEval(where);
-        List<Expression> expList = exp.getExpressions();
-        // 0 not related,1 join on condition ,2 table filter
-        int flag =0;
-        List<Integer> deleteExp = new ArrayList<>();
-        for (int i = 0;i<expList.size();i++){
-            flag = 0;
-            if (pointer.getRightNode() instanceof RATable){
-                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(),expList.get(i));
-                if (flag==1)
-                    ((RAJoin)pointer).addAndExpression(expList.get(i));
-                else if (flag==2)
-                    ((RATable)pointer.getRightNode()).addAndExpression(expList.get(i));
-
-            }else if (pointer.getRightNode() instanceof RAJoin){
-                flag = optimize(pointer.getRightNode(),expList.get(i));
-            }
-            //加入！flag 防止同样条件被添加2次
-            if (flag==0&&pointer.getLeftNode() instanceof RATable){
-                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
-                if (flag==1)
-                    ((RAJoin)pointer).addAndExpression(expList.get(i));
-                else if (flag==2)
-                    ((RATable)pointer.getLeftNode()).addAndExpression(expList.get(i));
-            }else if (flag==0&&pointer.getLeftNode() instanceof RAJoin){
-                flag = optimize(pointer.getLeftNode(),expList.get(i));
-            }
-            if (flag!=0){
-                deleteExp.add(i);
-            }
-        }
-
-        for (int i = deleteExp.size()-1;i>-1;i--){//从大往小删
-            expList.remove((int)deleteExp.get(i));
-        }
-        for (Expression e:expList){
-            newWhere = exp.mergeAndExpression(newWhere,e);
-        }
-        this.where = newWhere;
-        return flag;
     }
 }

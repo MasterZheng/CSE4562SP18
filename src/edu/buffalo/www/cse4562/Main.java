@@ -51,7 +51,7 @@ public class Main {
                     Select select = (Select) stmt;
                     SelectBody body = select.getSelectBody();
                     SelectParser parser = new SelectParser(body);
-                    RANode raTree = parser.SelectFunction(body);
+                    RANode raTree = parser.SelectFunction(body,tableMap);
                     TableObject queryResult = SelectData(raTree, tableMap,null);
                     if (queryResult != null) {
                         queryResult.print(c);

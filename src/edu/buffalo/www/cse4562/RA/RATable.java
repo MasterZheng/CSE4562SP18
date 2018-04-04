@@ -2,7 +2,12 @@ package edu.buffalo.www.cse4562.RA;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class RATable extends RANode{
@@ -10,7 +15,8 @@ public class RATable extends RANode{
     private String operation = "TABLE";
     private Table table;
     private Expression expression;
-
+    private List<ColumnDefinition> usedColDef = new ArrayList<>();
+    private List<Column> usedColInf = new ArrayList<>();
     public RATable(Table table) {
         this.table = table;
     }
@@ -27,6 +33,9 @@ public class RATable extends RANode{
         }
     }
 
+    public void addItemIntoColInf(Column c){
+        this.usedColInf.add(c);
+    }
 
     @Override
     public Expression getExpression() {

@@ -13,11 +13,14 @@ import java.util.logging.Logger;
 public class TableObject {
     private Table table;
     private String tableName;
-    private String fileDir;
     private String alisa;
+    private String fileDir;
+
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
+
+
     private List<Tuple> tupleList = new ArrayList<>();
     private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
     static Logger logger = Logger.getLogger(TableObject.class.getName());
@@ -30,9 +33,15 @@ public class TableObject {
         this.columnDefinitions = tableObject.getColumnDefinitions();
         this.columnInfo = tableObject.getColumnInfo();
         this.fileDir = tableObject.getFileDir();
-
     }
 
+    public TableObject(TableObject tableObject, RANode raTable,String alisa){
+        this.table = ((RATable) raTable).getTable();
+        this.tableName = ((RATable) raTable).getTable().getName();
+        this.alisa = alisa;
+        this.columnDefinitions = tableObject.getColumnDefinitions();
+        this.columnInfo = tableObject.getColumnInfo();
+    }
     public TableObject() {
 
     }
@@ -49,14 +58,16 @@ public class TableObject {
     }
 
 
+    public void optimize() {
+
+    }
+
     public String getAlisa() {
         return alisa;
     }
 
     public void setAlisa(String alisa) {
         this.alisa = alisa;
-//        for (int i = 0;i<this.getColumnInfo().size();i++)
-//            this.getColumnInfo().get(i).getTable().setAlias(this.alisa);
     }
 
     public Table getTable() {
@@ -102,7 +113,8 @@ public class TableObject {
     public void settupleList(List<Tuple> tupleList) {
         this.tupleList = tupleList;
     }
-    public void addTupleList(List<Tuple> tupleList){
+
+    public void addTupleList(List<Tuple> tupleList) {
         this.tupleList.addAll(tupleList);
     }
 
