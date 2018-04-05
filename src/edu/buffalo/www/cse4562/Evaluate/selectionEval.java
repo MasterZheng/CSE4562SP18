@@ -5,6 +5,7 @@ import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -65,7 +66,6 @@ public class selectionEval {
 
     public int isRelated(Table t, Expression e) {
         int flag = 0;
-        //todo finish the condition
         if (e instanceof EqualsTo) {
             flag = judge(t, ((EqualsTo) e).getLeftExpression(), ((EqualsTo) e).getRightExpression());
         } else if (e instanceof NotEqualsTo) {
@@ -125,7 +125,8 @@ public class selectionEval {
         return expressions;
     }
 
-    public List<Column> parseSelect() {
+    //parse expression list, get the columns in the expressions
+    public List<Column> parseSelect(List<Expression> expressions) {
         List<Column> result = new ArrayList<>();
         for (int i = 0;i<expressions.size();i++){
             Expression e = expressions.get(i);
@@ -174,6 +175,33 @@ public class selectionEval {
             }
         }
         return result;
+    }
+
+    //parse where into List including Or
+    public List<Expression> parse2List(List<Expression> expressions,Expression expression) {
+        if (expression instanceof AndExpression) {
+            Expression left = ((AndExpression) expression).getLeftExpression();
+            Expression right = ((AndExpression) expression).getRightExpression();
+            //the left and right subExpression of OrExpression should be with the same table.Should not be divided
+            if (!(right instanceof AndExpression)) {
+                expressions.add(right);
+            }else {
+                expressions.addAll(parseAndExpression(right));
+            }
+            if (!(left instanceof AndExpression)) {
+                expressions.add(left);
+            } else {
+                expressions.addAll(parseAndExpression(left));
+            }
+        } else if (expression instanceof OrExpression){
+            Expression left = ((OrExpression) expression).getLeftExpression();
+            Expression right = ((OrExpression) expression).getRightExpression();
+            parse2List(expressions,left);
+            parse2List(expressions,right);
+        }else {
+            expressions.add(expression);
+        }
+        return expressions;
     }
 
     public int pushdownSelect(RANode pointer, Expression where){

@@ -58,7 +58,6 @@ public class RAJoin extends RANode {
 
     @Override
     public RANode next() {
-        //todo
         return this.leftNode;
     }
 }

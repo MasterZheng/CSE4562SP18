@@ -41,7 +41,7 @@ public class CreatParser {
             return false;
         }
         Table table = create.getTable();
-        TableObject tableObject = new TableObject(create, table, tableName);
+        final TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
         return true;

@@ -145,13 +145,13 @@ public class SelectParser {
             RANode pointer = joinNode;
             if (fromItem instanceof SubSelect) {
                 // subSelect
-                RASubSelect subSelectNode = new RASubSelect(fromItem.getAlias());
+                //RASubSelect subSelectNode = new RASubSelect(fromItem.getAlias());
                 SelectParser subParser = new SelectParser(((SubSelect) fromItem).getSelectBody());
                 RANode subSelectBody = subParser.SelectFunction(((SubSelect) fromItem).getSelectBody(),tableMap);
-                subSelectNode.setLeftNode(subSelectBody);
-                subSelectBody.setParentNode(subSelectNode);
-                joinNode.setLeftNode(subSelectNode);
-                subSelectNode.setParentNode(pointer);
+                //subSelectNode.setLeftNode(subSelectBody);
+                //subSelectBody.setParentNode(subSelectNode);
+                joinNode.setLeftNode(subSelectBody);
+                subSelectBody.setParentNode(pointer);
             } else {
                 //table
                 RATable table = new RATable((Table) fromItem);
@@ -170,12 +170,12 @@ public class SelectParser {
                             //     join
                             //    /   \
                             //        null
-                            RASubSelect subSelectNode = new RASubSelect(join.getAlias());
+                            //RASubSelect subSelectNode = new RASubSelect(join.getAlias());
                             RANode subSelectBody = SelectFunction(((SubSelect) join).getSelectBody(),tableMap);
-                            subSelectNode.setLeftNode(subSelectBody);
-                            subSelectBody.setParentNode(subSelectNode);
-                            joinNode.setRightNode(subSelectNode);
-                            subSelectNode.setParentNode(pointer);
+                            //subSelectNode.setRightNode(subSelectBody);
+                            //subSelectBody.setParentNode(subSelectNode);
+                            joinNode.setRightNode(subSelectBody);
+                            subSelectBody.setParentNode(pointer);
                         } else {
                             //if both children are not empty, new a new RAjoin node , insert the node into leftchild position
                             //     join
@@ -297,7 +297,6 @@ public class SelectParser {
             }
             return pointer;
         } else {
-            //todo UNION
             return null;
         }
     }

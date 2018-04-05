@@ -20,9 +20,12 @@ public class TableObject {
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
 
+    //when the table is a query result, it is necessary to record the table info about the column
+
 
     private List<Tuple> tupleList = new ArrayList<>();
     private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
+    private List<Integer> mapRelations = new ArrayList<>();
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
     public TableObject(TableObject tableObject, RANode raTable) {
@@ -35,13 +38,14 @@ public class TableObject {
         this.fileDir = tableObject.getFileDir();
     }
 
-    public TableObject(TableObject tableObject, RANode raTable,String alisa){
+    public TableObject(TableObject tableObject, RANode raTable, String alisa) {
         this.table = ((RATable) raTable).getTable();
         this.tableName = ((RATable) raTable).getTable().getName();
         this.alisa = alisa;
         this.columnDefinitions = tableObject.getColumnDefinitions();
         this.columnInfo = tableObject.getColumnInfo();
     }
+
     public TableObject() {
 
     }
@@ -104,6 +108,27 @@ public class TableObject {
 
     public void setColumnInfo(List<Column> columnInfo) {
         this.columnInfo = columnInfo;
+    }
+
+    public void MapRelation(List<Column> usedColInfo) {
+        //get the map relations between columninfo and usedColumnInfo
+        for (int i = 0; i < usedColInfo.size(); i++)
+            usedColInfo.get(i).setTable(this.table);
+        List<ColumnDefinition> newColDef = new ArrayList<>();
+        List<Column> newColInfo = new ArrayList<>();
+        for (int i = 0; i < columnInfo.size(); i++) {
+            if (usedColInfo.contains(columnInfo.get(i))) {
+                newColDef.add(columnDefinitions.get(i));
+                newColInfo.add(columnInfo.get(i));
+                mapRelations.add(i);
+            }
+        }
+        this.columnInfo = newColInfo;
+        this.columnDefinitions = newColDef;
+    }
+
+    public List<Integer> getMapRelations() {
+        return mapRelations;
     }
 
     public List<Tuple> getTupleList() {

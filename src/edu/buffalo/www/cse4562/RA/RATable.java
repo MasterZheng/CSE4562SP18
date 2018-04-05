@@ -15,7 +15,6 @@ public class RATable extends RANode{
     private String operation = "TABLE";
     private Table table;
     private Expression expression;
-    private List<ColumnDefinition> usedColDef = new ArrayList<>();
     private List<Column> usedColInf = new ArrayList<>();
     public RATable(Table table) {
         this.table = table;
@@ -35,6 +34,14 @@ public class RATable extends RANode{
 
     public void addItemIntoColInf(Column c){
         this.usedColInf.add(c);
+    }
+
+    public List<Column> getUsedColInf() {
+        return usedColInf;
+    }
+
+    public void setUsedColInf(List<Column> usedColInf) {
+        this.usedColInf = usedColInf;
     }
 
     @Override

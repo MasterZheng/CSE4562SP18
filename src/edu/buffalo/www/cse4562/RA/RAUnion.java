@@ -4,7 +4,6 @@ import net.sf.jsqlparser.statement.select.Union;
 
 public class RAUnion extends RANode{
 
-    //todo
     private String operation ="UNION";
     private Union union = new Union();
 

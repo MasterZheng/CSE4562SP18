@@ -63,6 +63,8 @@ public class processSelect {
                     //join left node is a table
                     tableLeft = new TableObject(tableMap.get(((RATable) left).getTable().getName().toUpperCase()), left);
                     tableLeft.setAlisa(((RATable) left).getTable().getAlias());
+                    //optimize colDef and colInfo
+                    tableLeft.MapRelation(((RATable) left).getUsedColInf());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     if (left.getExpression() == null) {
                         leftIterator = parserLeft.iterator();
@@ -87,6 +89,8 @@ public class processSelect {
                         // join right node is a table
                         tableRight = new TableObject(tableMap.get(((RATable) right).getTable().getName().toUpperCase()), right);
                         tableRight.setAlisa(((RATable) right).getTable().getAlias());
+                        //optimize colDef and colInfo
+                        tableRight.MapRelation(((RATable) right).getUsedColInf());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
                         if (right.getExpression() == null) {
                             rightIterator = parserRight.iterator();
@@ -132,7 +136,6 @@ public class processSelect {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
                 selectItems = ((RAProjection) pointer).getSelectItem();
-                //todo columninfo
                 tempColDef(result, selectItems, involvedTables);
                 result = ((RAProjection) pointer).Eval(result, tableName);
 
@@ -174,14 +177,17 @@ public class processSelect {
     }
 
     private static void tempColDef(TableObject tableObject, List selectItems, ArrayList<TableObject> involvedTables) {
-        //todo create the temptable coldef
         List<ColumnDefinition> columnDefinitions = new ArrayList<>();
         List<Column> columnInfo = new ArrayList<>();
         if (selectItems.get(0) instanceof AllColumns) {
             // select *
             for (TableObject t : involvedTables) {
+                List<Column> c = t.getColumnInfo();
+                for (int j = 0; j < c.size(); j++) {
+                    Column col = new Column(new Table(t.getTable().getName()),c.get(j).getColumnName());
+                    columnInfo.add(col);
+                }
                 columnDefinitions.addAll(t.getColumnDefinitions());
-                columnInfo.addAll(t.getColumnInfo());
             }
         } else {
             for (Object s : selectItems) {
@@ -193,10 +199,10 @@ public class processSelect {
                                 || involvedTables.get(i).getAlisa().equals(allColumnsTable.getName())) {
                             List<Column> c = involvedTables.get(i).getColumnInfo();
                             for (int j = 0; j < c.size(); j++) {
-                                c.get(j).setTable(allColumnsTable);
+                                Column col = new Column(new Table(allColumnsTable.getName()),c.get(j).getColumnName());
+                                columnInfo.add(col);
                             }
                             columnDefinitions.addAll(involvedTables.get(i).getColumnDefinitions());
-                            columnInfo.addAll(c);
                             break;
                         }
                     }
@@ -253,7 +259,6 @@ public class processSelect {
                             }
                         }
                     } else if (expression instanceof Function) {
-                        //todo
                         if (((SelectExpressionItem) s).getAlias() != null) {
                             colDef.setColumnName(((SelectExpressionItem) s).getAlias());
 

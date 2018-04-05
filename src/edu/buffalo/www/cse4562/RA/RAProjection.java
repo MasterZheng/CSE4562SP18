@@ -99,7 +99,7 @@ public class RAProjection extends RANode {
 
     public void projectionParser(List<Column> columns, Table table) throws Exception {
         //columns：the columnInfo of result
-        //todo 查表后进行 projection，优化，利用新列定义，不解析 selectItem
+        // 查表后进行 projection，优化，利用新列定义，不解析 selectItem
         for (int i = 0; i < selectItem.size(); i++) {
             Object s = selectItem.get(i);
             if (s instanceof AllTableColumns) {
@@ -131,7 +131,6 @@ public class RAProjection extends RANode {
                     column.setTable(table);
                 }
             } else if (((SelectExpressionItem) s).getExpression() instanceof Function) {
-                //todo
                 if (((SelectExpressionItem) s).getAlias() != null) {
                     columnInfo.add(new Column(table, ((SelectExpressionItem) s).getAlias()));
                 } else {

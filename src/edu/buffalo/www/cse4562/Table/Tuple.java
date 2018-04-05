@@ -26,24 +26,44 @@ public class Tuple {
         if (tableObject.getAlisa() != null) {
             table.setName(tableObject.getAlisa());
             this.setTableName(tableObject.getAlisa());
-        }else {
+        } else {
             table.setName(tableObject.getTableName());
         }
         this.tableName.add(tableObject.getTableName());
 
-        for (ColumnDefinition c : tableObject.getColumnDefinitions()) {
-            if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
-                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
-            } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
-                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
-            } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
-                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
-            } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
-                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
-            } else {
-                attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
+        List<Integer> mapRelations = tableObject.getMapRelations();
+        if (0==mapRelations.size()){
+            for (int j = 0;j<tableObject.getColumnDefinitions().size();j++) {
+                ColumnDefinition c = tableObject.getColumnDefinitions().get(j);
+                if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
+                } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
+                } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
+                } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
+                } else {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
+                }
+            }
+        }else {
+            for (int j = 0;j<mapRelations.size();j++){
+                ColumnDefinition c = tableObject.getColumnDefinitions().get(j);
+                if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(mapRelations.get(j))));
+                } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(mapRelations.get(j))));
+                } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(mapRelations.get(j))));
+                } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(mapRelations.get(j))));
+                } else {
+                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
+                }
             }
         }
+
     }
 
     public Tuple joinTuple(Tuple right) {
@@ -78,7 +98,7 @@ public class Tuple {
         this.tableName.add(tableName);
     }
 
-    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo,int c) {
+    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo, int c) {
         String row = "";
 
 //        for (int i = 0; i < colDef.size(); i++) {
@@ -97,7 +117,7 @@ public class Tuple {
                 row += "|";
             }
         }
-        if (false){
+        if (false) {
             logger.info(row);
         }
         System.out.println(row);
