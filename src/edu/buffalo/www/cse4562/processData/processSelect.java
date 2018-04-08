@@ -65,8 +65,6 @@ public class processSelect {
                     tableLeft.setAlisa(((RATable) left).getTable().getAlias());
                     //optimize colDef and colInfo
                     tableLeft.MapRelation(((RATable) left).getUsedColInf());
-                    logger.info(((RATable) left).getUsedColInf().toString());
-                    logger.info(tableLeft.getColumnInfo().toString());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     if (left.getExpression() == null) {
                         leftIterator = parserLeft.iterator();
@@ -93,8 +91,6 @@ public class processSelect {
                         tableRight.setAlisa(((RATable) right).getTable().getAlias());
                         //optimize colDef and colInfo
                         tableRight.MapRelation(((RATable) right).getUsedColInf());
-                        logger.info(((RATable) right).getUsedColInf().toString());
-                        logger.info(tableRight.getColumnInfo().toString());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
                         if (right.getExpression() == null) {
                             rightIterator = parserRight.iterator();

@@ -11,8 +11,11 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class projectionEval {
+    static Logger logger = Logger.getLogger(projectionEval.class.getName());
+
     private List<SelectItem> selectItemList;
 
     public projectionEval(List<SelectItem> selectItemList) {
@@ -85,15 +88,18 @@ public class projectionEval {
         for (SelectItem s : selectItemList) {
             parseProjection(involvedTables, s, result);
         }
-
+        logger.info("parse projection result: "+result.toString());
         //process selection
         if (where != null) {
             selectionEval selectionEval = new selectionEval(where);
             List<Expression> whereList = new ArrayList<>();
             whereList = selectionEval.parse2List(whereList, where);
             result.addAll(selectionEval.parseSelect(whereList));
-        }
+            logger.info("where:"+where.toString());
+            logger.info("selection list"+whereList.toString());
+            logger.info("parse selection result: "+result.toString());
 
+        }
         //process orderby
         if (orderBy != null) {
             result.addAll(parseOrderBy(orderBy));
@@ -182,12 +188,8 @@ public class projectionEval {
                     } else if (left instanceof RAJoin) {
                         pushdownProject(left, selectItemList.subList(i, i + 1), involvedTables);
                     }
-
-
                 }
-
             }
-
         }
     }
 }
