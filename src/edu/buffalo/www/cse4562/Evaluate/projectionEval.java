@@ -46,34 +46,35 @@ public class projectionEval {
                     if (exp instanceof Column) {
                         result.add((Column) exp);
                     } else {
-                        for (Expression p:parameters)
-                            parseMath(p, result);
+                        parseMath(exp, result);
                     }
                 }
             } else {
-                parseMath(e,result);
+                parseMath(e, result);
             }
         }
         return result;
     }
 
-    public void parseMath(Expression e, List<Column> result){
+    public void parseMath(Expression e, List<Column> result) {
+        logger.info(e.toString());
         if (e instanceof BinaryExpression) {
             Expression left = ((BinaryExpression) e).getLeftExpression();
             Expression right = ((BinaryExpression) e).getRightExpression();
-            if (left instanceof Column){
+            if (left instanceof Column) {
                 result.add((Column) left);
-            } else if (left instanceof BinaryExpression){
-                parseMath(left,result);
+            } else if (left instanceof BinaryExpression) {
+                parseMath(left, result);
             }
 
-            if (right instanceof Column){
+            if (right instanceof Column) {
                 result.add((Column) right);
-            } else if (right instanceof BinaryExpression){
-                parseMath(left,result);
+            } else if (right instanceof BinaryExpression) {
+                parseMath(right, result);
             }
         }
     }
+
     public List<Column> parseOrderBy(List<OrderByElement> orderBy) {
         List<Column> result = new ArrayList<>();
         for (OrderByElement o : orderBy) {
@@ -91,16 +92,15 @@ public class projectionEval {
         for (SelectItem s : selectItemList) {
             parseProjection(involvedTables, s, result);
         }
-        logger.info("parse projection result: "+result.toString());
+        logger.info("parse projection result: " + result.toString());
         //process selection
         if (where != null) {
             selectionEval selectionEval = new selectionEval(where);
             List<Expression> whereList = new ArrayList<>();
             selectionEval.parse2List(whereList, where);
             result.addAll(selectionEval.parseSelect(whereList));
-            logger.info("where:"+where.toString());
-            logger.info("selection list"+whereList.toString());
-            logger.info("parse selection result: "+result.toString());
+            logger.info("selection list" + whereList.toString());
+            logger.info("parse selection result: " + result.toString());
 
         }
         //process orderby
