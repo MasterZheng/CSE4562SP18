@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 100;
+    private static int BLOCKSIZE = 2000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -379,10 +379,12 @@ public class processSelect {
         if (iterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
             while (iterator.hasNext() && counter < BLOCKSIZE) {
                 tupleBlock.add(new Tuple(tableObject, (CSVRecord) iterator.next()));
+                counter++;
             }
         } else {
             while (iterator.hasNext() && counter < BLOCKSIZE) {
                 tupleBlock.add((Tuple) iterator.next());
+                counter++;
             }
         }
         return tupleBlock;
