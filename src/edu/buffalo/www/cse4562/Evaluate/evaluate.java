@@ -58,11 +58,10 @@ public class evaluate extends Eval {
                 Tuple tuple = this.tupleRight != null ? this.tupleLeft.joinTuple(this.tupleRight) : this.tupleLeft;
                 queryResult.add(tuple);
             }
-
         }catch (Exception e){
             e.printStackTrace();
             logger.info(this.expression.toString());
-            logger.info(tupleLeft.toString());
+            logger.info(tupleLeft.getAttributes().toString());
             logger.info(result.toString());
         }
         return queryResult;
