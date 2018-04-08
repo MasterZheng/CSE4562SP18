@@ -3,12 +3,9 @@ package edu.buffalo.www.cse4562.Evaluate;
 
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.operators.arithmetic.Addition;
-import net.sf.jsqlparser.expression.operators.arithmetic.Division;
-import net.sf.jsqlparser.expression.operators.arithmetic.Multiplication;
-import net.sf.jsqlparser.expression.operators.arithmetic.Subtraction;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
@@ -22,68 +19,55 @@ public class projectionEval {
         this.selectItemList = selectItemList;
     }
 
-    public List<Column> parseProjection(List<TableObject> involvedTables) {
-        List<Column> result = new ArrayList<>();
-        for (SelectItem s : selectItemList) {
-            if (s instanceof AllColumns) {
-                for (TableObject t : involvedTables) {
+    public List<Column> parseProjection(List<TableObject> involvedTables, SelectItem s, List<Column> result) {
+        if (s instanceof AllColumns) {
+            for (TableObject t : involvedTables) {
+                result.addAll(t.getColumnInfo());
+            }
+        } else if (s instanceof AllTableColumns) {
+            for (TableObject t : involvedTables) {
+                if (t.getAlisa().equals(((AllTableColumns) s).getTable().getName()) ||
+                        t.getAlisa().equals(((AllTableColumns) s).getTable().getAlias()) ||
+                        t.getTableName().equals(((AllTableColumns) s).getTable().getName()) ||
+                        t.getTableName().equals(((AllTableColumns) s).getTable().getAlias())) {
                     result.addAll(t.getColumnInfo());
                 }
-                break;
-            } else if (s instanceof AllTableColumns) {
-                for (TableObject t : involvedTables) {
-                    if (t.getAlisa().equals(((AllTableColumns) s).getTable().getName()) ||
-                            t.getAlisa().equals(((AllTableColumns) s).getTable().getAlias()) ||
-                            t.getTableName().equals(((AllTableColumns) s).getTable().getName()) ||
-                            t.getTableName().equals(((AllTableColumns) s).getTable().getAlias())) {
-                        result.addAll(t.getColumnInfo());
+            }
+        } else {
+            Expression e = ((SelectExpressionItem) s).getExpression();
+            if (e instanceof Column) {
+                result.add((Column) e);
+            } else if (e instanceof Function) {
+                List<Expression> parameters = ((Function) e).getParameters().getExpressions();
+                for (Expression exp : parameters) {
+                    if (exp instanceof Column) {
+                        result.add((Column) exp);
+                    } else {
+                        for (Expression p:parameters)
+                            parseMath(p, result);
                     }
                 }
             } else {
-                Expression e = ((SelectExpressionItem) s).getExpression();
-                if (e instanceof Column) {
-                    result.add((Column) e);
-                } else if (e instanceof Function) {
-                    List<Expression> parameters = ((Function) e).getParameters().getExpressions();
-                    for (Expression exp : parameters) {
-                        if (exp instanceof Column) {
-                            result.add((Column) exp);
-                        }
-                    }
-                } else if (e instanceof Addition) {
-                    Expression left = ((Addition) e).getLeftExpression();
-                    Expression right = ((Addition) e).getRightExpression();
-                    if (left instanceof Column)
-                        result.add((Column) left);
-                    if (right instanceof Column)
-                        result.add((Column) right);
-                } else if (e instanceof Subtraction) {
-                    Expression left = ((Subtraction) e).getLeftExpression();
-                    Expression right = ((Subtraction) e).getRightExpression();
-                    if (left instanceof Column)
-                        result.add((Column) left);
-                    if (right instanceof Column)
-                        result.add((Column) right);
-                } else if (e instanceof Multiplication) {
-                    Expression left = ((Multiplication) e).getLeftExpression();
-                    Expression right = ((Multiplication) e).getRightExpression();
-                    if (left instanceof Column)
-                        result.add((Column) left);
-                    if (right instanceof Column)
-                        result.add((Column) right);
-                } else if (e instanceof Division) {
-                    Expression left = ((Division) e).getLeftExpression();
-                    Expression right = ((Division) e).getRightExpression();
-                    if (left instanceof Column)
-                        result.add((Column) left);
-                    if (right instanceof Column)
-                        result.add((Column) right);
-                }
+                parseMath(e,result);
             }
         }
         return result;
     }
 
+    public void parseMath(Expression e, List<Column> result){
+        if (e instanceof BinaryExpression) {
+            Expression left = ((BinaryExpression) e).getLeftExpression();
+            Expression right = ((BinaryExpression) e).getRightExpression();
+            if (left instanceof Column)
+                result.add((Column) left);
+            else if (left instanceof BinaryExpression)
+                parseMath(left,result);
+            if (right instanceof Column)
+                result.add((Column) right);
+            else if (right instanceof BinaryExpression)
+                parseMath(left,result);
+        }
+    }
     public List<Column> parseOrderBy(List<OrderByElement> orderBy) {
         List<Column> result = new ArrayList<>();
         for (OrderByElement o : orderBy) {
@@ -98,7 +82,9 @@ public class projectionEval {
         //find the useful columns in selectItems and where
         List<Column> result = new ArrayList<>();
         //process projection
-        result.addAll(parseProjection(involvedTables));
+        for (SelectItem s : selectItemList) {
+            parseProjection(involvedTables, s, result);
+        }
 
         //process selection
         if (where != null) {
@@ -134,7 +120,8 @@ public class projectionEval {
                 if (join.getRightNode() instanceof RATable) {
                     RATable rightTable = (RATable) join.getRightNode();
                     String rightName = rightTable.getTable().getName().toUpperCase();
-                    String rightAlisa = rightTable.getTable().getAlias().toUpperCase();
+                    String rightAlisa = rightTable.getTable().getAlias();
+                    rightAlisa = rightAlisa == null ? null : rightAlisa.toUpperCase();
                     if (tableName.equals(rightName) || tableName.equals(rightAlisa)) {
                         rightTable.addItemIntoColInf(new Column(table, c.getColumnName()));
                         continue;

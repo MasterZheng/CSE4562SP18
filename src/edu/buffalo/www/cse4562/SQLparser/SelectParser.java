@@ -145,11 +145,8 @@ public class SelectParser {
             RANode pointer = joinNode;
             if (fromItem instanceof SubSelect) {
                 // subSelect
-                //RASubSelect subSelectNode = new RASubSelect(fromItem.getAlias());
                 SelectParser subParser = new SelectParser(((SubSelect) fromItem).getSelectBody());
                 RANode subSelectBody = subParser.SelectFunction(((SubSelect) fromItem).getSelectBody(),tableMap);
-                //subSelectNode.setLeftNode(subSelectBody);
-                //subSelectBody.setParentNode(subSelectNode);
                 joinNode.setLeftNode(subSelectBody);
                 subSelectBody.setParentNode(pointer);
             } else {
@@ -170,10 +167,7 @@ public class SelectParser {
                             //     join
                             //    /   \
                             //        null
-                            //RASubSelect subSelectNode = new RASubSelect(join.getAlias());
                             RANode subSelectBody = SelectFunction(((SubSelect) join).getSelectBody(),tableMap);
-                            //subSelectNode.setRightNode(subSelectBody);
-                            //subSelectBody.setParentNode(subSelectNode);
                             joinNode.setRightNode(subSelectBody);
                             subSelectBody.setParentNode(pointer);
                         } else {
@@ -210,9 +204,6 @@ public class SelectParser {
                             //          /   \
                             // add join       null
                             RANode joinNew = new RAJoin(fromItem);
-                            while (joinNode.getLeftNode() != null) {
-                                joinNode = joinNode.getLeftNode();
-                            }
                             pointer.setParentNode(joinNew);
                             joinNew.setLeftNode(pointer);
                             pointer = joinNew;
@@ -227,16 +218,16 @@ public class SelectParser {
                 }
             }
             //****************************Optimize******************************//
-//            projectionEval projEval = new projectionEval(selectItem);
-//            //find the columns which will be used
-//            List<Column> columnList = projEval.usefulCol(where,orderBy,groupByColumnReference,involvedTables);
-//            //find the first JOIN Node
-//            RANode joinRoot = pointer;
-//            while (!joinRoot.getOperation().equals("JOIN")){
-//                joinRoot = joinRoot.getLeftNode();
-//            }
-//            //todo Select A match the table
-//            projEval.pushdownProject(joinRoot,columnList,involvedTables);
+            projectionEval projEval = new projectionEval(selectItem);
+            //find the columns which will be used
+            List<Column> columnList = projEval.usefulCol(where,orderBy,groupByColumnReference,involvedTables);
+            //find the first JOIN Node
+            RANode joinRoot = pointer;
+            while (!joinRoot.getOperation().equals("JOIN")){
+                joinRoot = joinRoot.getLeftNode();
+            }
+            //todo Select A match the table
+            projEval.pushdownProject(joinRoot,columnList,involvedTables);
 
             if (where!=null&&joins!=null){
                 //pushdown selection

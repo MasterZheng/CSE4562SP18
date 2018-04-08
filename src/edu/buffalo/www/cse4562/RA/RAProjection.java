@@ -176,7 +176,19 @@ public class RAProjection extends RANode {
                 } else if (columnList.get(j) instanceof Column) {
                     attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(columnList.get(j)));
                 } else if (columnList.get(j) instanceof Function) {
-                    attributes.put(columnInfo.get(j), funcVals.get(index++));
+                    if (funcVals!=null){
+                        //有groupby，执行sum等操作时，值已经事先求好
+                        attributes.put(columnInfo.get(j), funcVals.get(index++));
+                    }else {
+                        //当无groupby 但有sum等操作时
+                        List<Function> functions = new ArrayList<>();
+                        functions.add((Function) columnList.get(j));
+                        aggregateEval aggEval = new aggregateEval(tupleList, functions);
+                        funcVals = aggEval.eval();
+                        attributes.put(columnInfo.get(j), funcVals.get(0));
+                        //todo 强制退出外圈循环，临时办法，未来修改
+                        tupleList.clear();
+                    }
                 }
             }
             newTuple.setAttributes(attributes);

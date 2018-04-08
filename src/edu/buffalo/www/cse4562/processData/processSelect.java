@@ -267,10 +267,14 @@ public class processSelect {
                         }
                         List<Expression> paramList = ((Function) expression).getParameters().getExpressions();
                         if (paramList != null) {
-                            Column paramCol = (Column) paramList.get(0);
-                            if (paramCol.getTable() != null) {
-                                colInfo.setTable(paramCol.getTable());
-                            } else {
+                            if(paramList.get(0) instanceof Column){
+                                Column paramCol = (Column) paramList.get(0);
+                                if (paramCol.getTable() != null) {
+                                    colInfo.setTable(paramCol.getTable());
+                                } else {
+                                    colInfo.setTable(null);
+                                }
+                            }else {
                                 colInfo.setTable(null);
                             }
                         }

@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.Evaluate;
 import edu.buffalo.www.cse4562.RA.RAJoin;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
@@ -66,19 +67,22 @@ public class selectionEval {
 
     public int isRelated(Table t, Expression e) {
         int flag = 0;
-        if (e instanceof EqualsTo) {
-            flag = judge(t, ((EqualsTo) e).getLeftExpression(), ((EqualsTo) e).getRightExpression());
-        } else if (e instanceof NotEqualsTo) {
-            flag = judge(t, ((NotEqualsTo) e).getLeftExpression(), ((NotEqualsTo) e).getRightExpression());
-        } else if (e instanceof GreaterThan) {
-            flag = judge(t, ((GreaterThan) e).getLeftExpression(), ((GreaterThan) e).getRightExpression());
-        } else if (e instanceof GreaterThanEquals) {
-            flag = judge(t, ((GreaterThanEquals) e).getLeftExpression(), ((GreaterThanEquals) e).getRightExpression());
-        } else if (e instanceof MinorThan) {
-            flag = judge(t, ((MinorThan) e).getLeftExpression(), ((MinorThan) e).getRightExpression());
-        } else if (e instanceof MinorThanEquals) {
-            flag = judge(t, ((MinorThanEquals) e).getLeftExpression(), ((MinorThanEquals) e).getRightExpression());
+        if (e instanceof BinaryExpression){
+            flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression());
         }
+//        if (e instanceof EqualsTo) {
+//            flag = judge(t, ((EqualsTo) e).getLeftExpression(), ((EqualsTo) e).getRightExpression());
+//        } else if (e instanceof NotEqualsTo) {
+//            flag = judge(t, ((NotEqualsTo) e).getLeftExpression(), ((NotEqualsTo) e).getRightExpression());
+//        } else if (e instanceof GreaterThan) {
+//            flag = judge(t, ((GreaterThan) e).getLeftExpression(), ((GreaterThan) e).getRightExpression());
+//        } else if (e instanceof GreaterThanEquals) {
+//            flag = judge(t, ((GreaterThanEquals) e).getLeftExpression(), ((GreaterThanEquals) e).getRightExpression());
+//        } else if (e instanceof MinorThan) {
+//            flag = judge(t, ((MinorThan) e).getLeftExpression(), ((MinorThan) e).getRightExpression());
+//        } else if (e instanceof MinorThanEquals) {
+//            flag = judge(t, ((MinorThanEquals) e).getLeftExpression(), ((MinorThanEquals) e).getRightExpression());
+//        }
         return flag;
     }
 

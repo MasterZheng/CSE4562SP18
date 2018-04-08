@@ -20,7 +20,7 @@ public class aggregateEval {
 
     public List<PrimitiveValue> eval() {
         List<PrimitiveValue> result = new ArrayList<>();
-        for (int i = 0;i<functionList.size();i++){
+        for (int i = 0; i < functionList.size(); i++) {
             //initiate
             result.add(null);
         }
@@ -64,21 +64,30 @@ public class aggregateEval {
         evaluate eval = new evaluate(t);
         Expression exp = f.getParameters().getExpressions().get(0);
         PrimitiveValue val = eval.eval(exp);
-        if (val instanceof LongValue) {
-            value = new LongValue(value.toLong() + val.toLong());
-        } else if (val instanceof DoubleValue) {
-            value = new DoubleValue(value.toDouble() + val.toDouble());
+        if (value != null) {
+            if (val instanceof LongValue) {
+                value = new LongValue(value.toLong() + val.toLong());
+            } else if (val instanceof DoubleValue) {
+                value = new DoubleValue(value.toDouble() + val.toDouble());
+            }
+        } else {
+            if (val instanceof LongValue) {
+                value = new LongValue(val.toLong());
+            } else if (val instanceof DoubleValue) {
+                value = new DoubleValue(val.toDouble());
+            }
         }
+
         return value;
     }
 
 
     private PrimitiveValue avg(PrimitiveValue value) throws Exception {
         DoubleValue avg = null;
-        if (value instanceof DoubleValue){
-             avg = new DoubleValue(value.toDouble()/tupleList.size());
-        }else if (value instanceof LongValue){
-            avg = new DoubleValue(value.toLong()/tupleList.size());
+        if (value instanceof DoubleValue) {
+            avg = new DoubleValue(value.toDouble() / tupleList.size());
+        } else if (value instanceof LongValue) {
+            avg = new DoubleValue(value.toLong() / tupleList.size());
         }
         return avg;
     }
@@ -87,17 +96,22 @@ public class aggregateEval {
         evaluate eval = new evaluate(t);
         Expression exp = f.getParameters().getExpressions().get(0);
         PrimitiveValue val = eval.eval(exp);
-        if (val instanceof LongValue) {
-            if (val.toLong() < value.toLong()) value = val;
-        } else if (val instanceof DoubleValue) {
-            if (val.toDouble() < value.toDouble()) value = val;
-        } else if (val instanceof StringValue) {
-            if (val.toString().compareTo(value.toString()) < 0) value = val;
+        if (value != null) {
+            if (val instanceof LongValue) {
+                if (val.toLong() < value.toLong()) value = val;
+            } else if (val instanceof DoubleValue) {
+                if (val.toDouble() < value.toDouble()) value = val;
+            } else if (val instanceof StringValue) {
+                if (val.toString().compareTo(value.toString()) < 0) value = val;
+            } else {
+                DateValue newDate = (DateValue) val;
+                DateValue originalDate = (DateValue) value;
+                if (newDate.getValue().getTime() < originalDate.getValue().getTime()) value = val;
+            }
         } else {
-            DateValue newDate = (DateValue) val;
-            DateValue originalDate = (DateValue) value;
-            if (newDate.getValue().getTime() < originalDate.getValue().getTime()) value = val;
+            value = val;
         }
+
         return value;
     }
 
@@ -105,19 +119,22 @@ public class aggregateEval {
         evaluate eval = new evaluate(t);
         Expression exp = f.getParameters().getExpressions().get(0);
         PrimitiveValue val = eval.eval(exp);
-        if (val instanceof LongValue) {
-            if (val.toLong() > value.toLong()) value = val;
-        } else if (val instanceof DoubleValue) {
-            if (val.toDouble() > value.toDouble()) value = val;
-        } else if (val instanceof StringValue) {
-            if (val.toString().compareTo(value.toString()) > 0) value = val;
+        if (value != null) {
+
+            if (val instanceof LongValue) {
+                if (val.toLong() > value.toLong()) value = val;
+            } else if (val instanceof DoubleValue) {
+                if (val.toDouble() > value.toDouble()) value = val;
+            } else if (val instanceof StringValue) {
+                if (val.toString().compareTo(value.toString()) > 0) value = val;
+            } else {
+                DateValue newDate = (DateValue) val;
+                DateValue originalDate = (DateValue) value;
+                if (newDate.getValue().getTime() > originalDate.getValue().getTime()) value = val;
+            }
         } else {
-            DateValue newDate = (DateValue) val;
-            DateValue originalDate = (DateValue) value;
-            if (newDate.getValue().getTime() > originalDate.getValue().getTime()) value = val;
+            value = val;
         }
         return value;
     }
-
-
 }
