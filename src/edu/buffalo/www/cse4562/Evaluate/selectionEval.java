@@ -51,12 +51,12 @@ public class selectionEval {
         if (expression instanceof AndExpression){
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
-            if (left instanceof AndExpression){
+            if (left instanceof AndExpression||left instanceof OrExpression){
                 list.addAll(parseAndOrExpression(left));
             }else {
                 list.add(left);
             }
-            if (right instanceof AndExpression){
+            if (right instanceof AndExpression||right instanceof OrExpression){
                 list.addAll(parseAndOrExpression(right));
             }else {
                 list.add(right);
@@ -64,12 +64,12 @@ public class selectionEval {
         }else if (expression instanceof OrExpression){
             Expression left = ((OrExpression) expression).getLeftExpression();
             Expression right = ((OrExpression) expression).getRightExpression();
-            if (left instanceof OrExpression){
+            if (left instanceof OrExpression||left instanceof AndExpression){
                 list.addAll(parseAndOrExpression(left));
             }else {
                 list.add(left);
             }
-            if (right instanceof OrExpression){
+            if (right instanceof OrExpression||right instanceof AndExpression){
                 list.addAll(parseAndOrExpression(right));
             }else {
                 list.add(right);

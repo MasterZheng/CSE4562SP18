@@ -57,7 +57,6 @@ public class projectionEval {
     }
 
     public void parseMath(Expression e, List<Column> result) {
-        logger.info(e.toString());
         if (e instanceof BinaryExpression) {
             Expression left = ((BinaryExpression) e).getLeftExpression();
             Expression right = ((BinaryExpression) e).getRightExpression();
@@ -92,7 +91,7 @@ public class projectionEval {
         for (SelectItem s : selectItemList) {
             parseProjection(involvedTables, s, result);
         }
-        logger.info("parse projection result: " + result.toString());
+
         //process selection
         if (where != null) {
             selectionEval selectionEval = new selectionEval(where);
@@ -101,7 +100,6 @@ public class projectionEval {
             result.addAll(selectionEval.parseSelect(whereList));
             logger.info("selection list" + whereList.toString());
             logger.info("parse selection result: " + result.toString());
-
         }
         //process orderby
         if (orderBy != null) {

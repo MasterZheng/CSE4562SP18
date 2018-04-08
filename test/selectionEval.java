@@ -1,4 +1,3 @@
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.RA.RAJoin;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
@@ -26,6 +25,7 @@ public class selectionEval {
     public selectionEval(Expression expression) {
         where = expression;
         this.expressions = new ArrayList<>();
+        //if the where does not contain OR, pushdown
         if (expression instanceof AndExpression) {
                 Expression left = ((AndExpression) expression).getLeftExpression();
                 Expression right = ((AndExpression) expression).getRightExpression();
@@ -33,30 +33,43 @@ public class selectionEval {
                 if (!(right instanceof AndExpression)) {
                     expressions.add(right);
                 }else {
-                    expressions.addAll(parseAndExpression(right));
+                    expressions.addAll(parseAndOrExpression(right));
                 }
                 if (!(left instanceof AndExpression)) {
                     expressions.add(left);
                 } else {
-                    expressions.addAll(parseAndExpression(left));
+                    expressions.addAll(parseAndOrExpression(left));
                 }
         } else {
             expressions.add(expression);
         }
     }
 
-    public List<Expression> parseAndExpression(Expression expression){
+    private List<Expression> parseAndOrExpression(Expression expression){
         List<Expression> list = new ArrayList<>();
         if (expression instanceof AndExpression){
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
             if (left instanceof AndExpression){
-                list.addAll(parseAndExpression(left));
+                list.addAll(parseAndOrExpression(left));
             }else {
                 list.add(left);
             }
             if (right instanceof AndExpression){
-                list.addAll(parseAndExpression(right));
+                list.addAll(parseAndOrExpression(right));
+            }else {
+                list.add(right);
+            }
+        }else if (expression instanceof OrExpression){
+            Expression left = ((OrExpression) expression).getLeftExpression();
+            Expression right = ((OrExpression) expression).getRightExpression();
+            if (left instanceof OrExpression){
+                list.addAll(parseAndOrExpression(left));
+            }else {
+                list.add(left);
+            }
+            if (right instanceof OrExpression){
+                list.addAll(parseAndOrExpression(right));
             }else {
                 list.add(right);
             }
@@ -64,44 +77,12 @@ public class selectionEval {
         return list;
     }
 
-    //todo just applied to checkpoint 3  A1 AND A2 OR A3 in checkpoint 3 will be parsed into A1 AND (A2 OR A3)
-    //TODO SO SHOULD PARSE OR EXPRESSION
-    public List<Expression> parseOrExpression(Expression expression){
-        List<Expression> list = new ArrayList<>();
-        if (expression instanceof OrExpression){
-            Expression left = ((OrExpression) expression).getLeftExpression();
-            Expression right = ((OrExpression) expression).getRightExpression();
-            if (left instanceof OrExpression){
-                list.addAll(parseOrExpression(left));
-            }else {
-                list.add(left);
-            }
-            if (right instanceof OrExpression){
-                list.addAll(parseOrExpression(right));
-            }else {
-                list.add(right);
-            }
-        }
-        return list;
-    }
-    public int isRelated(Table t, Expression e) {
+
+    private int isRelated(Table t, Expression e) {
         int flag = 0;
         if (e instanceof BinaryExpression){
             flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression());
         }
-//        if (e instanceof EqualsTo) {
-//            flag = judge(t, ((EqualsTo) e).getLeftExpression(), ((EqualsTo) e).getRightExpression());
-//        } else if (e instanceof NotEqualsTo) {
-//            flag = judge(t, ((NotEqualsTo) e).getLeftExpression(), ((NotEqualsTo) e).getRightExpression());
-//        } else if (e instanceof GreaterThan) {
-//            flag = judge(t, ((GreaterThan) e).getLeftExpression(), ((GreaterThan) e).getRightExpression());
-//        } else if (e instanceof GreaterThanEquals) {
-//            flag = judge(t, ((GreaterThanEquals) e).getLeftExpression(), ((GreaterThanEquals) e).getRightExpression());
-//        } else if (e instanceof MinorThan) {
-//            flag = judge(t, ((MinorThan) e).getLeftExpression(), ((MinorThan) e).getRightExpression());
-//        } else if (e instanceof MinorThanEquals) {
-//            flag = judge(t, ((MinorThanEquals) e).getLeftExpression(), ((MinorThanEquals) e).getRightExpression());
-//        }
         return flag;
     }
 
@@ -136,7 +117,7 @@ public class selectionEval {
         return flag;
     }
 
-    public Expression mergeAndExpression(Expression e1, Expression e2) {
+    private Expression mergeAndExpression(Expression e1, Expression e2) {
         if (e1 != null) {
             return new AndExpression(e1, e2);
         } else {
@@ -144,7 +125,7 @@ public class selectionEval {
         }
     }
 
-    public List<Expression> getExpressions() {
+    private List<Expression> getExpressions() {
         return expressions;
     }
 
@@ -166,22 +147,19 @@ public class selectionEval {
     }
 
     //parse where into List including Or
+    //todo optimize the idea
     public void parse2List(List<Expression> expressions,Expression expression) {
         if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
             //the left and right subExpression of OrExpression should be with the same table.Should not be divided
-            if (right instanceof AndExpression) {
-                expressions.addAll(parseAndExpression(right));
-            }else if (right instanceof OrExpression){
-                expressions.addAll(parseOrExpression(right));
+            if (right instanceof AndExpression||right instanceof OrExpression) {
+                expressions.addAll(parseAndOrExpression(right));
             }else {
                 expressions.add(right);
             }
-            if (left instanceof AndExpression) {
-                expressions.add(left);
-            } else if (left instanceof OrExpression){
-                expressions.addAll(parseOrExpression(left));
+            if (left instanceof AndExpression||left instanceof OrExpression) {
+                expressions.addAll(parseAndOrExpression(left));
             }else {
                 expressions.add(left);
             }
