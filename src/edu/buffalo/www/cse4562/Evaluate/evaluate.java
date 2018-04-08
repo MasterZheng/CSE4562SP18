@@ -53,9 +53,17 @@ public class evaluate extends Eval {
     public List<Tuple> Eval(List<Tuple> queryResult) throws Exception {
         //Select and Join expression evaluate.
         PrimitiveValue result = eval(this.expression);
-        if (result.toBool()) {
-            Tuple tuple = this.tupleRight != null ? this.tupleLeft.joinTuple(this.tupleRight) : this.tupleLeft;
-            queryResult.add(tuple);
+        try {
+            if (result.toBool()) {
+                Tuple tuple = this.tupleRight != null ? this.tupleLeft.joinTuple(this.tupleRight) : this.tupleLeft;
+                queryResult.add(tuple);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.info(this.expression.toString());
+            logger.info(tupleLeft.toString());
+            logger.info(result.toString());
         }
         return queryResult;
     }
