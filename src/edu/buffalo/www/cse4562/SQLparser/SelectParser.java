@@ -218,16 +218,16 @@ public class SelectParser {
                 }
             }
             //****************************Optimize******************************//
-            projectionEval projEval = new projectionEval(selectItem);
-            //find the columns which will be used
-            List<Column> columnList = projEval.usefulCol(where,orderBy,groupByColumnReference,involvedTables);
-            //find the first JOIN Node
-            RANode joinRoot = pointer;
-            while (!joinRoot.getOperation().equals("JOIN")){
-                joinRoot = joinRoot.getLeftNode();
-            }
-            //todo Select A match the table
-            projEval.pushdownProject(joinRoot,columnList,involvedTables);
+//            projectionEval projEval = new projectionEval(selectItem);
+//            //find the columns which will be used
+//            List<Column> columnList = projEval.usefulCol(where,orderBy,groupByColumnReference,involvedTables);
+//            //find the first JOIN Node
+//            RANode joinRoot = pointer;
+//            while (!joinRoot.getOperation().equals("JOIN")){
+//                joinRoot = joinRoot.getLeftNode();
+//            }
+//            //todo Select A match the table
+//            projEval.pushdownProject(joinRoot,columnList,involvedTables);
 
             if (where!=null&&joins!=null){
                 //pushdown selection
