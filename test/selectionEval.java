@@ -1,5 +1,4 @@
-package edu.buffalo.www.cse4562.Evaluate;
-
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.RA.RAJoin;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
@@ -9,6 +8,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class selectionEval {
         }
     }
 
-    private List<Expression> parseAndExpression(Expression expression){
+    public List<Expression> parseAndExpression(Expression expression){
         List<Expression> list = new ArrayList<>();
         if (expression instanceof AndExpression){
             Expression left = ((AndExpression) expression).getLeftExpression();
@@ -66,7 +66,7 @@ public class selectionEval {
 
     //todo just applied to checkpoint 3  A1 AND A2 OR A3 in checkpoint 3 will be parsed into A1 AND (A2 OR A3)
     //TODO SO SHOULD PARSE OR EXPRESSION
-    private List<Expression> parseOrExpression(Expression expression){
+    public List<Expression> parseOrExpression(Expression expression){
         List<Expression> list = new ArrayList<>();
         if (expression instanceof OrExpression){
             Expression left = ((OrExpression) expression).getLeftExpression();
@@ -84,8 +84,7 @@ public class selectionEval {
         }
         return list;
     }
-
-    private int isRelated(Table t, Expression e) {
+    public int isRelated(Table t, Expression e) {
         int flag = 0;
         if (e instanceof BinaryExpression){
             flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression());
@@ -137,7 +136,7 @@ public class selectionEval {
         return flag;
     }
 
-    private Expression mergeAndExpression(Expression e1, Expression e2) {
+    public Expression mergeAndExpression(Expression e1, Expression e2) {
         if (e1 != null) {
             return new AndExpression(e1, e2);
         } else {
@@ -145,7 +144,7 @@ public class selectionEval {
         }
     }
 
-    private List<Expression> getExpressions() {
+    public List<Expression> getExpressions() {
         return expressions;
     }
 
@@ -167,7 +166,6 @@ public class selectionEval {
     }
 
     //parse where into List including Or
-    //todo optimize the idea
     public void parse2List(List<Expression> expressions,Expression expression) {
         if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();
@@ -181,7 +179,7 @@ public class selectionEval {
                 expressions.add(right);
             }
             if (left instanceof AndExpression) {
-                expressions.addAll(parseAndExpression(left));
+                expressions.add(left);
             } else if (left instanceof OrExpression){
                 expressions.addAll(parseOrExpression(left));
             }else {

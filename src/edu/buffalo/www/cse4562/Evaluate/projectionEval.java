@@ -61,14 +61,17 @@ public class projectionEval {
         if (e instanceof BinaryExpression) {
             Expression left = ((BinaryExpression) e).getLeftExpression();
             Expression right = ((BinaryExpression) e).getRightExpression();
-            if (left instanceof Column)
+            if (left instanceof Column){
                 result.add((Column) left);
-            else if (left instanceof BinaryExpression)
+            } else if (left instanceof BinaryExpression){
                 parseMath(left,result);
-            if (right instanceof Column)
+            }
+
+            if (right instanceof Column){
                 result.add((Column) right);
-            else if (right instanceof BinaryExpression)
+            } else if (right instanceof BinaryExpression){
                 parseMath(left,result);
+            }
         }
     }
     public List<Column> parseOrderBy(List<OrderByElement> orderBy) {
@@ -88,16 +91,16 @@ public class projectionEval {
         for (SelectItem s : selectItemList) {
             parseProjection(involvedTables, s, result);
         }
-        logger.info("parse projection result: "+result.toString());
+//        logger.info("parse projection result: "+result.toString());
         //process selection
         if (where != null) {
             selectionEval selectionEval = new selectionEval(where);
             List<Expression> whereList = new ArrayList<>();
-            whereList = selectionEval.parse2List(whereList, where);
+            selectionEval.parse2List(whereList, where);
             result.addAll(selectionEval.parseSelect(whereList));
-            logger.info("where:"+where.toString());
-            logger.info("selection list"+whereList.toString());
-            logger.info("parse selection result: "+result.toString());
+//            logger.info("where:"+where.toString());
+//            logger.info("selection list"+whereList.toString());
+//            logger.info("parse selection result: "+result.toString());
 
         }
         //process orderby
