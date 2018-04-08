@@ -134,44 +134,9 @@ public class selectionEval {
         List<Column> result = new ArrayList<>();
         for (int i = 0;i<expressions.size();i++){
             Expression e = expressions.get(i);
-            if (e instanceof EqualsTo) {
-                Expression left = ((EqualsTo) e).getLeftExpression();
-                Expression right = ((EqualsTo) e).getRightExpression();
-                if (left instanceof Column)
-                    result.add((Column) left);
-                if (right instanceof Column)
-                    result.add((Column) right);
-            } else if (e instanceof NotEqualsTo) {
-                Expression left = ((NotEqualsTo) e).getLeftExpression();
-                Expression right = ((NotEqualsTo) e).getRightExpression();
-                if (left instanceof Column)
-                    result.add((Column) left);
-                if (right instanceof Column)
-                    result.add((Column) right);
-            } else if (e instanceof GreaterThan) {
-                Expression left = ((GreaterThan) e).getLeftExpression();
-                Expression right = ((GreaterThan) e).getRightExpression();
-                if (left instanceof Column)
-                    result.add((Column) left);
-                if (right instanceof Column)
-                    result.add((Column) right);
-            } else if (e instanceof GreaterThanEquals) {
-                Expression left = ((GreaterThanEquals) e).getLeftExpression();
-                Expression right = ((GreaterThanEquals) e).getRightExpression();
-                if (left instanceof Column)
-                    result.add((Column) left);
-                if (right instanceof Column)
-                    result.add((Column) right);
-            } else if (e instanceof MinorThan) {
-                Expression left = ((MinorThan) e).getLeftExpression();
-                Expression right = ((MinorThan) e).getRightExpression();
-                if (left instanceof Column)
-                    result.add((Column) left);
-                if (right instanceof Column)
-                    result.add((Column) right);
-            } else if (e instanceof MinorThanEquals) {
-                Expression left = ((MinorThanEquals) e).getLeftExpression();
-                Expression right = ((MinorThanEquals) e).getRightExpression();
+            if (e instanceof BinaryExpression){
+                Expression left = ((BinaryExpression) e).getLeftExpression();
+                Expression right = ((BinaryExpression) e).getRightExpression();
                 if (left instanceof Column)
                     result.add((Column) left);
                 if (right instanceof Column)

@@ -37,14 +37,30 @@ public class evaluate extends Eval {
         String colTable = column.getTable().getName();
         if (colTable != null) {
             if (tupleLeft.getTableName().contains(colTable) || tupleRight == null) {
+                if (tupleLeft.getAttributes().get(column)==null){
+                    logger.info(column.toString());
+                    logger.info(tupleLeft.getAttributes().toString());
+                }
                 return tupleLeft.getAttributes().get(column);
             } else {
+                if (tupleRight.getAttributes().get(column)==null){
+                    logger.info(column.toString());
+                    logger.info(tupleRight.getAttributes().toString());
+                }
                 return tupleRight.getAttributes().get(column);
             }
         } else {
             if (tupleLeft.getAttributes().containsKey(column) || tupleRight == null) {
+                if (tupleLeft.getAttributes().get(column)==null){
+                    logger.info(column.toString());
+                    logger.info(tupleLeft.getAttributes().toString());
+                }
                 return tupleLeft.getAttributes().get(column);
             } else {
+                if (tupleRight.getAttributes().get(column)==null){
+                    logger.info(column.toString());
+                    logger.info(tupleRight.getAttributes().toString());
+                }
                 return tupleRight.getAttributes().get(column);
             }
         }
@@ -62,7 +78,11 @@ public class evaluate extends Eval {
             e.printStackTrace();
             logger.info(this.expression.toString());
             logger.info(tupleLeft.getAttributes().toString());
-            logger.info(result.toString());
+            if (result==null){
+                logger.info("result is null");
+            }
+            logger.info(tupleRight.getAttributes().toString());
+
         }
         return queryResult;
     }
