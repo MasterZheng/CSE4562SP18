@@ -91,16 +91,16 @@ public class projectionEval {
         for (SelectItem s : selectItemList) {
             parseProjection(involvedTables, s, result);
         }
-//        logger.info("parse projection result: "+result.toString());
+        logger.info("parse projection result: "+result.toString());
         //process selection
         if (where != null) {
             selectionEval selectionEval = new selectionEval(where);
             List<Expression> whereList = new ArrayList<>();
             selectionEval.parse2List(whereList, where);
             result.addAll(selectionEval.parseSelect(whereList));
-//            logger.info("where:"+where.toString());
-//            logger.info("selection list"+whereList.toString());
-//            logger.info("parse selection result: "+result.toString());
+            logger.info("where:"+where.toString());
+            logger.info("selection list"+whereList.toString());
+            logger.info("parse selection result: "+result.toString());
 
         }
         //process orderby
