@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 3000;
+    private static int BLOCKSIZE = 30000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 

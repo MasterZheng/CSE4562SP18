@@ -186,7 +186,7 @@ public class RAProjection extends RANode {
                         aggregateEval aggEval = new aggregateEval(tupleList, functions);
                         funcVals = aggEval.eval();
                         attributes.put(columnInfo.get(j), funcVals.get(0));
-                        //todo 强制退出外圈循环，临时办法，未来修改
+                        //todo 强制退出外圈循环，临时办法，待修改
                         tupleList.clear();
                     }
                 }
