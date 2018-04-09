@@ -22,10 +22,7 @@ public class TableObject {
 
     //when the table is a query result, it is necessary to record the table info about the column
 
-<<<<<<< HEAD
-=======
 
->>>>>>> parent of ee41a65... optimize
     private List<Tuple> tupleList = new ArrayList<>();
     private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
     private List<Integer> mapRelations = new ArrayList<>();
