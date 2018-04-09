@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 2000;
+    private static int BLOCKSIZE = 3000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -361,12 +361,20 @@ public class processSelect {
         } else {
             while (leftIterator.hasNext()) {
                 leftBlock = getTupleBlock(leftIterator, tableLeft);
-                rightBlock = getTupleBlock(rightIterator,tableRight);
-                for (int i = 0; i < leftBlock.size(); i++) {
-                    for(int j = 0;j<rightBlock.size();j++){
-                        evaluate eva = new evaluate(leftBlock.get(i), rightBlock.get(j), pointer.getExpression());
-                        queryResult = eva.Eval(queryResult);
+                while (rightIterator.hasNext()){
+                    rightBlock = getTupleBlock(rightIterator,tableRight);
+                    for (int i = 0; i < leftBlock.size(); i++) {
+                        for(int j = 0;j<rightBlock.size();j++){
+                            evaluate eva = new evaluate(leftBlock.get(i), rightBlock.get(j), pointer.getExpression());
+                            queryResult = eva.Eval(queryResult);
+                        }
                     }
+                }
+                if (!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+                    rightIterator = tableRight.getIterator();
+                } else {
+                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+                    rightIterator = parserRight.iterator();
                 }
             }
         }
@@ -387,6 +395,7 @@ public class processSelect {
                 counter++;
             }
         }
+
         return tupleBlock;
     }
 }
