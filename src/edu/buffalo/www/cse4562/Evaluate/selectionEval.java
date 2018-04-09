@@ -27,7 +27,9 @@ public class selectionEval {
         where = expression;
         this.expressions = new ArrayList<>();
         //if the where does not contain OR, pushdown
-        if (expression instanceof AndExpression) {
+        if (expression.toString().contains(" OR ")){
+            expressions.add(expression);
+        }else if (expression instanceof AndExpression) {
                 Expression left = ((AndExpression) expression).getLeftExpression();
                 Expression right = ((AndExpression) expression).getRightExpression();
                 //the left and right subExpression of OrExpression should be with the same table.Should not be divided

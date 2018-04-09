@@ -7,8 +7,6 @@ import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.PrimitiveValue;
-import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -310,41 +308,54 @@ public class processSelect {
     private static List<Tuple> hashJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         Expression exp = pointer.getExpression();
+        //load the record in CSV into memory
 
-        if (tableLeft.getTupleList() == null) {
-            List<Tuple> list = new ArrayList<>();
-            while (leftIterator.hasNext()) {
-                list.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
-            }
-            tableLeft.settupleList(list);
-        }
-        if (tableRight.getTupleList() == null) {
-            List<Tuple> list = new ArrayList<>();
-            while (rightIterator.hasNext()) {
-                list.add(new Tuple(tableRight, (CSVRecord) rightIterator.next()));
-            }
-            tableRight.settupleList(list);
-        }
-        List<Tuple> leftList = tableLeft.getTupleList();
-        List<Tuple> rightList = tableRight.getTupleList();
+        //judge if the expression is related with the two tables
+        Expression right = ((EqualsTo) exp).getRightExpression();
+        Expression left = ((EqualsTo) exp).getLeftExpression();
+        //todo
 
-        if (exp instanceof EqualsTo) {
-            Expression right = ((EqualsTo) exp).getRightExpression();
-            Expression left = ((EqualsTo) exp).getLeftExpression();
-            //todo
-            Column colleft = (Column) left;
+        Column colleft = (Column) left;
+        Column colRight = (Column) right;
+        if ((colleft.getTable().getName().equals(tableLeft.getTable().getName()) ||
+                colleft.getTable().getName().equals(tableLeft.getTable().getAlias()) ||
+                colleft.getTable().getName().equals(tableRight.getTable().getName()) ||
+                colleft.getTable().getName().equals(tableRight.getTable().getAlias())) && (
+                colRight.getTable().getName().equals(tableLeft.getTable().getName()) ||
+                        colRight.getTable().getName().equals(tableLeft.getTable().getAlias()) ||
+                        colRight.getTable().getName().equals(tableRight.getTable().getName()) ||
+                        colRight.getTable().getName().equals(tableRight.getTable().getAlias()))) {
             if (tableLeft.getAlisa() != null) {
                 colleft.setTable(new Table(tableLeft.getAlisa()));
             } else {
                 colleft.setTable(tableLeft.getTable());
             }
 
-            Column colRight = (Column) right;
             if (tableRight.getAlisa() != null) {
                 colRight.setTable(new Table(tableRight.getAlisa()));
             } else {
                 colRight.setTable(tableRight.getTable());
             }
+
+            if (tableLeft.getTupleList() == null) {
+                List<Tuple> list = new ArrayList<>();
+                while (leftIterator.hasNext()) {
+                    list.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
+                }
+                tableLeft.settupleList(list);
+            }
+            if (tableRight.getTupleList() == null) {
+                List<Tuple> list = new ArrayList<>();
+                while (rightIterator.hasNext()) {
+                    list.add(new Tuple(tableRight, (CSVRecord) rightIterator.next()));
+                }
+                tableRight.settupleList(list);
+            }
+
+            List<Tuple> leftList = tableLeft.getTupleList();
+            List<Tuple> rightList = tableRight.getTupleList();
+
+
             HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
             for (int i = 0; i < rightList.size(); i++) {
                 String val = rightList.get(i).getAttributes().get(colRight).toRawString();
@@ -364,12 +375,13 @@ public class processSelect {
                 List<Integer> rightCols = rightjoinHash.get(key);
                 if (rightCols != null && rightCols.size() > 0) {
                     for (int j = 0; j < rightCols.size(); j++) {
-                        evaluate eva = new evaluate(leftList.get(i), rightList.get(rightCols.get(j)), pointer.getExpression());
+                        evaluate eva = new evaluate(leftList.get(i), rightList.get(rightCols.get(j)), exp);
                         queryResult = eva.Eval(queryResult);
                     }
                 }
             }
         }
+
 
         return queryResult;
     }
@@ -387,9 +399,9 @@ public class processSelect {
                     queryResult = eva.Eval(queryResult);
                 }
             }
-        } else if (exp instanceof BinaryExpression&& ((BinaryExpression) exp).getLeftExpression() instanceof Column &&((BinaryExpression) exp).getRightExpression() instanceof Column) {
+        } else if (exp instanceof EqualsTo && ((BinaryExpression) exp).getLeftExpression() instanceof Column && ((BinaryExpression) exp).getRightExpression() instanceof Column) {
             // A.C=B.C
-            queryResult = hashJoin(leftIterator, rightIterator,tableLeft, tableRight, pointer);
+            queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
         } else {
             while (leftIterator.hasNext()) {
                 leftBlock = getTupleBlock(leftIterator, tableLeft);
