@@ -21,7 +21,7 @@ public class TableObject {
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
 
     //when the table is a query result, it is necessary to record the table info about the column
-    
+
     private List<Tuple> tupleList = new ArrayList<>();
     private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
     private List<Integer> mapRelations = new ArrayList<>();
