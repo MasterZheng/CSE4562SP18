@@ -2,7 +2,6 @@ package edu.buffalo.www.cse4562.RA;
 
 import edu.buffalo.www.cse4562.Evaluate.aggregateEval;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
-import edu.buffalo.www.cse4562.Evaluate.projectionEval;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
@@ -43,7 +42,7 @@ public class RAProjection extends RANode {
             if (isGroupBy) {
                 projectionParser(OutputTable.getColumnInfo(), new Table(tableName));
                 Iterator<Map.Entry<Integer, ArrayList<Tuple>>> iterator = OutputTable.getHashMap().entrySet().iterator();
-                ArrayList<Function> functions = projectionEval.extractFunc(selectItem);
+                ArrayList<Function> functions = extractFunc();
                 while (iterator.hasNext()) {
                     //process aggregate
                     List<Tuple> tupleList = iterator.next().getValue();
@@ -200,4 +199,14 @@ public class RAProjection extends RANode {
         return newTupleList;
     }
 
+    public ArrayList<Function> extractFunc() {
+        ArrayList<Function> functionList = new ArrayList<>();
+        for (SelectItem s : selectItem) {
+            Expression exp = ((SelectExpressionItem) s).getExpression();
+            if (exp instanceof Function) {
+                functionList.add((Function) exp);
+            }
+        }
+        return functionList;
+    }
 }

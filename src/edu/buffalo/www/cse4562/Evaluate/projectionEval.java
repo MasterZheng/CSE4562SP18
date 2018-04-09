@@ -193,15 +193,4 @@ public class projectionEval {
             }
         }
     }
-
-    public static ArrayList<Function> extractFunc(List<SelectItem> selectItemList) {
-        ArrayList<Function> functionList = new ArrayList<>();
-        for (SelectItem s : selectItemList) {
-            Expression exp = ((SelectExpressionItem) s).getExpression();
-            if (exp instanceof Function) {
-                functionList.add((Function) exp);
-            }
-        }
-        return functionList;
-    }
 }
