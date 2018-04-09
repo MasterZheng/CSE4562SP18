@@ -35,7 +35,7 @@ public class RAGroupBy extends RANode {
 
     public TableObject Eval(TableObject OutputTable, List<Column> groupByReferences) throws Exception {
         List<Tuple> originalList = OutputTable.getTupleList();
-        HashMap<Integer, ArrayList<Tuple>> hashMap = OutputTable.getHashMap();
+        HashMap<Integer, ArrayList<Tuple>> hashMap = OutputTable.getgroupMap();
         for (int i = 0;i<originalList.size();i++){
             Tuple t = originalList.get(i);
             String hashCode = "";

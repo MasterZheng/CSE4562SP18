@@ -41,7 +41,7 @@ public class RAProjection extends RANode {
         if (!flag) {
             if (isGroupBy) {
                 projectionParser(OutputTable.getColumnInfo(), new Table(tableName));
-                Iterator<Map.Entry<Integer, ArrayList<Tuple>>> iterator = OutputTable.getHashMap().entrySet().iterator();
+                Iterator<Map.Entry<Integer, ArrayList<Tuple>>> iterator = OutputTable.getgroupMap().entrySet().iterator();
                 ArrayList<Function> functions = extractFunc();
                 while (iterator.hasNext()) {
                     //process aggregate

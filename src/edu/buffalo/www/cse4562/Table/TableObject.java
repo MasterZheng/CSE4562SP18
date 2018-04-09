@@ -23,8 +23,9 @@ public class TableObject {
     //when the table is a query result, it is necessary to record the table info about the column
 
 
-    private List<Tuple> tupleList = new ArrayList<>();
-    private HashMap<Integer, ArrayList<Tuple>> hashMap = new HashMap<>();
+    private List<Tuple> tupleList;
+    private HashMap<Integer, ArrayList<Tuple>> groupMap = new HashMap<>();
+    private HashMap<Integer,ArrayList<Integer>> joinHash =null;
     private List<Integer> mapRelations = new ArrayList<>();
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
@@ -147,12 +148,20 @@ public class TableObject {
         return this.tupleList.iterator();
     }
 
-    public HashMap<Integer, ArrayList<Tuple>> getHashMap() {
-        return this.hashMap;
+    public HashMap<Integer, ArrayList<Tuple>> getgroupMap() {
+        return this.groupMap;
     }
 
     public void setHashMap(HashMap<Integer, ArrayList<Tuple>> hashMap) {
-        this.hashMap = hashMap;
+        this.groupMap = hashMap;
+    }
+
+    public HashMap<Integer, ArrayList<Integer>> getJoinHash() {
+        return joinHash;
+    }
+
+    public void setJoinHash(HashMap<Integer, ArrayList<Integer>> joinHash) {
+        this.joinHash = joinHash;
     }
 
     public void print(int c) {
