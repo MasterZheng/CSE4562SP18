@@ -9,6 +9,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -18,32 +19,34 @@ public class selectionEval {
 
     private List<Expression> expressions;
     private Expression where;
+
     // selection pushdown
     // divide expression in selection into several subexpressions
     // check if the subexpression is related with the table
     // if yes assign the subexpression to the join
-    public selectionEval(){
+    public selectionEval() {
 
     }
+    //used for projection pushdown
     public selectionEval(Expression expression) {
 
         where = expression;
         this.expressions = new ArrayList<>();
         //if the where does not contain OR, pushdown
         if (expression instanceof AndExpression) {
-                Expression left = ((AndExpression) expression).getLeftExpression();
-                Expression right = ((AndExpression) expression).getRightExpression();
-                //the left and right subExpression of OrExpression should be with the same table.Should not be divided
-                if (!(right instanceof AndExpression)) {
-                    expressions.add(right);
-                }else {
-                    expressions.addAll(parseAndOrExpression(right));
-                }
-                if (!(left instanceof AndExpression)) {
-                    expressions.add(left);
-                } else {
-                    expressions.addAll(parseAndOrExpression(left));
-                }
+            Expression left = ((AndExpression) expression).getLeftExpression();
+            Expression right = ((AndExpression) expression).getRightExpression();
+            //the left and right subExpression of OrExpression should be with the same table.Should not be divided
+            if (!(right instanceof AndExpression)) {
+                expressions.add(right);
+            } else {
+                expressions.addAll(parseAndOrExpression(right));
+            }
+            if (!(left instanceof AndExpression)) {
+                expressions.add(left);
+            } else {
+                expressions.addAll(parseAndOrExpression(left));
+            }
         } else {
             logger.info("not andExpression");
             logger.info(expression.toString());
@@ -52,32 +55,65 @@ public class selectionEval {
         }
     }
 
-    private List<Expression> parseAndOrExpression(Expression expression){
-        List<Expression> list = new ArrayList<>();
-        if (expression instanceof AndExpression){
+    //used for selection pushdown
+    public selectionEval(Expression expression,boolean a) {
+
+        where = expression;
+        this.expressions = new ArrayList<>();
+        //if the where does not contain OR, pushdown
+        if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
-            if (left instanceof AndExpression||left instanceof OrExpression){
+            if (left instanceof OrExpression || right instanceof OrExpression) {
+                expressions = new ArrayList<>();
+                expressions.add(expression);
+                return;
+            }
+            //the left and right subExpression of OrExpression should be with the same table.Should not be divided
+            if (!(right instanceof AndExpression)) {
+                expressions.add(right);
+            } else {
+                expressions.addAll(parseAndOrExpression(right));
+            }
+            if (!(left instanceof AndExpression)) {
+                expressions.add(left);
+            } else {
+                expressions.addAll(parseAndOrExpression(left));
+            }
+        } else {
+            logger.info("not andExpression");
+            logger.info(expression.toString());
+            logger.info(expression.getClass().getName());
+            expressions.add(expression);
+        }
+    }
+
+    private List<Expression> parseAndOrExpression(Expression expression) {
+        List<Expression> list = new ArrayList<>();
+        if (expression instanceof AndExpression) {
+            Expression left = ((AndExpression) expression).getLeftExpression();
+            Expression right = ((AndExpression) expression).getRightExpression();
+            if (left instanceof AndExpression || left instanceof OrExpression) {
                 list.addAll(parseAndOrExpression(left));
-            }else {
+            } else {
                 list.add(left);
             }
-            if (right instanceof AndExpression||right instanceof OrExpression){
+            if (right instanceof AndExpression || right instanceof OrExpression) {
                 list.addAll(parseAndOrExpression(right));
-            }else {
+            } else {
                 list.add(right);
             }
-        }else if (expression instanceof OrExpression){
+        } else if (expression instanceof OrExpression) {
             Expression left = ((OrExpression) expression).getLeftExpression();
             Expression right = ((OrExpression) expression).getRightExpression();
-            if (left instanceof OrExpression||left instanceof AndExpression){
+            if (left instanceof OrExpression || left instanceof AndExpression) {
                 list.addAll(parseAndOrExpression(left));
-            }else {
+            } else {
                 list.add(left);
             }
-            if (right instanceof OrExpression||right instanceof AndExpression){
+            if (right instanceof OrExpression || right instanceof AndExpression) {
                 list.addAll(parseAndOrExpression(right));
-            }else {
+            } else {
                 list.add(right);
             }
         }
@@ -87,7 +123,7 @@ public class selectionEval {
 
     private int isRelated(Table t, Expression e) {
         int flag = 0;
-        if (e instanceof BinaryExpression){
+        if (e instanceof BinaryExpression) {
             flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression());
         }
         return flag;
@@ -139,9 +175,9 @@ public class selectionEval {
     //parse expression list, get the columns in the expressions
     public List<Column> parseSelect(List<Expression> expressions) {
         List<Column> result = new ArrayList<>();
-        for (int i = 0;i<expressions.size();i++){
+        for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
-            if (e instanceof BinaryExpression){
+            if (e instanceof BinaryExpression) {
                 Expression left = ((BinaryExpression) e).getLeftExpression();
                 Expression right = ((BinaryExpression) e).getRightExpression();
                 if (left instanceof Column)
@@ -155,71 +191,71 @@ public class selectionEval {
 
     //parse where into List including Or
     //todo optimize the idea
-    public void parse2List(List<Expression> expressions,Expression expression) {
+    public void parse2List(List<Expression> expressions, Expression expression) {
         if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
             //the left and right subExpression of OrExpression should be with the same table.Should not be divided
-            if (right instanceof AndExpression||right instanceof OrExpression) {
+            if (right instanceof AndExpression || right instanceof OrExpression) {
                 expressions.addAll(parseAndOrExpression(right));
-            }else {
+            } else {
                 expressions.add(right);
             }
-            if (left instanceof AndExpression||left instanceof OrExpression) {
+            if (left instanceof AndExpression || left instanceof OrExpression) {
                 expressions.addAll(parseAndOrExpression(left));
-            }else {
+            } else {
                 expressions.add(left);
             }
-        } else if (expression instanceof OrExpression){
+        } else if (expression instanceof OrExpression) {
             Expression left = ((OrExpression) expression).getLeftExpression();
             Expression right = ((OrExpression) expression).getRightExpression();
-            parse2List(expressions,left);
-            parse2List(expressions,right);
-        }else {
+            parse2List(expressions, left);
+            parse2List(expressions, right);
+        } else {
             expressions.add(expression);
         }
     }
 
-    public int pushdownSelect(RANode pointer, Expression where){
+    public int pushdownSelect(RANode pointer, Expression where) {
         //存在 join 情况
         Expression newWhere = null;
-        selectionEval exp = new selectionEval(where);
+        selectionEval exp = new selectionEval(where,false);
         List<Expression> expList = exp.getExpressions();
         // 0 not related,1 join on condition ,2 table filter
-        int flag =0;
+        int flag = 0;
         List<Integer> deleteExp = new ArrayList<>();
-        for (int i = 0;i<expList.size();i++){
+        for (int i = 0; i < expList.size(); i++) {
             flag = 0;
-            if (pointer.getRightNode() instanceof RATable){
-                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(),expList.get(i));
-                if (flag==1)
-                    ((RAJoin)pointer).addAndExpression(expList.get(i));
-                else if (flag==2)
-                    ((RATable)pointer.getRightNode()).addAndExpression(expList.get(i));
+            if (pointer.getRightNode() instanceof RATable) {
+                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(), expList.get(i));
+                if (flag == 1)
+                    ((RAJoin) pointer).addAndExpression(expList.get(i));
+                else if (flag == 2)
+                    ((RATable) pointer.getRightNode()).addAndExpression(expList.get(i));
 
-            }else if (pointer.getRightNode() instanceof RAJoin){
-                flag = pushdownSelect(pointer.getRightNode(),expList.get(i));
+            } else if (pointer.getRightNode() instanceof RAJoin) {
+                flag = pushdownSelect(pointer.getRightNode(), expList.get(i));
             }
             //加入！flag 防止同样条件被添加2次
-            if (flag==0&&pointer.getLeftNode() instanceof RATable){
-                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(),expList.get(i));
-                if (flag==1)
-                    ((RAJoin)pointer).addAndExpression(expList.get(i));
-                else if (flag==2)
-                    ((RATable)pointer.getLeftNode()).addAndExpression(expList.get(i));
-            }else if (flag==0&&pointer.getLeftNode() instanceof RAJoin){
-                flag = pushdownSelect(pointer.getLeftNode(),expList.get(i));
+            if (flag == 0 && pointer.getLeftNode() instanceof RATable) {
+                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(), expList.get(i));
+                if (flag == 1)
+                    ((RAJoin) pointer).addAndExpression(expList.get(i));
+                else if (flag == 2)
+                    ((RATable) pointer.getLeftNode()).addAndExpression(expList.get(i));
+            } else if (flag == 0 && pointer.getLeftNode() instanceof RAJoin) {
+                flag = pushdownSelect(pointer.getLeftNode(), expList.get(i));
             }
-            if (flag!=0){
+            if (flag != 0) {
                 deleteExp.add(i);
             }
         }
 
-        for (int i = deleteExp.size()-1;i>-1;i--){//从大往小删
-            expList.remove((int)deleteExp.get(i));
+        for (int i = deleteExp.size() - 1; i > -1; i--) {//从大往小删
+            expList.remove((int) deleteExp.get(i));
         }
-        for (Expression e:expList){
-            newWhere = exp.mergeAndExpression(newWhere,e);
+        for (Expression e : expList) {
+            newWhere = exp.mergeAndExpression(newWhere, e);
         }
         this.where = newWhere;
         return flag;
