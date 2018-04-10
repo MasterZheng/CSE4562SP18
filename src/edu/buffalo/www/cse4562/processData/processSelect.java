@@ -312,9 +312,6 @@ public class processSelect {
     private static List<Tuple> hashJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         Expression exp = pointer.getExpression();
-        logger.info(exp.toString());
-        logger.info(tableLeft.getTableName());
-        logger.info(tableRight.getTableName());
         Column left = (Column) ((EqualsTo) exp).getLeftExpression();
         Column right = (Column) ((EqualsTo) exp).getRightExpression();
         //todo

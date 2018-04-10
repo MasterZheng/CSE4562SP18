@@ -232,6 +232,8 @@ public class SelectParser {
             if (where!=null&&joins!=null){
                 //pushdown selection
                 selectionEval selectEval = new selectionEval();
+                logger.info("Select Parser"+where.toString());
+                logger.info(where.getClass().toString());
                 selectEval.pushdownSelect(pointer,where);
                 this.where = selectEval.getWhere();
             }

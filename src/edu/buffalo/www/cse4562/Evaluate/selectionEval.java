@@ -48,9 +48,6 @@ public class selectionEval {
                 expressions.addAll(parseAndOrExpression(left));
             }
         } else {
-            logger.info("not andExpression");
-            logger.info(expression.toString());
-            logger.info(expression.getClass().getName());
             expressions.add(expression);
         }
     }
