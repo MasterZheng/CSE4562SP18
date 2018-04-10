@@ -61,26 +61,18 @@ public class selectionEval {
         if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();
             Expression right = ((AndExpression) expression).getRightExpression();
-            if (left instanceof OrExpression || right instanceof OrExpression) {
-                expressions = new ArrayList<>();
-                expressions.add(expression);
-                return;
-            }
             //the left and right subExpression of OrExpression should be with the same table.Should not be divided
             if (!(right instanceof AndExpression)) {
                 expressions.add(right);
             } else {
-                expressions.addAll(parseAndOrExpression(right));
+                expressions.addAll(parseAndExpression(right));
             }
             if (!(left instanceof AndExpression)) {
                 expressions.add(left);
             } else {
-                expressions.addAll(parseAndOrExpression(left));
+                expressions.addAll(parseAndExpression(left));
             }
         } else {
-            logger.info("not andExpression");
-            logger.info(expression.toString());
-            logger.info(expression.getClass().getName());
             expressions.add(expression);
         }
     }
@@ -117,6 +109,24 @@ public class selectionEval {
         return list;
     }
 
+    private List<Expression> parseAndExpression(Expression expression) {
+        List<Expression> list = new ArrayList<>();
+        if (expression instanceof AndExpression) {
+            Expression left = ((AndExpression) expression).getLeftExpression();
+            Expression right = ((AndExpression) expression).getRightExpression();
+            if (left instanceof AndExpression) {
+                list.addAll(parseAndExpression(left));
+            } else {
+                list.add(left);
+            }
+            if (right instanceof AndExpression) {
+                list.addAll(parseAndExpression(right));
+            } else {
+                list.add(right);
+            }
+        }
+        return list;
+    }
 
     private int isRelated(Table t, Expression e) {
         int flag = 0;
