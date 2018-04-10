@@ -45,9 +45,9 @@ public class selectionEval {
                     expressions.addAll(parseAndOrExpression(left));
                 }
         } else {
-            if (expression instanceof OrExpression){
-                logger.info("it is an Orexpression:"+expression.toString());
-            }
+            logger.info("not andExpression");
+            logger.info(expression.toString());
+            logger.info(expression.getClass().getName());
             expressions.add(expression);
         }
     }
