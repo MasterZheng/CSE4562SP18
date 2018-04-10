@@ -310,29 +310,30 @@ public class processSelect {
     private static List<Tuple> hashJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         Expression exp = pointer.getExpression();
-
+        logger.info(exp.toString());
+        logger.info(tableLeft.getTableName());
+        logger.info(tableRight.getTableName());
         Column left = (Column) ((EqualsTo) exp).getLeftExpression();
         Column right = (Column) ((EqualsTo) exp).getRightExpression();
         //todo
         Column colLeft = null;
         Column colRight = null;
 
-        if(left.getTable()!=null){
+        //match the
+        if(left.getTable()!=null&&right.getTable()!=null){
             if (left.getTable().getName().equals(tableLeft.getTable().getName())){
                 colLeft = new Column(tableLeft.getTable(),left.getColumnName());
             }else if (left.getTable().getName().equals(tableLeft.getAlisa())){
                 colLeft = new Column(new Table(tableLeft.getAlisa()),left.getColumnName());
-            }else if (left.getTable().getName().equals(tableRight.getTable().getName())){
-                colLeft = new Column(tableRight.getTable(),left.getColumnName());
-            }else if (left.getTable().getName().equals(tableRight.getAlisa())){
-                colLeft = new Column(new Table(tableRight.getAlisa()),left.getColumnName());
-            }
-        }
-        if(right.getTable()!=null){
-            if (right.getTable().getName().equals(tableLeft.getTable().getName())){
-                colRight = new Column(tableLeft.getTable(),right.getColumnName());
+            }else if (right.getTable().getName().equals(tableLeft.getTable().getName())){
+                colLeft = new Column(tableLeft.getTable(),right.getColumnName());
             }else if (right.getTable().getName().equals(tableLeft.getAlisa())){
-                colRight = new Column(new Table(tableLeft.getAlisa()),right.getColumnName());
+                colLeft = new Column(new Table(tableLeft.getAlisa()),right.getColumnName());
+            }
+            if (left.getTable().getName().equals(tableRight.getTable().getName())){
+                colRight = new Column(tableRight.getTable(),right.getColumnName());
+            }else if (left.getTable().getName().equals(tableRight.getAlisa())){
+                colRight = new Column(new Table(tableRight.getAlisa()),right.getColumnName());
             }else if (right.getTable().getName().equals(tableRight.getTable().getName())){
                 colRight = new Column(tableRight.getTable(),right.getColumnName());
             }else if (right.getTable().getName().equals(tableRight.getAlisa())){

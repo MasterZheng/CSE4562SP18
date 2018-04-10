@@ -44,9 +44,6 @@ public class selectionEval {
                     expressions.addAll(parseAndOrExpression(left));
                 }
         } else {
-            logger.info(expression.toString());
-            logger.info("selection not pushdown");
-
             expressions.add(expression);
         }
     }
