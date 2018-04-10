@@ -26,6 +26,7 @@ public class selectionEval {
 
     }
     public selectionEval(Expression expression) {
+
         where = expression;
         this.expressions = new ArrayList<>();
         //if the where does not contain OR, pushdown
@@ -44,6 +45,9 @@ public class selectionEval {
                     expressions.addAll(parseAndOrExpression(left));
                 }
         } else {
+            if (expression instanceof OrExpression){
+                logger.info("it is an Orexpression:"+expression.toString());
+            }
             expressions.add(expression);
         }
     }

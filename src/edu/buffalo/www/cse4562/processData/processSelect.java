@@ -9,7 +9,6 @@ import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 
-import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -120,6 +119,7 @@ public class processSelect {
                     if (pointer.getParentNode().getOperation().equals("SELECTION") && pointer.getExpression().toString().equals("1 = 1")) {
 
                     } else {
+                        logger.info("exp in join node:"+pointer.getExpression().toString());
                         result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));
                         leftIterator = result.getIterator();
                         rightIterator = null;
@@ -468,7 +468,6 @@ public class processSelect {
                     rightIterator = parserRight.iterator();
                 }
             }
-
         }
         return queryResult;
     }
