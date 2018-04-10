@@ -11,8 +11,10 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class selectionEval {
+    static Logger logger = Logger.getLogger(selectionEval.class.getName());
 
     private List<Expression> expressions;
     private Expression where;
@@ -42,6 +44,9 @@ public class selectionEval {
                     expressions.addAll(parseAndOrExpression(left));
                 }
         } else {
+            logger.info(expression.toString());
+            logger.info("selection not pushdown");
+
             expressions.add(expression);
         }
     }

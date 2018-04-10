@@ -98,8 +98,6 @@ public class projectionEval {
             List<Expression> whereList = new ArrayList<>();
             selectionEval.parse2List(whereList, where);
             result.addAll(selectionEval.parseSelect(whereList));
-            logger.info("selection list" + whereList.toString());
-            logger.info("parse selection result: " + result.toString());
         }
         //process orderby
         if (orderBy != null) {
