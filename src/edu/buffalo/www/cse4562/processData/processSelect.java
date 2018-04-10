@@ -1,7 +1,6 @@
 package edu.buffalo.www.cse4562.processData;
 
-import com.sun.javafx.scene.control.skin.VirtualFlow;
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
+
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
