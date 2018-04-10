@@ -9,6 +9,7 @@ import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 
+import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -366,9 +367,9 @@ public class processSelect {
                     colRight = new Column(tableRight.getTable(), left.getColumnName());
                 }
             } else if (nameRight.contains(right.getTable().getName())) {
-                if (tableRight.getAlisa()!=null){
+                if (tableRight.getAlisa() != null) {
                     colRight = new Column(new Table(tableRight.getAlisa()), right.getColumnName());
-                }else {
+                } else {
                     colRight = new Column(tableRight.getTable(), right.getColumnName());
                 }
             }
@@ -416,9 +417,38 @@ public class processSelect {
                     queryResult = eva.Eval(queryResult);
                 }
             }
-        } else if (exp instanceof BinaryExpression && ((BinaryExpression) exp).getLeftExpression() instanceof Column && ((BinaryExpression) exp).getRightExpression() instanceof Column) {
+        } else if (exp instanceof BinaryExpression &&
+                ((BinaryExpression) exp).getLeftExpression() instanceof Column &&
+                ((BinaryExpression) exp).getRightExpression() instanceof Column) {
             // A.C=B.C
             queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+        } else if (exp instanceof EqualsTo && exp.toString().equals("1 = 1")){
+            if (tableRight.getTupleList() != null&&tableRight.getTupleList().size()!=0) {
+                while (leftIterator.hasNext()) {
+                    Tuple tleft = getTuple(leftIterator, tableLeft);
+                    for (int i = 0; i < tableRight.getTupleList().size(); i++) {
+                        queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(i)));
+                    }
+                }
+            } else {
+                while (leftIterator.hasNext()) {
+                    leftBlock = getTupleBlock(leftIterator, tableLeft);
+                    while (rightIterator.hasNext()) {
+                        rightBlock = getTupleBlock(rightIterator, tableRight);
+                        for (int i = 0; i < leftBlock.size(); i++) {
+                            for (int j = 0; j < rightBlock.size(); j++) {
+                                queryResult.add(leftBlock.get(i).joinTuple(rightBlock.get(j)));
+                            }
+                        }
+                    }
+                    if (!rightIterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+                        rightIterator = tableRight.getIterator();
+                    } else {
+                        CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+                        rightIterator = parserRight.iterator();
+                    }
+                }
+            }
         } else {
             while (leftIterator.hasNext()) {
                 leftBlock = getTupleBlock(leftIterator, tableLeft);
@@ -458,5 +488,19 @@ public class processSelect {
             }
         }
         return tupleBlock;
+    }
+
+    private static Tuple getTuple(Iterator iterator, TableObject tableObject) {
+        Tuple t = null;
+        if (iterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
+            while (iterator.hasNext()) {
+                t = new Tuple(tableObject, (CSVRecord) iterator.next());
+            }
+        } else {
+            while (iterator.hasNext()) {
+                t = (Tuple) iterator.next();
+            }
+        }
+        return t;
     }
 }
