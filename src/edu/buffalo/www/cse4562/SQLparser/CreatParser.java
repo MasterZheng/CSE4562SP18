@@ -35,15 +35,17 @@ public class CreatParser {
         return createMap;
     }
 
-    public static boolean CreatFunction(CreateTable create, HashMap<String, TableObject> tableMap) {
+    public static boolean CreatFunction(CreateTable create, HashMap<String, TableObject> tableMap) throws Exception {
         String tableName = create.getTable().getName().toUpperCase();
         if (tableMap.containsKey(tableName)) {
             return false;
         }
         Table table = create.getTable();
-        final TableObject tableObject = new TableObject(create, table, tableName);
+        TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
+        //根据外键建索引，每一列做统计。
+        tableObject.indexAndStatistic();
         return true;
     }
 

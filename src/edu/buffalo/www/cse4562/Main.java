@@ -61,6 +61,7 @@ public class Main {
                     //执行完清除临时表
                 } else if (stmt instanceof CreateTable) {
                     boolean flag = CreatFunction((CreateTable) stmt, tableMap);
+
                     stmt = null;
                     if (flag) {
                         logger.info("Create table successfully");

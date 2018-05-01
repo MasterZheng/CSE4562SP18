@@ -2,11 +2,16 @@ package edu.buffalo.www.cse4562.Table;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
+import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
+import java.io.FileReader;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -25,9 +30,15 @@ public class TableObject {
 
     private List<Tuple> tupleList;
     private HashMap<Integer, ArrayList<Tuple>> groupMap = new HashMap<>();
-    private HashMap<Integer,ArrayList<Integer>> joinHash =null;
+    private HashMap<Integer, ArrayList<Integer>> joinHash = null;
     private List<Integer> mapRelations = new ArrayList<>();
+    private List<Column> primaryKey = new ArrayList<>();
+    private List<Column> references = new ArrayList<>();
+    private HashMap<Column, HashMap<PrimitiveValue,ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+    private HashMap<Column, HashMap<PrimitiveValue,Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+
     static Logger logger = Logger.getLogger(TableObject.class.getName());
+
 
     public TableObject(TableObject tableObject, RANode raTable) {
 
@@ -55,8 +66,16 @@ public class TableObject {
         this.table = table;
         this.tableName = tableName;
         this.columnDefinitions = createTable.getColumnDefinitions();
-        for (ColumnDefinition c : this.columnDefinitions)
-            columnInfo.add(new Column(table, c.getColumnName()));
+        for (ColumnDefinition c : this.columnDefinitions) {
+            Column col = new Column(table, c.getColumnName());
+            columnInfo.add(col);
+            if (c.getColumnSpecStrings()!=null&&c.getColumnSpecStrings().contains("PRIMARY")){
+                this.primaryKey.add(col);
+            }
+            if (c.getColumnSpecStrings()!=null&&c.getColumnSpecStrings().contains("REFERENCES")){
+                this.references.add(col);
+            }
+        }
         if (this.fileDir == null) {
             fileDir = "data/" + createTable.getTable().getName() + ".dat";
         }
@@ -164,10 +183,45 @@ public class TableObject {
         this.joinHash = joinHash;
     }
 
+    public void indexAndStatistic() throws Exception {
+        HashMap<Column, HashMap<PrimitiveValue,ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        HashMap<Column, HashMap<PrimitiveValue,Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+        for (int i = 0; i < primaryKey.size(); i++) {
+            index.put(primaryKey.get(i),new HashMap());
+        }
+        for (int i = 0; i < references.size(); i++) {
+            index.put(references.get(i), new HashMap());
+        }
+        for (int i = 0; i < columnInfo.size(); i++) {
+            statistics.put(columnInfo.get(i), new HashMap());
+        }
+        CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
+        Iterator<CSVRecord> Iterator = parser.iterator();
+        int i = 1;
+        while (Iterator.hasNext()) {
+            Tuple t = new Tuple(this, Iterator.next());
+            HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
+            for (Column c : index.keySet()) {
+                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                    if (index.get(c).containsKey(attrs.get(c))){
+                        index.get(c).get(attrs.get(c)).add(i);
+                    }else {
+                        ArrayList<Integer> list = new ArrayList<>();
+                        list.add(i);
+                        index.get(c).put(attrs.get(c),list);
+                    }
+            }
+            i++;
+        }
+        this.index = index;
+        this.statistics = statistics;
+    }
+
     public void print(int c) {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
             iterator.next().printTuple(this.columnDefinitions, this.columnInfo, c);
         }
     }
+
 }
