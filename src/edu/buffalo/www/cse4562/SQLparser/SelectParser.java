@@ -140,9 +140,9 @@ public class SelectParser {
 
         if (!(body instanceof Union)) {
             //parse the SQL and build the tree down to up
-            //process fromItem joins
             RANode joinNode = new RAJoin(fromItem);
             RANode pointer = joinNode;
+
             if (fromItem instanceof SubSelect) {
                 // subSelect
                 SelectParser subParser = new SelectParser(((SubSelect) fromItem).getSelectBody());

@@ -77,7 +77,7 @@ public class selectionEval {
         }
     }
 
-    private List<Expression> parseAndOrExpression(Expression expression) {
+    public List<Expression> parseAndOrExpression(Expression expression) {
         List<Expression> list = new ArrayList<>();
         if (expression instanceof AndExpression) {
             Expression left = ((AndExpression) expression).getLeftExpression();

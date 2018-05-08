@@ -34,8 +34,16 @@ public class Main {
         Statement s;
 
         // project here
+        int flag = 0;
         while ((s = parser.Statement()) != null) {
             process(s, tableMap);
+            if (s instanceof CreateTable){
+                flag++;
+            }
+//            if (flag==5){
+//                System.out.println(prompt);
+//                System.out.flush();
+//            }
             System.out.println(prompt);
             System.out.flush();
         }
@@ -53,9 +61,8 @@ public class Main {
                     RANode raTree = parser.SelectFunction(body,tableMap);
                     TableObject queryResult = SelectData(raTree, tableMap,null);
                     if (queryResult != null) {
-                        queryResult.print(c);
+                        queryResult.print();
                     }
-                    c=c+1;
                     stmt = null;
 
                     //执行完清除临时表

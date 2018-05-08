@@ -34,9 +34,9 @@ public class TableObject {
     private List<Integer> mapRelations = new ArrayList<>();
     private List<Column> primaryKey = new ArrayList<>();
     private List<Column> references = new ArrayList<>();
-    private HashMap<Column, HashMap<PrimitiveValue,ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-    private HashMap<Column, HashMap<PrimitiveValue,Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
-
+    private HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+    private HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+    private int size = 0;
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
 
@@ -48,6 +48,8 @@ public class TableObject {
         this.columnDefinitions = tableObject.getColumnDefinitions();
         this.columnInfo = tableObject.getColumnInfo();
         this.fileDir = tableObject.getFileDir();
+        this.index = tableObject.getIndex();
+        this.statistics = tableObject.getStatistics();
     }
 
     public TableObject(TableObject tableObject, RANode raTable, String alisa) {
@@ -69,10 +71,10 @@ public class TableObject {
         for (ColumnDefinition c : this.columnDefinitions) {
             Column col = new Column(table, c.getColumnName());
             columnInfo.add(col);
-            if (c.getColumnSpecStrings()!=null&&c.getColumnSpecStrings().contains("PRIMARY")){
+            if (c.getColumnSpecStrings() != null && c.getColumnSpecStrings().contains("PRIMARY")) {
                 this.primaryKey.add(col);
             }
-            if (c.getColumnSpecStrings()!=null&&c.getColumnSpecStrings().contains("REFERENCES")){
+            if (c.getColumnSpecStrings() != null && c.getColumnSpecStrings().contains("REFERENCES")) {
                 this.references.add(col);
             }
         }
@@ -183,9 +185,26 @@ public class TableObject {
         this.joinHash = joinHash;
     }
 
+    public void setIndex(HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index) {
+        this.index = index;
+    }
+
+    public HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> getIndex() {
+        return index;
+    }
+
+    public HashMap<Column, HashMap<PrimitiveValue, Integer>> getStatistics() {
+        return statistics;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
     public void indexAndStatistic() throws Exception {
-        HashMap<Column, HashMap<PrimitiveValue,ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-        HashMap<Column, HashMap<PrimitiveValue,Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+        HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+        int size = 0;
         for (int i = 0; i < primaryKey.size(); i++) {
             index.put(primaryKey.get(i),new HashMap());
         }
@@ -195,32 +214,50 @@ public class TableObject {
         for (int i = 0; i < columnInfo.size(); i++) {
             statistics.put(columnInfo.get(i), new HashMap());
         }
+//        for (int i = 0; i < primaryKey.size(); i++) {
+//            index.put(columnInfo.get(i), new HashMap());
+//        }
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
         Iterator<CSVRecord> Iterator = parser.iterator();
         int i = 1;
-        while (Iterator.hasNext()) {
-            Tuple t = new Tuple(this, Iterator.next());
-            HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
-            for (Column c : index.keySet()) {
+        if (index.size() != 0) {
+            while (Iterator.hasNext()) {
+                Tuple t = new Tuple(this, Iterator.next());
+                HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
+                for (Column c : index.keySet()) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    if (index.get(c).containsKey(attrs.get(c))){
+                    if (index.get(c).containsKey(attrs.get(c))) {
                         index.get(c).get(attrs.get(c)).add(i);
-                    }else {
+                    } else {
                         ArrayList<Integer> list = new ArrayList<>();
                         list.add(i);
-                        index.get(c).put(attrs.get(c),list);
+                        index.get(c).put(attrs.get(c), list);
                     }
+                }
+
+                for (Column c : statistics.keySet()) {
+                    //判断当前statistics表中某列的是否存在这个值，如果存在，+1,
+                    if (statistics.get(c).containsKey(attrs.get(c))) {
+                        statistics.get(c).put(attrs.get(c), statistics.get(c).get(attrs.get(c)) + 1);
+                    } else {
+                        statistics.get(c).put(attrs.get(c), 1);
+                    }
+                }
+                i++;
+                size++;
             }
-            i++;
         }
+
         this.index = index;
         this.statistics = statistics;
+        this.size = size;
     }
 
-    public void print(int c) {
+
+    public void print() {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions, this.columnInfo, c);
+            iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
         }
     }
 

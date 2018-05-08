@@ -98,19 +98,9 @@ public class Tuple {
         this.tableName.add(tableName);
     }
 
-    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo, int c) {
+    public void printTuple(List<ColumnDefinition> colDef, List<Column> colInfo) {
         String row = "";
 
-//        for (int i = 0; i < colDef.size(); i++) {
-//            if (colDef.get(i).getColDataType().getDataType().equals("STRING")) {
-//                row += attributes.get(colInfo.get(i));
-//            } else {
-//                row += attributes.get(colInfo.get(i));
-//            }
-//            if (colDef.size() != 1 && i < colDef.size() - 1) {
-//                row += "|";
-//            }
-//        }
         for (int i = 0; i < colInfo.size(); i++) {
             row += attributes.get(colInfo.get(i));
             if (colInfo.size() != 1 && i < colInfo.size() - 1) {
