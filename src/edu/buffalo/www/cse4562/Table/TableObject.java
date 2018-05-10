@@ -241,19 +241,19 @@ public class TableObject {
     public void indexAndStatistic() throws Exception {
         HashMap<Column, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 //        HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
-        int size = 0;
-        for (int i = 0; i < primaryKey.size(); i++) {
-            index.put(primaryKey.get(i),new HashMap());
-        }
-        for (int i = 0; i < references.size(); i++) {
-            index.put(references.get(i), new HashMap());
-        }
-//        for (int i = 0; i < columnInfo.size(); i++) {
-//            statistics.put(columnInfo.get(i), new HashMap());
-//        }
+//        int size = 0;
 //        for (int i = 0; i < primaryKey.size(); i++) {
-//            index.put(columnInfo.get(i), new HashMap());
+//            index.put(primaryKey.get(i),new HashMap());
 //        }
+//        for (int i = 0; i < references.size(); i++) {
+//            index.put(references.get(i), new HashMap());
+//        }
+////        for (int i = 0; i < columnInfo.size(); i++) {
+////            statistics.put(columnInfo.get(i), new HashMap());
+////        }
+        for (int i = 0; i < primaryKey.size(); i++) {
+            index.put(columnInfo.get(i), new HashMap());
+        }
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
         Iterator<CSVRecord> Iterator = parser.iterator();
         int i = 1;
@@ -272,7 +272,7 @@ public class TableObject {
                     }
                 }
                 i++;
-                size++;
+                //size++;
             }
         }
         final String[] FILE_HEADER = {"Column","Value","Index"};
