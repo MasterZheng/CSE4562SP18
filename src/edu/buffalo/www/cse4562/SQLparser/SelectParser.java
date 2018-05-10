@@ -232,7 +232,7 @@ public class SelectParser {
             if (where!=null&&joins!=null){
                 //pushdown selection
                 selectionEval selectEval = new selectionEval();
-                selectEval.pushdownSelect(pointer,where);
+                selectEval.pushdownSelect(pointer,where,involvedTables);
                 this.where = selectEval.getWhere();
             }
             //****************************Optimize******************************//

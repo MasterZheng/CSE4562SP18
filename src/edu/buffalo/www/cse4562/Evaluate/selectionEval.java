@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.Evaluate;
 import edu.buffalo.www.cse4562.RA.RAJoin;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
+import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -27,6 +28,7 @@ public class selectionEval {
     public selectionEval() {
 
     }
+
     //used for projection pushdown
     public selectionEval(Expression expression) {
 
@@ -53,7 +55,7 @@ public class selectionEval {
     }
 
     //used for selection pushdown
-    public selectionEval(Expression expression,boolean a) {
+    public selectionEval(Expression expression, boolean a) {
 
         where = expression;
         this.expressions = new ArrayList<>();
@@ -128,15 +130,15 @@ public class selectionEval {
         return list;
     }
 
-    private int isRelated(Table t, Expression e) {
+    private int isRelated(Table t, Expression e, List<TableObject> involvedTables) {
         int flag = 0;
         if (e instanceof BinaryExpression) {
-            flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression());
+            flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression(), involvedTables);
         }
         return flag;
     }
 
-    private int judge(Table t, Expression le, Expression re) {
+    private int judge(Table t, Expression le, Expression re, List<TableObject> involvedTables) {
         //flag==1: le re are columns,the expression is related with t
         //flag==2: le or re is column,the expression is related with t only.
         int flag = 0;
@@ -144,24 +146,59 @@ public class selectionEval {
         if (le instanceof Column && re instanceof Column) {
             Table left = ((Column) le).getTable();
             Table right = ((Column) re).getTable();
-            if (left != null && left.getName().equals(t.getName())
+            if (left.getName() != null && left.getName().equals(t.getName())
                     || (alisa != null && left.getName().equals(alisa))) {
                 flag = 1;
-            } else if (right != null && right.getName().equals(t.getName())
+            } else if (right.getName() != null && right.getName().equals(t.getName())
                     || (alisa != null && right.getName().equals(alisa))) {
                 flag = 1;
+            } else {
+                for (TableObject tbo : involvedTables) {
+                    if (tbo.getTableName().equals(t.getName()) || (alisa != null && tbo.getTableName().equals(alisa))) {
+                        for (int i = 0; i < tbo.getColumnDefinitions().size(); i++) {
+                            if (tbo.getColumnDefinitions().get(i).getColumnName().equals(((Column) le).getColumnName())||
+                                    tbo.getColumnDefinitions().get(i).getColumnName().equals(((Column) re).getColumnName())) {
+                                flag = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         } else if (le instanceof Column) {
             Table left = ((Column) le).getTable();
-            if (left != null && left.getName().equals(t.getName())
+            if (left.getName() != null && left.getName().equals(t.getName())
                     || (alisa != null && left.getName().equals(alisa))) {
                 flag = 2;
+            } else {
+                for (TableObject tbo : involvedTables) {
+                    if (tbo.getTableName().equals(t.getName()) || (alisa != null && tbo.getTableName().equals(alisa))) {
+                        for (int i = 0; i < tbo.getColumnDefinitions().size(); i++) {
+                            if (tbo.getColumnDefinitions().get(i).getColumnName().equals(((Column) le).getColumnName())) {
+                                flag = 2;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         } else if (re instanceof Column) {
             Table right = ((Column) re).getTable();
-            if (right != null && right.getName().equals(t.getName())
+            if (right.getName() != null && right.getName().equals(t.getName())
                     || (alisa != null && right.getName().equals(alisa))) {
                 flag = 2;
+            } else {
+                for (TableObject tbo : involvedTables) {
+                    if (tbo.getTableName().equals(t.getName()) || (alisa != null && tbo.getTableName().equals(alisa))) {
+                        for (int i = 0; i < tbo.getColumnDefinitions().size(); i++) {
+                            if (tbo.getColumnDefinitions().get(i).getColumnName().equals(((Column) re).getColumnName())) {
+                                flag = 2;
+                                ;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
         return flag;
@@ -223,10 +260,10 @@ public class selectionEval {
         }
     }
 
-    public int pushdownSelect(RANode pointer, Expression where) {
+    public int pushdownSelect(RANode pointer, Expression where, List<TableObject> involvedTables) {
         //存在 join 情况
         Expression newWhere = null;
-        selectionEval exp = new selectionEval(where,false);
+        selectionEval exp = new selectionEval(where, false);
         List<Expression> expList = exp.getExpressions();
         // 0 not related,1 join on condition ,2 table filter
         int flag = 0;
@@ -234,24 +271,24 @@ public class selectionEval {
         for (int i = 0; i < expList.size(); i++) {
             flag = 0;
             if (pointer.getRightNode() instanceof RATable) {
-                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(), expList.get(i));
+                flag = exp.isRelated(((RATable) pointer.getRightNode()).getTable(), expList.get(i), involvedTables);
                 if (flag == 1)
                     ((RAJoin) pointer).addAndExpression(expList.get(i));
                 else if (flag == 2)
                     ((RATable) pointer.getRightNode()).addAndExpression(expList.get(i));
 
             } else if (pointer.getRightNode() instanceof RAJoin) {
-                flag = pushdownSelect(pointer.getRightNode(), expList.get(i));
+                flag = pushdownSelect(pointer.getRightNode(), expList.get(i), involvedTables);
             }
             //加入！flag 防止同样条件被添加2次
             if (flag == 0 && pointer.getLeftNode() instanceof RATable) {
-                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(), expList.get(i));
+                flag = exp.isRelated(((RATable) pointer.getLeftNode()).getTable(), expList.get(i), involvedTables);
                 if (flag == 1)
                     ((RAJoin) pointer).addAndExpression(expList.get(i));
                 else if (flag == 2)
                     ((RATable) pointer.getLeftNode()).addAndExpression(expList.get(i));
             } else if (flag == 0 && pointer.getLeftNode() instanceof RAJoin) {
-                flag = pushdownSelect(pointer.getLeftNode(), expList.get(i));
+                flag = pushdownSelect(pointer.getLeftNode(), expList.get(i), involvedTables);
             }
             if (flag != 0) {
                 deleteExp.add(i);

@@ -40,12 +40,12 @@ public class Main {
             if (s instanceof CreateTable){
                 flag++;
             }
-//            if (flag==5){
-//                System.out.println(prompt);
-//                System.out.flush();
-//            }
-            System.out.println(prompt);
-            System.out.flush();
+            if (flag>7){
+                System.out.println(prompt);
+                System.out.flush();
+            }
+//            System.out.println(prompt);
+//            System.out.flush();
         }
     }
 
