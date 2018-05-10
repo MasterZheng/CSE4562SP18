@@ -201,26 +201,26 @@ public class TableObject {
 //        this.index = index;
 //    }
 //
-    public HashMap<Column, HashMap<String, ArrayList<String>>> getIndex() {
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
         final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+".csv";
         final String[] FILE_HEADER = {"Column","Value","Index"};
         CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-        HashMap<Column, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
         try(Reader in = new FileReader(FILE_NAME)) {
             Iterable<CSVRecord> records = format.parse(in);
             for (CSVRecord record : records) {
-                String col = record.get("Column");
-                Column c = new Column(null,col);
+                String col = record.get("Column").toUpperCase();
+                //Column c = new Column(new Table(),col);
                 String p = record.get("Value");
                 String[] indseq =record.get("Index").replace(" ","").replace("[","").replace("]","").split(",");
                 ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
-                if (index.containsKey(c)){
-                    index.get(c).put(p,list);
+                if (index.containsKey(col)){
+                    index.get(col).put(p,list);
                 }else {
                     HashMap<String, ArrayList<String>> hashMap = new HashMap<>();
                     hashMap.put(p,list);
-                    index.put(c,hashMap);
+                    index.put(col,hashMap);
                 }
             }
         } catch (Exception e) {
@@ -240,7 +240,7 @@ public class TableObject {
 
     public void indexAndStatistic() throws Exception {
         HashMap<Column, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-//        HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+        HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
 //        int size = 0;
 //        for (int i = 0; i < primaryKey.size(); i++) {
 //            index.put(primaryKey.get(i),new HashMap());
@@ -248,10 +248,10 @@ public class TableObject {
 //        for (int i = 0; i < references.size(); i++) {
 //            index.put(references.get(i), new HashMap());
 //        }
-////        for (int i = 0; i < columnInfo.size(); i++) {
-////            statistics.put(columnInfo.get(i), new HashMap());
-////        }
-        for (int i = 0; i < primaryKey.size(); i++) {
+//        for (int i = 0; i < columnInfo.size(); i++) {
+//            statistics.put(columnInfo.get(i), new HashMap());
+//        }
+        for (int i = 0; i < columnInfo.size(); i++) {
             index.put(columnInfo.get(i), new HashMap());
         }
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));

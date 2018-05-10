@@ -10,7 +10,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 
 import net.sf.jsqlparser.expression.PrimitiveValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
@@ -21,10 +21,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class processSelect {
@@ -338,8 +335,8 @@ public class processSelect {
         }
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft);
-            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight);
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
             for (String p : leftCol.keySet()) {
                 ArrayList<String> rightList = rightCol.get(p);
                 if (rightList.size() != 0) {
@@ -354,7 +351,7 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight);
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
             while (leftIterator.hasNext()) {
                 Tuple t = getTuple(leftIterator, tableLeft);
                 PrimitiveValue p = t.getAttributes().get(colLeft);
@@ -365,7 +362,7 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
-            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft);
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
             while (rightIterator.hasNext()) {
                 Tuple t = getTuple(rightIterator, tableRight);
                 PrimitiveValue p = t.getAttributes().get(colRight);
@@ -462,7 +459,7 @@ public class processSelect {
                                              TableObject tableLeft, TableObject tableRight) {
         List<Tuple> result = new ArrayList<>();
         if (tuple != null) {
-            if (leftCol==null&&rightCol==null){
+            if (leftCol == null && rightCol == null) {
                 return result;
             }
             ArrayList<String> colList = leftCol != null ? leftCol : rightCol;
@@ -549,36 +546,97 @@ public class processSelect {
                     colName = ((Column) ((EqualsTo) exp).getLeftExpression()).getColumnName();
                     colVal = ((PrimitiveValue) ((EqualsTo) exp).getRightExpression());
                 }
-                boolean flag = tableLeft.getIndex().containsKey(new Column(tableLeft.getTable(), colName));
-                if (flag) {
-                    List<String> tupleIndex = tableLeft.getIndex().get(new Column(tableLeft.getTable(), colName)).get(colVal);
-                    if (tupleIndex.size() != 0) {
-                        Iterator<String> iterator = tupleIndex.iterator();
-                        int counter = 1;
-                        int index = Integer.valueOf(iterator.next());
-                        while (leftIterator.hasNext()) {
-                            if (counter == index) {
-                                queryResult.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
-                                if (iterator.hasNext())
-                                    index = Integer.valueOf(iterator.next());
-                                else
-                                    break;
-                            } else {
-                                leftIterator.next();
-                            }
-                            counter++;
-                        }
-                    }
-                } else {
+
+                List<String> tupleIndex = tableLeft.getIndex().get(colName).get(colVal.toRawString());
+                if (tupleIndex.size() != 0) {
+                    Iterator<String> iterator = tupleIndex.iterator();
+                    int counter = 1;
+                    int index = Integer.valueOf(iterator.next());
                     while (leftIterator.hasNext()) {
-                        leftBlock = getTupleBlock(leftIterator, tableLeft);
-                        for (int i = 0; i < leftBlock.size(); i++) {
-                            evaluate eva = new evaluate(leftBlock.get(i), null, exp);
-                            queryResult = eva.Eval(queryResult);
+                        if (counter == index) {
+                            queryResult.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
+                            if (iterator.hasNext())
+                                index = Integer.valueOf(iterator.next());
+                            else
+                                break;
+                        } else {
+                            leftIterator.next();
                         }
+                        counter++;
                     }
                 }
-            } else{
+
+            }else if (exp instanceof MinorThan||exp instanceof GreaterThan){
+                String colName = "";
+                PrimitiveValue colVal = null;
+                String operator="";
+                if (exp instanceof MinorThan){
+                    if (((MinorThan) exp).getLeftExpression() instanceof Column) {
+                        //  colName<colVal
+                        colName = ((Column) ((MinorThan) exp).getLeftExpression()).getColumnName();
+                        colVal = ((PrimitiveValue) ((MinorThan) exp).getRightExpression());
+                        operator ="colName<colVal";
+                    } else {
+                        //  colVal<colName
+                        colName = ((Column) ((MinorThan) exp).getRightExpression()).getColumnName();
+                        colVal = ((PrimitiveValue) ((MinorThan) exp).getLeftExpression());
+                        operator ="colVal<colName";
+                    }
+                }else {
+                    if (((GreaterThan) exp).getLeftExpression() instanceof Column) {
+                        //  colVal<colName
+                        colName = ((Column) ((GreaterThan) exp).getLeftExpression()).getColumnName();
+                        colVal = ((PrimitiveValue) ((GreaterThan) exp).getRightExpression());
+                        operator ="colVal<colName";
+                    } else {
+                        //
+                        colName = ((Column) ((GreaterThan) exp).getRightExpression()).getColumnName();
+                        colVal = ((PrimitiveValue) ((GreaterThan) exp).getLeftExpression());
+                        operator ="colName<colVal";
+                    }
+                }
+                List<String> tupleIndex = new ArrayList<>();
+                HashMap<String,ArrayList<String>> map = tableLeft.getIndex().get(colName);
+                switch (operator){
+                    case "colName<colVal":
+                        for (String key:map.keySet()){
+                            if (Double.valueOf(key)<colVal.toDouble())
+                                tupleIndex.addAll(map.get(key));
+                        }
+                    case "colVal<colName":
+                        for (String key:map.keySet()){
+                            if (colVal.toDouble()<Double.valueOf(key))
+                                tupleIndex.addAll(map.get(key));
+                        }
+                }
+                Comparator c = new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+                        // TODO Auto-generated method stub
+                        if(Integer.valueOf(o1)<Integer.valueOf(o2))
+                            return -1;
+                            //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
+                        else return 1;
+                    }
+                };
+                tupleIndex.sort(c);
+                Iterator<String> iterator = tupleIndex.iterator();
+                int counter = 1;
+                int index = Integer.valueOf(iterator.next());
+                while (leftIterator.hasNext()) {
+                    if (counter == index) {
+                        queryResult.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
+                        if (iterator.hasNext())
+                            index = Integer.valueOf(iterator.next());
+                        else
+                            break;
+                    } else {
+                        leftIterator.next();
+                    }
+                    counter++;
+                }
+
+            }else {
                 //size == 0 : the tableobject is the results of a subselect
                 while (leftIterator.hasNext()) {
                     leftBlock = getTupleBlock(leftIterator, tableLeft);
@@ -687,4 +745,5 @@ public class processSelect {
         }
         return t;
     }
+
 }
