@@ -88,10 +88,6 @@ public class TableObject {
     }
 
 
-    public void optimize() {
-
-    }
-
     public String getAlisa() {
         return alisa;
     }
@@ -197,10 +193,7 @@ public class TableObject {
         this.joinHash = joinHash;
     }
 
-//    public void setIndex(HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index) {
-//        this.index = index;
-//    }
-//
+
     public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
         final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+".csv";
         final String[] FILE_HEADER = {"Column","Value","Index"};
@@ -232,14 +225,7 @@ public class TableObject {
 
 
     public void indexAndStatistic() throws Exception {
-        HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-//        int size = 0;
-//        for (int i = 0; i < primaryKey.size(); i++) {
-//            index.put(primaryKey.get(i),new HashMap());
-//        }
-//        for (int i = 0; i < references.size(); i++) {
-//            index.put(references.get(i), new HashMap());
-//        }
+        HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
         for (int i = 0; i < columnInfo.size(); i++) {
             index.put(columnInfo.get(i).getColumnName(), new HashMap());
@@ -255,10 +241,10 @@ public class TableObject {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
                     Column col = new Column(null,c);
                     if (index.get(c).containsKey(attrs.get(col).toRawString())) {
-                        index.get(c).get(attrs.get(col).toRawString()).add(i);
+                        String list = index.get(c).get(attrs.get(col).toRawString())+","+Integer.toString(i);
+                        index.get(c).put(attrs.get(col).toRawString(),list);
                     } else {
-                        ArrayList<Integer> list = new ArrayList<>();
-                        list.add(i);
+                        String list = Integer.toString(i);
                         index.get(c).put(attrs.get(col).toRawString(), list);
                     }
                 }
@@ -275,7 +261,7 @@ public class TableObject {
                     List<String> records = new ArrayList<>();
                     records.add(column);
                     records.add(value);
-                    records.add(index.get(column).get(value).toString());
+                    records.add(index.get(column).get(value));
                     printer.printRecord(records);
                 }
             }

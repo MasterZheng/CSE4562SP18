@@ -336,10 +336,10 @@ public class processSelect {
         }
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-            //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
-            //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
-            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
+            //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
             for (String p : leftCol.keySet()) {
                 ArrayList<String> rightList = rightCol.get(p);
                 if (rightList.size() != 0) {
@@ -354,8 +354,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-            //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
-            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
+            //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
 
             while (leftIterator.hasNext()) {
                 Tuple t = getTuple(leftIterator, tableLeft);
@@ -367,8 +367,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
-            //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
-            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
+            //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
 
             while (rightIterator.hasNext()) {
                 Tuple t = getTuple(rightIterator, tableRight);
@@ -701,8 +701,8 @@ public class processSelect {
                 colName = ((Column) ((EqualsTo) exp).getLeftExpression()).getColumnName();
                 colVal = ((PrimitiveValue) ((EqualsTo) exp).getRightExpression());
             }
-            //tupleIndex = tableObject.getIndex().get(colName).get(colVal.toRawString());
-            tupleIndex = tableObject.getIndex(colName).get(colVal.toRawString());
+            tupleIndex = tableObject.getIndex().get(colName).get(colVal.toRawString());
+            //tupleIndex = tableObject.getIndex(colName).get(colVal.toRawString());
         } else if (exp instanceof MinorThan || exp instanceof GreaterThan||exp instanceof GreaterThanEquals||exp instanceof MinorThanEquals) {
             String operator = "";
             String colName = "";
@@ -756,8 +756,8 @@ public class processSelect {
                     operator = "colName>=colVal";
                 }
             }
-            //HashMap<String, ArrayList<String>> map = tableObject.getIndex().get(colName);
-            HashMap<String, ArrayList<String>> map = tableObject.getIndex(colName);
+            HashMap<String, ArrayList<String>> map = tableObject.getIndex().get(colName);
+            //HashMap<String, ArrayList<String>> map = tableObject.getIndex(colName);
 
             switch (operator) {
                 case "colName<colVal":
