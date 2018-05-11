@@ -228,19 +228,11 @@ public class TableObject {
         }
         return index;
     }
-//
-//    public HashMap<Column, HashMap<PrimitiveValue, Integer>> getStatistics() {
-//        return statistics;
-//    }
-//
-//    public int getSize() {
-//        return size;
-//    }
+
 
 
     public void indexAndStatistic() throws Exception {
-        HashMap<Column, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-        HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
+        HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 //        int size = 0;
 //        for (int i = 0; i < primaryKey.size(); i++) {
 //            index.put(primaryKey.get(i),new HashMap());
@@ -248,11 +240,9 @@ public class TableObject {
 //        for (int i = 0; i < references.size(); i++) {
 //            index.put(references.get(i), new HashMap());
 //        }
-//        for (int i = 0; i < columnInfo.size(); i++) {
-//            statistics.put(columnInfo.get(i), new HashMap());
-//        }
+
         for (int i = 0; i < columnInfo.size(); i++) {
-            index.put(columnInfo.get(i), new HashMap());
+            index.put(columnInfo.get(i).getColumnName(), new HashMap());
         }
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
         Iterator<CSVRecord> Iterator = parser.iterator();
@@ -261,18 +251,18 @@ public class TableObject {
             while (Iterator.hasNext()) {
                 Tuple t = new Tuple(this, Iterator.next());
                 HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
-                for (Column c : index.keySet()) {
+                for (String c : index.keySet()) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    if (index.get(c).containsKey(attrs.get(c).toRawString())) {
-                        index.get(c).get(attrs.get(c).toRawString()).add(i);
+                    Column col = new Column(null,c);
+                    if (index.get(c).containsKey(attrs.get(col).toRawString())) {
+                        index.get(c).get(attrs.get(col).toRawString()).add(i);
                     } else {
                         ArrayList<Integer> list = new ArrayList<>();
                         list.add(i);
-                        index.get(c).put(attrs.get(c).toRawString(), list);
+                        index.get(c).put(attrs.get(col).toRawString(), list);
                     }
                 }
                 i++;
-                //size++;
             }
         }
         final String[] FILE_HEADER = {"Column","Value","Index"};
@@ -280,10 +270,10 @@ public class TableObject {
         CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
         try(Writer out = new FileWriter(FILE_NAME);
             CSVPrinter printer = new CSVPrinter(out, format)) {
-            for (Column column : index.keySet()) {
+            for (String column : index.keySet()) {
                 for(String value:index.get(column).keySet()){
                     List<String> records = new ArrayList<>();
-                    records.add(column.getColumnName());
+                    records.add(column);
                     records.add(value);
                     records.add(index.get(column).get(value).toString());
                     printer.printRecord(records);
@@ -292,8 +282,6 @@ public class TableObject {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        this.index = index;
-//        this.size = size;
     }
 
 
