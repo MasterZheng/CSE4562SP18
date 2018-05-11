@@ -132,7 +132,20 @@ public class selectionEval {
 
     private int isRelated(Table t, Expression e, List<TableObject> involvedTables) {
         int flag = 0;
-        if (e instanceof BinaryExpression) {
+//        if (e instanceof BinaryExpression) {
+//            flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression(), involvedTables);
+//        }
+        if (e instanceof AndExpression) {
+            flag = judge(t, ((AndExpression) e).getLeftExpression(), ((AndExpression) e).getRightExpression(), involvedTables);
+        }else if (e instanceof OrExpression){
+            Expression eleft = ((OrExpression) e).getLeftExpression();
+            Expression eright = ((OrExpression) e).getRightExpression();
+            int flagLeft = isRelated(t,eleft,involvedTables);
+            int flagRight = isRelated(t,eright,involvedTables);
+            if (flagLeft==flagRight&&flagLeft==2){
+                flag = 2;
+            }
+        }else if (e instanceof BinaryExpression){
             flag = judge(t, ((BinaryExpression) e).getLeftExpression(), ((BinaryExpression) e).getRightExpression(), involvedTables);
         }
         return flag;

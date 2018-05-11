@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -675,7 +674,16 @@ public class processSelect {
 
     private static List<String> getIndexList(TableObject tableObject, Expression exp) throws Exception {
         List<String> tupleIndex = new ArrayList<>();
-
+        Comparator c = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                // TODO Auto-generated method stub
+                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                    return -1;
+                    //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
+                else return 1;
+            }
+        };
         if (exp instanceof EqualsTo) {
             //add more options for >,<,>=,<=
             String colName = "";
@@ -769,16 +777,6 @@ public class processSelect {
                     }
                     break;
             }
-            Comparator c = new Comparator<String>() {
-                @Override
-                public int compare(String o1, String o2) {
-                    // TODO Auto-generated method stub
-                    if (Integer.valueOf(o1) < Integer.valueOf(o2))
-                        return -1;
-                        //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
-                    else return 1;
-                }
-            };
             tupleIndex.sort(c);
         } else {
             //size == 0 : the tableobject is the results of a subselect
@@ -799,6 +797,7 @@ public class processSelect {
                     Set set = new HashSet();
                     set.addAll(leftIndex);
                     tupleIndex.addAll(set);
+                    tupleIndex.sort(c);
                 }
             }
         }
