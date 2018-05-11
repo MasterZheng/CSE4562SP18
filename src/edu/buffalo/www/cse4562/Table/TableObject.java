@@ -12,10 +12,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -38,7 +35,7 @@ public class TableObject {
     private List<Integer> mapRelations = new ArrayList<>();
     private List<Column> primaryKey = new ArrayList<>();
     private List<Column> references = new ArrayList<>();
-//    private HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+    //    private HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 //    private HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
 //    private int size = 0;
     static Logger logger = Logger.getLogger(TableObject.class.getName());
@@ -193,37 +190,6 @@ public class TableObject {
         this.joinHash = joinHash;
     }
 
-
-    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
-        final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+".csv";
-        final String[] FILE_HEADER = {"Column","Value","Index"};
-        CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-        HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-
-        try(Reader in = new FileReader(FILE_NAME)) {
-            Iterable<CSVRecord> records = format.parse(in);
-            for (CSVRecord record : records) {
-                String col = record.get("Column").toUpperCase();
-                //Column c = new Column(new Table(),col);
-                String p = record.get("Value");
-                String[] indseq =record.get("Index").replace(" ","").replace("[","").replace("]","").split(",");
-                ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
-                if (index.containsKey(col)){
-                    index.get(col).put(p,list);
-                }else {
-                    HashMap<String, ArrayList<String>> hashMap = new HashMap<>();
-                    hashMap.put(p,list);
-                    index.put(col,hashMap);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return index;
-    }
-
-
-
     public void indexAndStatistic() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
@@ -239,10 +205,10 @@ public class TableObject {
                 HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
                 for (String c : index.keySet()) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    Column col = new Column(null,c);
+                    Column col = new Column(null, c);
                     if (index.get(c).containsKey(attrs.get(col).toRawString())) {
-                        String list = index.get(c).get(attrs.get(col).toRawString())+","+Integer.toString(i);
-                        index.get(c).put(attrs.get(col).toRawString(),list);
+                        String list = index.get(c).get(attrs.get(col).toRawString()) + "," + Integer.toString(i);
+                        index.get(c).put(attrs.get(col).toRawString(), list);
                     } else {
                         String list = Integer.toString(i);
                         index.get(c).put(attrs.get(col).toRawString(), list);
@@ -251,13 +217,14 @@ public class TableObject {
                 i++;
             }
         }
-        final String[] FILE_HEADER = {"Column","Value","Index"};
-        final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+".csv";
+
+        final String[] FILE_HEADER = {"Column", "Value", "Index"};
+        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + ".csv";
         CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-        try(Writer out = new FileWriter(FILE_NAME);
-            CSVPrinter printer = new CSVPrinter(out, format)) {
+        try (Writer out = new FileWriter(FILE_NAME);
+             CSVPrinter printer = new CSVPrinter(out, format)) {
             for (String column : index.keySet()) {
-                for(String value:index.get(column).keySet()){
+                for (String value : index.get(column).keySet()) {
                     List<String> records = new ArrayList<>();
                     records.add(column);
                     records.add(value);
@@ -269,21 +236,113 @@ public class TableObject {
             e.printStackTrace();
         }
     }
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex1() {
+        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + ".csv";
+        final String[] FILE_HEADER = {"Column", "Value", "Index"};
+        CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
+        HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
-
-    public void print() {
-        Iterator<Tuple> iterator = this.getIterator();
-        while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
+        try (Reader in = new FileReader(FILE_NAME)) {
+            Iterable<CSVRecord> records = format.parse(in);
+            for (CSVRecord record : records) {
+                String col = record.get("Column").toUpperCase();
+                //Column c = new Column(new Table(),col);
+                String p = record.get("Value");
+                String[] indseq = record.get("Index").replace(" ", "").replace("[", "").replace("]", "").split(",");
+                ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
+                if (index.containsKey(col)) {
+                    index.get(col).put(p, list);
+                } else {
+                    HashMap<String, ArrayList<String>> hashMap = new HashMap<>();
+                    hashMap.put(p, list);
+                    index.put(col, hashMap);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return index;
     }
 
+
+    public void setIndexTxt() throws Exception {
+
+        HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+
+        for (int i = 0; i < columnInfo.size(); i++) {
+            index.put(columnInfo.get(i).getColumnName(), new HashMap());
+        }
+        CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
+        Iterator<CSVRecord> Iterator = parser.iterator();
+        int i = 1;
+        if (index.size() != 0) {
+            while (Iterator.hasNext()) {
+                Tuple t = new Tuple(this, Iterator.next());
+                HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
+                for (String c : index.keySet()) {
+                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                    Column col = new Column(null, c);
+                    if (index.get(c).containsKey(attrs.get(col).toRawString())) {
+                        String list = index.get(c).get(attrs.get(col).toRawString()) + "," + Integer.toString(i);
+                        index.get(c).put(attrs.get(col).toRawString(), list);
+                    } else {
+                        String list = Integer.toString(i);
+                        index.get(c).put(attrs.get(col).toRawString(), list);
+                    }
+                }
+                i++;
+            }
+        }
+
+        File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        FileWriter fw = new FileWriter(file, false);
+        BufferedWriter bw = new BufferedWriter(fw);
+        for (String column : index.keySet()) {
+            for (String value : index.get(column).keySet()) {
+                String record = column + "@" + value + "@" + index.get(column).get(value)+"\n";
+                bw.write(record);
+            }
+        }
+        bw.close();
+        fw.close();
+    }
+
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
+        HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File("indexes/" + this.getTableName().toUpperCase() + ".txt")),
+                    "UTF-8"));
+            String lineTxt = null;
+            while ((lineTxt = br.readLine()) != null) {
+                String[] record = lineTxt.split("@");
+                String col = record[0].toUpperCase();
+                String p = record[1];
+                String[] indseq = record[2].replace(" ", "").replace("[", "").replace("]", "").split(",");
+                ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
+                if (index.containsKey(col)) {
+                    index.get(col).put(p, list);
+                } else {
+                    HashMap<String, ArrayList<String>> hashMap = new HashMap<>();
+                    hashMap.put(p, list);
+                    index.put(col, hashMap);
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            System.err.println("read errors :" + e);
+        }
+        return index;
+    }
 
     public void setIndex() throws Exception {
         HashMap<String, HashMap<String, ArrayList<Integer>>> index1 = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         HashMap<String, HashMap<String, ArrayList<Integer>>> index2 = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
-        for (int i = 0; i < columnInfo.size()/2+1; i++) {
+        for (int i = 0; i < columnInfo.size() / 2 + 1; i++) {
             index1.put(columnInfo.get(i).getColumnName(), new HashMap());
         }
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
@@ -295,7 +354,7 @@ public class TableObject {
                 HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
                 for (String c : index1.keySet()) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    Column col = new Column(null,c);
+                    Column col = new Column(null, c);
                     if (index1.get(c).containsKey(attrs.get(col).toRawString())) {
                         index1.get(c).get(attrs.get(col).toRawString()).add(i);
                     } else {
@@ -307,18 +366,18 @@ public class TableObject {
                 i++;
             }
         }
-        final String[] FILE_HEADER = {"Value","Index"};
-        for (String colName:index1.keySet()){
-            final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+"_"+colName+".csv";
+        final String[] FILE_HEADER = {"Value", "Index"};
+        for (String colName : index1.keySet()) {
+            final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + colName + ".csv";
             CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-            try(Writer out = new FileWriter(FILE_NAME);
-                CSVPrinter printer = new CSVPrinter(out, format)) {
-                    for(String value:index1.get(colName).keySet()){
-                        List<String> records = new ArrayList<>();
-                        records.add(value);
-                        records.add(index1.get(colName).get(value).toString());
-                        printer.printRecord(records);
-                    }
+            try (Writer out = new FileWriter(FILE_NAME);
+                 CSVPrinter printer = new CSVPrinter(out, format)) {
+                for (String value : index1.get(colName).keySet()) {
+                    List<String> records = new ArrayList<>();
+                    records.add(value);
+                    records.add(index1.get(colName).get(value).toString());
+                    printer.printRecord(records);
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -326,7 +385,7 @@ public class TableObject {
         }
         index1.clear();
 
-        for (int j = columnInfo.size()/2+1; j < columnInfo.size(); j++) {
+        for (int j = columnInfo.size() / 2 + 1; j < columnInfo.size(); j++) {
             index2.put(columnInfo.get(j).getColumnName(), new HashMap());
         }
         parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
@@ -338,7 +397,7 @@ public class TableObject {
                 HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
                 for (String c : index2.keySet()) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    Column col = new Column(null,c);
+                    Column col = new Column(null, c);
                     if (index2.get(c).containsKey(attrs.get(col).toRawString())) {
                         index2.get(c).get(attrs.get(col).toRawString()).add(i);
                     } else {
@@ -350,12 +409,12 @@ public class TableObject {
                 i++;
             }
         }
-        for (String colName:index2.keySet()){
-            final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+"_"+colName+".csv";
+        for (String colName : index2.keySet()) {
+            final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + colName + ".csv";
             CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-            try(Writer out = new FileWriter(FILE_NAME);
-                CSVPrinter printer = new CSVPrinter(out, format)) {
-                for(String value:index2.get(colName).keySet()){
+            try (Writer out = new FileWriter(FILE_NAME);
+                 CSVPrinter printer = new CSVPrinter(out, format)) {
+                for (String value : index2.get(colName).keySet()) {
                     List<String> records = new ArrayList<>();
                     records.add(value);
                     records.add(index2.get(colName).get(value).toString());
@@ -369,27 +428,36 @@ public class TableObject {
         index2.clear();
 
     }
-
     public HashMap<String, ArrayList<String>> getIndex(String ColName) {
-        final String FILE_NAME = "indexes/"+this.getTableName().toUpperCase()+"_"+ColName+".csv";
-        final String[] FILE_HEADER = {"Value","Index"};
+        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".csv";
+        final String[] FILE_HEADER = {"Value", "Index"};
         CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER);
 
         HashMap<String, ArrayList<String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
-        try(Reader in = new FileReader(FILE_NAME)) {
+        try (Reader in = new FileReader(FILE_NAME)) {
             Iterable<CSVRecord> records = format.parse(in);
             for (CSVRecord record : records) {
                 //Column c = new Column(new Table(),col);
                 String p = record.get("Value");
-                String[] indseq =record.get("Index").replace(" ","").replace("[","").replace("]","").split(",");
+                String[] indseq = record.get("Index").replace(" ", "").replace("[", "").replace("]", "").split(",");
                 ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
-                    index.put(p,list);
+                index.put(p, list);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return index;
     }
+
+    public void print() {
+        Iterator<Tuple> iterator = this.getIterator();
+        while (iterator.hasNext()) {
+            iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
+        }
+    }
+
+
+
 
 }
