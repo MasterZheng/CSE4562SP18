@@ -537,141 +537,21 @@ public class processSelect {
         Expression exp = pointer.getExpression();
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
-            if (exp instanceof EqualsTo) {
-                //add more options for >,<,>=,<=
-//                String colName = "";
-//                PrimitiveValue colVal = null;
-//                if (((EqualsTo) exp).getRightExpression() instanceof Column) {
-//                    colName = ((Column) ((EqualsTo) exp).getRightExpression()).getColumnName();
-//                    colVal = ((PrimitiveValue) ((EqualsTo) exp).getLeftExpression());
-//                } else {
-//                    colName = ((Column) ((EqualsTo) exp).getLeftExpression()).getColumnName();
-//                    colVal = ((PrimitiveValue) ((EqualsTo) exp).getRightExpression());
-//                }
-//
-                //List<String> tupleIndex = tableLeft.getIndex().get(colName).get(colVal.toRawString());
-                List<String> tupleIndex = getIndexList(tableLeft,exp);
 
-                if (tupleIndex.size() != 0) {
-                    Iterator<String> iterator = tupleIndex.iterator();
-                    int counter = 1;
-                    int index = Integer.valueOf(iterator.next());
-                    while (leftIterator.hasNext()) {
-                        if (counter == index) {
-                            queryResult.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
-                            if (iterator.hasNext())
-                                index = Integer.valueOf(iterator.next());
-                            else
-                                break;
-                        } else {
-                            leftIterator.next();
-                        }
-                        counter++;
-                    }
-                }
-
-            } else if (exp instanceof MinorThan || exp instanceof GreaterThan) {
-                String colName = "";
-                PrimitiveValue colVal = null;
-                String operator = "";
-                if (exp instanceof MinorThan) {
-                    if (((MinorThan) exp).getLeftExpression() instanceof Column) {
-                        //  colName<colVal
-                        colName = ((Column) ((MinorThan) exp).getLeftExpression()).getColumnName();
-                        colVal = ((PrimitiveValue) ((MinorThan) exp).getRightExpression());
-                        operator = "colName<colVal";
-                    } else {
-                        //  colVal<colName
-                        colName = ((Column) ((MinorThan) exp).getRightExpression()).getColumnName();
-                        colVal = ((PrimitiveValue) ((MinorThan) exp).getLeftExpression());
-                        operator = "colVal<colName";
-                    }
-                } else {
-                    if (((GreaterThan) exp).getLeftExpression() instanceof Column) {
-                        //  colVal<colName
-                        colName = ((Column) ((GreaterThan) exp).getLeftExpression()).getColumnName();
-                        colVal = ((PrimitiveValue) ((GreaterThan) exp).getRightExpression());
-                        operator = "colVal<colName";
-                    } else {
-                        //
-                        colName = ((Column) ((GreaterThan) exp).getRightExpression()).getColumnName();
-                        colVal = ((PrimitiveValue) ((GreaterThan) exp).getLeftExpression());
-                        operator = "colName<colVal";
-                    }
-                }
-                List<String> tupleIndex = new ArrayList<>();
-                HashMap<String, ArrayList<String>> map = tableLeft.getIndex().get(colName);
-                switch (operator) {
-                    case "colName<colVal":
-                        for (String key : map.keySet()) {
-                            if (Double.valueOf(key) < colVal.toDouble())
-                                tupleIndex.addAll(map.get(key));
-                        }
-                    case "colVal<colName":
-                        for (String key : map.keySet()) {
-                            if (colVal.toDouble() < Double.valueOf(key))
-                                tupleIndex.addAll(map.get(key));
-                        }
-                }
-                Comparator c = new Comparator<String>() {
-                    @Override
-                    public int compare(String o1, String o2) {
-                        // TODO Auto-generated method stub
-                        if (Integer.valueOf(o1) < Integer.valueOf(o2))
-                            return -1;
-                            //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
-                        else return 1;
-                    }
-                };
-                tupleIndex.sort(c);
-                Iterator<String> iterator = tupleIndex.iterator();
-                int counter = 1;
-                int index = Integer.valueOf(iterator.next());
-                while (leftIterator.hasNext()) {
-                    if (counter == index) {
-                        queryResult.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
-                        if (iterator.hasNext())
-                            index = Integer.valueOf(iterator.next());
-                        else
-                            break;
-                    } else {
-                        leftIterator.next();
-                    }
-                    counter++;
-                }
-
+            if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
+                List<String> tupleIndex = getIndexList(tableLeft, exp);
+                queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
+                tableLeft.setOriginal(false);
             } else {
                 //size == 0 : the tableobject is the results of a subselect
-                if (tableLeft.isOriginal()) {
-                    if (exp instanceof AndExpression) {
-                        Expression leftExp = ((AndExpression) exp).getLeftExpression();
-                        Expression rightExp = ((AndExpression) exp).getRightExpression();
-                        List<String> leftIndex = new ArrayList<>();
-                        List<String> rightIndex = new ArrayList<>();
-                        leftIndex.retainAll(rightIndex);
-                    } else if (exp instanceof OrExpression) {
-                        Expression leftExp = ((OrExpression) exp).getLeftExpression();
-                        Expression rightExp = ((OrExpression) exp).getRightExpression();
-                        List<String> leftIndex = new ArrayList<>();
-                        List<String> rightIndex = new ArrayList<>();
-                        leftIndex.addAll(rightIndex);
-                        Set set = new HashSet();
-                        List<String> newList = new ArrayList();
-                        set.addAll(leftIndex);
-                        newList.addAll(set);
-                    }
-                } else {
-                    while (leftIterator.hasNext()) {
-                        leftBlock = getTupleBlock(leftIterator, tableLeft);
-                        for (int i = 0; i < leftBlock.size(); i++) {
-                            evaluate eva = new evaluate(leftBlock.get(i), null, exp);
-                            queryResult = eva.Eval(queryResult);
-                        }
+                while (leftIterator.hasNext()) {
+                    leftBlock = getTupleBlock(leftIterator, tableLeft);
+                    for (int i = 0; i < leftBlock.size(); i++) {
+                        evaluate eva = new evaluate(leftBlock.get(i), null, exp);
+                        queryResult = eva.Eval(queryResult);
                     }
                 }
-
             }
-
         } else if (exp instanceof BinaryExpression &&
                 ((BinaryExpression) exp).getLeftExpression() instanceof Column &&
                 ((BinaryExpression) exp).getRightExpression() instanceof Column) {
@@ -771,7 +651,29 @@ public class processSelect {
         return t;
     }
 
-    private static List<String> getIndexList(TableObject tableObject, Expression exp)throws Exception {
+    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) {
+        List<Tuple> queryResult = new ArrayList<>();
+        if (tupleIndex.size() != 0) {
+            Iterator<String> iterator = tupleIndex.iterator();
+            int counter = 1;
+            int index = Integer.valueOf(iterator.next());
+            while (CSViterator.hasNext()) {
+                if (counter == index) {
+                    queryResult.add(new Tuple(tableObject, (CSVRecord) CSViterator.next()));
+                    if (iterator.hasNext())
+                        index = Integer.valueOf(iterator.next());
+                    else
+                        break;
+                } else {
+                    CSViterator.next();
+                }
+                counter++;
+            }
+        }
+        return queryResult;
+    }
+
+    private static List<String> getIndexList(TableObject tableObject, Expression exp) throws Exception {
         List<String> tupleIndex = new ArrayList<>();
 
         if (exp instanceof EqualsTo) {
@@ -787,7 +689,7 @@ public class processSelect {
             }
             tupleIndex = tableObject.getIndex().get(colName).get(colVal.toRawString());
 
-        } else if (exp instanceof MinorThan || exp instanceof GreaterThan) {
+        } else if (exp instanceof MinorThan || exp instanceof GreaterThan||exp instanceof GreaterThanEquals||exp instanceof MinorThanEquals) {
             String operator = "";
             String colName = "";
             PrimitiveValue colVal = null;
@@ -803,7 +705,7 @@ public class processSelect {
                     colVal = ((PrimitiveValue) ((MinorThan) exp).getLeftExpression());
                     operator = "colVal<colName";
                 }
-            } else {
+            } else if (exp instanceof GreaterThan){
                 if (((GreaterThan) exp).getLeftExpression() instanceof Column) {
                     //  colVal<colName
                     colName = ((Column) ((GreaterThan) exp).getLeftExpression()).getColumnName();
@@ -815,6 +717,30 @@ public class processSelect {
                     colVal = ((PrimitiveValue) ((GreaterThan) exp).getLeftExpression());
                     operator = "colName<colVal";
                 }
+            }else if (exp instanceof GreaterThanEquals){
+                if (((GreaterThanEquals) exp).getLeftExpression() instanceof Column) {
+                    //  colVal>=colName
+                    colName = ((Column) ((GreaterThanEquals) exp).getLeftExpression()).getColumnName();
+                    colVal = ((PrimitiveValue) ((GreaterThanEquals) exp).getRightExpression());
+                    operator = "colName>=colVal";
+                } else {
+                    //
+                    colName = ((Column) ((GreaterThanEquals) exp).getRightExpression()).getColumnName();
+                    colVal = ((PrimitiveValue) ((GreaterThanEquals) exp).getLeftExpression());
+                    operator = "colVal>=colName";
+                }
+            }else {
+                if (((MinorThanEquals) exp).getLeftExpression() instanceof Column) {
+                    //  colVal>=colName
+                    colName = ((Column) ((MinorThanEquals) exp).getLeftExpression()).getColumnName();
+                    colVal = ((PrimitiveValue) ((MinorThanEquals) exp).getRightExpression());
+                    operator = "colVal>=colName";
+                } else {
+                    //
+                    colName = ((Column) ((MinorThanEquals) exp).getRightExpression()).getColumnName();
+                    colVal = ((PrimitiveValue) ((MinorThanEquals) exp).getLeftExpression());
+                    operator = "colName>=colVal";
+                }
             }
             HashMap<String, ArrayList<String>> map = tableObject.getIndex().get(colName);
             switch (operator) {
@@ -823,11 +749,25 @@ public class processSelect {
                         if (Double.valueOf(key) < colVal.toDouble())
                             tupleIndex.addAll(map.get(key));
                     }
+                    break;
                 case "colVal<colName":
                     for (String key : map.keySet()) {
                         if (colVal.toDouble() < Double.valueOf(key))
                             tupleIndex.addAll(map.get(key));
                     }
+                    break;
+                case "colName>=colVal":
+                    for (String key : map.keySet()) {
+                        if (Double.valueOf(key)>= colVal.toDouble() )
+                            tupleIndex.addAll(map.get(key));
+                    }
+                    break;
+                case "colVal>=colName":
+                    for (String key : map.keySet()) {
+                        if (colVal.toDouble() >= Double.valueOf(key))
+                            tupleIndex.addAll(map.get(key));
+                    }
+                    break;
             }
             Comparator c = new Comparator<String>() {
                 @Override
@@ -846,19 +786,19 @@ public class processSelect {
                 if (exp instanceof AndExpression) {
                     Expression leftExp = ((AndExpression) exp).getLeftExpression();
                     Expression rightExp = ((AndExpression) exp).getRightExpression();
-                    List<String> leftIndex = new ArrayList<>();
-                    List<String> rightIndex = new ArrayList<>();
+                    List<String> leftIndex = getIndexList(tableObject,leftExp);
+                    List<String> rightIndex = getIndexList(tableObject,rightExp);
                     leftIndex.retainAll(rightIndex);
+                    tupleIndex = leftIndex;
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
-                    List<String> leftIndex = new ArrayList<>();
-                    List<String> rightIndex = new ArrayList<>();
+                    List<String> leftIndex = getIndexList(tableObject,leftExp);
+                    List<String> rightIndex = getIndexList(tableObject,rightExp);
                     leftIndex.addAll(rightIndex);
                     Set set = new HashSet();
-                    List<String> newList = new ArrayList();
                     set.addAll(leftIndex);
-                    newList.addAll(set);
+                    tupleIndex.addAll(set);
                 }
             }
         }
