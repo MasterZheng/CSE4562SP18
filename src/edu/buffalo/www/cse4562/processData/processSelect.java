@@ -75,7 +75,7 @@ public class processSelect {
                         leftIterator = parserLeft.iterator();
                     } else {
                         //过滤不需要的数据根据 left.A=1类型expression
-                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left));
+                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
                     }
@@ -104,7 +104,7 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
-                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right));
+                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
                             ;
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
@@ -125,7 +125,7 @@ public class processSelect {
 
                     } else {
                         //process the expression in joinNode
-                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer));
+                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
                         leftIterator = result.getIterator();
                         rightIterator = null;
                         tableRight = null;
@@ -134,7 +134,7 @@ public class processSelect {
                     }
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+                List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression());
                 if (queryResult != null) {
                     result.settupleList(queryResult);
                 }
@@ -316,9 +316,8 @@ public class processSelect {
     }
 
 
-    private static List<Tuple> hashJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
+    private static List<Tuple> hashJoin(Iterator leftIterator, Iterator rightIterator, TableObject tableLeft, TableObject tableRight, Expression exp) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
-        Expression exp = pointer.getExpression();
         Column left = (Column) ((EqualsTo) exp).getLeftExpression();
         Column right = (Column) ((EqualsTo) exp).getRightExpression();
         //todo
@@ -537,10 +536,9 @@ public class processSelect {
     }
 
     private static List<Tuple> SelectAndJoin(Iterator leftIterator, Iterator rightIterator,
-                                             TableObject tableLeft, TableObject tableRight, RANode pointer) throws Exception {
+                                             TableObject tableLeft, TableObject tableRight, Expression exp) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         List<Tuple> leftBlock, rightBlock;
-        Expression exp = pointer.getExpression();
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
             boolean flag = true;
@@ -548,35 +546,25 @@ public class processSelect {
             List<Expression> whereList = new ArrayList<>();
             selectionEval.parse2List(whereList, exp);
             List<Column> list = selectionEval.parseSelect(whereList);
-            boolean a = true;
             for (int i = 0;i<list.size();i++){
-                if (!tableLeft.getIndex().containsKey(list.get(i).getColumnName()))
+                if (!tableLeft.getIndex().containsKey(list.get(i).getColumnName())){
                     flag = false;
+                    break;
+                }
             }
-//            if (((BinaryExpression) exp).getLeftExpression() instanceof Column || ((BinaryExpression) exp).getRightExpression() instanceof Column) {
-//                String colName = ((BinaryExpression) exp).getLeftExpression() instanceof Column ? ((Column) ((BinaryExpression) exp).getLeftExpression()).getColumnName() : ((Column) ((BinaryExpression) exp).getRightExpression()).getColumnName();
-//                if (tableLeft.getIndex().containsKey(colName)) {
-//                    flag = true;
-//                }
-//            }
+
             if ((flag||exp instanceof OrExpression) && (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 tableLeft.setOriginal(false);
             } else {
-                //size == 0 : the tableobject is the results of a subselect
                 if (exp instanceof AndExpression) {
                     Expression left = ((AndExpression) exp).getLeftExpression();
                     Expression right = ((AndExpression) exp).getRightExpression();
-                    List<Tuple> temp = new ArrayList<>();
 
-                    while (leftIterator.hasNext()) {
-                        leftBlock = getTupleBlock(leftIterator, tableLeft);
-                        for (int i = 0; i < leftBlock.size(); i++) {
-                            evaluate eva = new evaluate(leftBlock.get(i), null, right);
-                            temp = eva.Eval(temp);
-                        }
-                    }
+                    List<Tuple> temp = SelectAndJoin(leftIterator,rightIterator,tableLeft,
+                            null, right);
+
                     for (int i = 0; i < temp.size(); i++) {
                         evaluate eva = new evaluate(temp.get(i), null, left);
                         queryResult = eva.Eval(queryResult);
@@ -597,7 +585,7 @@ public class processSelect {
                 ((BinaryExpression) exp).getRightExpression() instanceof Column) {
             //右表存在，且左右join
             // A.C=B.C
-            queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer);
+            queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
         } else if (exp instanceof EqualsTo && exp.toString().equals("1 = 1")) {
             if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
                 while (leftIterator.hasNext()) {
