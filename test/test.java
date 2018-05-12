@@ -6,8 +6,8 @@ import java.util.List;
 public class test {
     public static void main(String[] args){
         HashMap<String,String> a = new HashMap<>();
-        a.put("1","a");
         Object d  = a.put("1","b");
-        String c = "";
+        String c = d+"asad";
+        int i = 0;
     }
 }

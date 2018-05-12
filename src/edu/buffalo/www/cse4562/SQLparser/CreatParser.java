@@ -44,11 +44,14 @@ public class CreatParser {
         TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
-        //根据外键建索引，每一列做统计。
         //tableObject.indexAndStatistic();
         //tableObject.setIndexTxt();
-        tableObject.setIndexDat();
         //tableObject.setIndex();
+        long startTime=System.currentTimeMillis();   //获取开始时间
+        tableObject.setIndexDat();
+        long endTime=System.currentTimeMillis(); //获取结束时间
+
+        logger.info("程序运行时间： "+(endTime-startTime)+"ms");
         return true;
     }
 

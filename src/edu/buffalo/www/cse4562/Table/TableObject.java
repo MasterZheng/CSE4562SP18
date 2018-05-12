@@ -391,6 +391,8 @@ public class TableObject {
                 attrIndex.add(i);
         }
         int i = 1;
+        File fileL = new File(fileDir);
+        logger.info(String.valueOf(fileL.length())+"bytes");
         FileReader fs = new FileReader(fileDir);
         BufferedReader br = new BufferedReader(fs);
         String line;
@@ -401,14 +403,14 @@ public class TableObject {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
                     String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
                     HashMap<String, String> colMap = index.get(colName);
-                    String attr = tuple[attrIndex.get(j)];
-                    String originalList = colMap.put(attr,"");
+                    String attrVal = tuple[attrIndex.get(j)];
+                    String originalList = colMap.put(attrVal,"");
                     if (originalList==null) {
                         String list = Integer.toString(i);
-                        colMap.put(attr, list);
+                        colMap.put(attrVal, list);
                     } else {
                         String list = originalList + "," + Integer.toString(i);
-                        colMap.put(attr, list);
+                        colMap.put(attrVal, list);
                     }
                 }
                 i++;
