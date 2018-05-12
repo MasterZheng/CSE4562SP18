@@ -45,8 +45,8 @@ public class CreatParser {
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
         //根据外键建索引，每一列做统计。
-        tableObject.indexAndStatistic();
-        //tableObject.setIndexTxt();
+        //tableObject.indexAndStatistic();
+        tableObject.setIndexTxt();
         //tableObject.setIndex();
         return true;
     }
