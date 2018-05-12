@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.Evaluate;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -77,8 +78,10 @@ public class aggregateEval {
                 value = new DoubleValue(val.toDouble());
             }
         }
-
-        return value;
+        BigDecimal bg = new BigDecimal(value.toDouble());
+        double f1 = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+//        return value;
+        return new DoubleValue(f1);
     }
 
 
