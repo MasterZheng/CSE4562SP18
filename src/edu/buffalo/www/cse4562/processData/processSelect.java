@@ -1,6 +1,7 @@
 package edu.buffalo.www.cse4562.processData;
 
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
+import edu.buffalo.www.cse4562.Evaluate.selectionEval;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import edu.buffalo.www.cse4562.Table.Tuple;
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 30000;
+    private static int BLOCKSIZE = 10000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -542,14 +543,23 @@ public class processSelect {
         Expression exp = pointer.getExpression();
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
-            boolean flag = false;
-            if (((BinaryExpression) exp).getLeftExpression() instanceof Column || ((BinaryExpression) exp).getRightExpression() instanceof Column) {
-                String colName = ((BinaryExpression) exp).getLeftExpression() instanceof Column ? ((Column) ((BinaryExpression) exp).getLeftExpression()).getColumnName() : ((Column) ((BinaryExpression) exp).getRightExpression()).getColumnName();
-                if (tableLeft.getIndex().containsKey(colName)) {
-                    flag = true;
-                }
+            boolean flag = true;
+            selectionEval selectionEval = new selectionEval(exp);
+            List<Expression> whereList = new ArrayList<>();
+            selectionEval.parse2List(whereList, exp);
+            List<Column> list = selectionEval.parseSelect(whereList);
+            boolean a = true;
+            for (int i = 0;i<list.size();i++){
+                if (!tableLeft.getIndex().containsKey(list.get(i).getColumnName()))
+                    flag = false;
             }
-            if (flag && (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
+//            if (((BinaryExpression) exp).getLeftExpression() instanceof Column || ((BinaryExpression) exp).getRightExpression() instanceof Column) {
+//                String colName = ((BinaryExpression) exp).getLeftExpression() instanceof Column ? ((Column) ((BinaryExpression) exp).getLeftExpression()).getColumnName() : ((Column) ((BinaryExpression) exp).getRightExpression()).getColumnName();
+//                if (tableLeft.getIndex().containsKey(colName)) {
+//                    flag = true;
+//                }
+//            }
+            if ((flag||exp instanceof OrExpression) && (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 tableLeft.setOriginal(false);

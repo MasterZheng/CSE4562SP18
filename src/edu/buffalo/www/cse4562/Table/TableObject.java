@@ -193,17 +193,11 @@ public class TableObject {
     public void indexAndStatistic() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
-//        if (tableName.equals("LINEITEM")||tableName.equals("CUSTOMER")||
-//                tableName.equals("PARTSUPP")){
-//            for (int i = 0; i < columnInfo.size(); i++) {
-//                index.put(columnInfo.get(i).getColumnName(), new HashMap());
-//                attrIndex.add(i);
-//            }
-//        }else {
-//            if (tableName.equals("PART"))
-//                index.put("P_SIZE",new HashMap<>());
-//
-//        }
+        if (tableName.equals("LINEITEM")){
+            index.put("L_QUANTITY",new HashMap<>());
+            index.put("L_DISCOUNT",new HashMap<>());
+        }
+
         for (int i = 0;i<primaryKey.size();i++){
             index.put(primaryKey.get(i).getColumnName(),new HashMap<>());
         }
@@ -222,8 +216,9 @@ public class TableObject {
                 CSVRecord tuple = Iterator.next();
                 for (int j = 0;j<attrIndex.size();j++){
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    HashMap<String,String> colMap = index.get(columnInfo.get(attrIndex.get(j)).getColumnName());
-                    String attr = tuple.get(j);
+                    String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
+                    HashMap<String,String> colMap = index.get(colName);
+                    String attr = tuple.get(attrIndex.get(j));
                     if (colMap.containsKey(attr)) {
                         String list = colMap.get(attr)+ "," + Integer.toString(i);
                         colMap.put(attr, list);
