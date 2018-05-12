@@ -58,7 +58,6 @@ public class processSelect {
             }
         }
 
-
         while (pointer != null) {
             String operation = pointer.getOperation();
             if (operation.equals("JOIN")) {
@@ -104,6 +103,7 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
+
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
                             ;
                             rightIterator = tableRight.getIterator();

@@ -303,6 +303,7 @@ public class TableObject {
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
         Iterator<CSVRecord> Iterator = parser.iterator();
         int i = 1;
+
         if (index.size() != 0) {
             while (Iterator.hasNext()) {
                 CSVRecord tuple = Iterator.next();
@@ -337,6 +338,7 @@ public class TableObject {
         }
         bw.close();
         fw.close();
+
     }
 
     public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
@@ -347,7 +349,7 @@ public class TableObject {
                     "UTF-8"));
             String lineTxt = null;
             while ((lineTxt = br.readLine()) != null) {
-                String[] record = lineTxt.split("@");
+                String[] record = lineTxt.split("\\|");
                 String col = record[0].toUpperCase();
                 String p = record[1];
                 String[] indseq = record[2].replace(" ", "").replace("[", "").replace("]", "").split(",");
@@ -367,94 +369,65 @@ public class TableObject {
         return index;
     }
 
-    public void setIndex() throws Exception {
-        HashMap<String, HashMap<String, ArrayList<Integer>>> index1 = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-        HashMap<String, HashMap<String, ArrayList<Integer>>> index2 = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-
-        for (int i = 0; i < columnInfo.size() / 2 + 1; i++) {
-            index1.put(columnInfo.get(i).getColumnName(), new HashMap());
+    public void setIndexDat() throws Exception {
+        HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        List<Integer> attrIndex = new ArrayList<>();
+        if (tableName.equals("LINEITEM")) {
+            index.put("L_QUANTITY", new HashMap<>());
+            index.put("L_DISCOUNT", new HashMap<>());
         }
-        CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
-        Iterator<CSVRecord> Iterator = parser.iterator();
+        if (tableName.equals("PART")){
+            index.put("P_SIZE", new HashMap<>());
+        }
+
+        for (int i = 0; i < primaryKey.size(); i++) {
+            index.put(primaryKey.get(i).getColumnName(), new HashMap<>());
+        }
+        for (int i = 0; i < references.size(); i++) {
+            index.put(references.get(i).getColumnName(), new HashMap<>());
+        }
+        for (int i = 0; i < columnInfo.size(); i++) {
+            if (index.containsKey(columnInfo.get(i).getColumnName()))
+                attrIndex.add(i);
+        }
         int i = 1;
-        if (index1.size() != 0) {
-            while (Iterator.hasNext()) {
-                Tuple t = new Tuple(this, Iterator.next());
-                HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
-                for (String c : index1.keySet()) {
+        FileReader fs = new FileReader(fileDir);
+        BufferedReader br = new BufferedReader(fs);
+        String line;
+        if (index.size() != 0) {
+            while((line = br.readLine()) != null){
+                String[] tuple = line.split("\\|");
+                for (int j = 0; j < attrIndex.size(); j++) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    Column col = new Column(null, c);
-                    if (index1.get(c).containsKey(attrs.get(col).toRawString())) {
-                        index1.get(c).get(attrs.get(col).toRawString()).add(i);
+                    String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
+                    HashMap<String, String> colMap = index.get(colName);
+                    String attr = tuple[attrIndex.get(j)];
+                    if (colMap.containsKey(attr)) {
+                        String list = colMap.get(attr) + "," + Integer.toString(i);
+                        colMap.put(attr, list);
                     } else {
-                        ArrayList<Integer> list = new ArrayList<>();
-                        list.add(i);
-                        index1.get(c).put(attrs.get(col).toRawString(), list);
+                        String list = Integer.toString(i);
+                        colMap.put(attr, list);
                     }
                 }
                 i++;
             }
         }
-        final String[] FILE_HEADER = {"Value", "Index"};
-        for (String colName : index1.keySet()) {
-            final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + colName + ".csv";
-            CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-            try (Writer out = new FileWriter(FILE_NAME);
-                 CSVPrinter printer = new CSVPrinter(out, format)) {
-                for (String value : index1.get(colName).keySet()) {
-                    List<String> records = new ArrayList<>();
-                    records.add(value);
-                    records.add(index1.get(colName).get(value).toString());
-                    printer.printRecord(records);
-                }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+        File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        FileWriter fw = new FileWriter(file, false);
+        BufferedWriter bw = new BufferedWriter(fw);
+        for (String column : index.keySet()) {
+            for (String value : index.get(column).keySet()) {
+                String record = column + "|" + value + "|" + index.get(column).get(value) + "\n";
+                bw.write(record);
             }
         }
-        index1.clear();
-
-        for (int j = columnInfo.size() / 2 + 1; j < columnInfo.size(); j++) {
-            index2.put(columnInfo.get(j).getColumnName(), new HashMap());
-        }
-        parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
-        Iterator = parser.iterator();
-        i = 1;
-        if (index2.size() != 0) {
-            while (Iterator.hasNext()) {
-                Tuple t = new Tuple(this, Iterator.next());
-                HashMap<Column, PrimitiveValue> attrs = t.getAttributes();
-                for (String c : index2.keySet()) {
-                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    Column col = new Column(null, c);
-                    if (index2.get(c).containsKey(attrs.get(col).toRawString())) {
-                        index2.get(c).get(attrs.get(col).toRawString()).add(i);
-                    } else {
-                        ArrayList<Integer> list = new ArrayList<>();
-                        list.add(i);
-                        index2.get(c).put(attrs.get(col).toRawString(), list);
-                    }
-                }
-                i++;
-            }
-        }
-        for (String colName : index2.keySet()) {
-            final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + colName + ".csv";
-            CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
-            try (Writer out = new FileWriter(FILE_NAME);
-                 CSVPrinter printer = new CSVPrinter(out, format)) {
-                for (String value : index2.get(colName).keySet()) {
-                    List<String> records = new ArrayList<>();
-                    records.add(value);
-                    records.add(index2.get(colName).get(value).toString());
-                    printer.printRecord(records);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        index2.clear();
+        bw.close();
+        fw.close();
 
     }
 
