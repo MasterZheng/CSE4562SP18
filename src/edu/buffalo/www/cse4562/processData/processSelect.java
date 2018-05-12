@@ -553,7 +553,7 @@ public class processSelect {
                 }
             }
 
-            if ((flag||exp instanceof OrExpression) && (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
+            if (flag && (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 tableLeft.setOriginal(false);
