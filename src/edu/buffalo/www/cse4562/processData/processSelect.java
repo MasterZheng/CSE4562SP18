@@ -542,8 +542,14 @@ public class processSelect {
         Expression exp = pointer.getExpression();
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
-
-            if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
+            boolean flag = false;
+            if (((BinaryExpression)exp).getLeftExpression() instanceof Column||((BinaryExpression)exp).getRightExpression() instanceof Column){
+                String colName = ((BinaryExpression)exp).getLeftExpression() instanceof Column?((Column) ((BinaryExpression)exp).getLeftExpression()).getColumnName():((Column) ((BinaryExpression)exp).getRightExpression()).getColumnName();
+                if (tableLeft.getIndex().containsKey(colName)){
+                    flag=true;
+                }
+            }
+            if (flag&&(tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan))) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 tableLeft.setOriginal(false);
