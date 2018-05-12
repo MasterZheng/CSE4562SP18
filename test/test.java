@@ -1,12 +1,13 @@
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class test {
     public static void main(String[] args){
-        List a = new ArrayList();
-        a.add(1);
-        a.add(2);
-
+        HashMap<String,String> a = new HashMap<>();
+        a.put("1","a");
+        Object d  = a.put("1","b");
+        String c = "";
     }
 }

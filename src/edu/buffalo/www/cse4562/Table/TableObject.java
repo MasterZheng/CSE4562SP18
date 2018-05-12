@@ -372,10 +372,10 @@ public class TableObject {
     public void setIndexDat() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
-//        if (tableName.equals("LINEITEM")) {
-//            index.put("L_QUANTITY", new HashMap<>());
-//            index.put("L_DISCOUNT", new HashMap<>());
-//        }
+        if (tableName.equals("LINEITEM")) {
+            index.put("L_QUANTITY", new HashMap<>());
+            index.put("L_DISCOUNT", new HashMap<>());
+        }
         if (tableName.equals("PART")){
             index.put("P_SIZE", new HashMap<>());
         }
@@ -402,11 +402,12 @@ public class TableObject {
                     String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
                     HashMap<String, String> colMap = index.get(colName);
                     String attr = tuple[attrIndex.get(j)];
-                    if (colMap.containsKey(attr)) {
-                        String list = colMap.get(attr) + "," + Integer.toString(i);
+                    String originalList = colMap.put(attr,"");
+                    if (originalList==null) {
+                        String list = Integer.toString(i);
                         colMap.put(attr, list);
                     } else {
-                        String list = Integer.toString(i);
+                        String list = originalList + "," + Integer.toString(i);
                         colMap.put(attr, list);
                     }
                 }
