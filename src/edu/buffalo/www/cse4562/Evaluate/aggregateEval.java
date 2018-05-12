@@ -78,10 +78,11 @@ public class aggregateEval {
                 value = new DoubleValue(val.toDouble());
             }
         }
-        BigDecimal bg = new BigDecimal(value.toDouble());
-        double f1 = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-//        return value;
-        return new DoubleValue(f1);
+//        BigDecimal bg = new BigDecimal(value.toDouble());
+//        double f1 = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+//        return new DoubleValue(f1);
+
+        return value;
     }
 
 
