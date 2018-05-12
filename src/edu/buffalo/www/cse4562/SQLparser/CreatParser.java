@@ -44,11 +44,12 @@ public class CreatParser {
         TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
-        //tableObject.indexAndStatistic();
         //tableObject.setIndexTxt();
         //tableObject.setIndex();
         long startTime=System.currentTimeMillis();   //获取开始时间
-        tableObject.setIndexDat();
+        tableObject.indexAndStatistic();
+
+        //tableObject.setIndexDat();
         long endTime=System.currentTimeMillis(); //获取结束时间
 
         logger.info("running time： "+(endTime-startTime)+"ms");
