@@ -563,12 +563,12 @@ public class processSelect {
                     while (leftIterator.hasNext()) {
                         leftBlock = getTupleBlock(leftIterator, tableLeft);
                         for (int i = 0; i < leftBlock.size(); i++) {
-                            evaluate eva = new evaluate(leftBlock.get(i), null, left);
+                            evaluate eva = new evaluate(leftBlock.get(i), null, right);
                             temp = eva.Eval(temp);
                         }
                     }
                     for (int i = 0; i < temp.size(); i++) {
-                        evaluate eva = new evaluate(temp.get(i), null, right);
+                        evaluate eva = new evaluate(temp.get(i), null, left);
                         queryResult = eva.Eval(queryResult);
                     }
 
