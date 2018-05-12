@@ -51,7 +51,7 @@ public class CreatParser {
         tableObject.setIndexDat();
         long endTime=System.currentTimeMillis(); //获取结束时间
 
-        logger.info("程序运行时间： "+(endTime-startTime)+"ms");
+        logger.info("running time： "+(endTime-startTime)+"ms");
         return true;
     }
 

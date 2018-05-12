@@ -424,11 +424,10 @@ public class TableObject {
         FileWriter fw = new FileWriter(file, false);
         BufferedWriter bw = new BufferedWriter(fw);
         for (String column : index.keySet()) {
-            String record = "";
             for (String value : index.get(column).keySet()) {
-                record = record + column + "|" + value + "|" + index.get(column).get(value) + "\n";
+                String record = column + "|" + value + "|" + index.get(column).get(value) + "\n";
+                bw.write(record);
             }
-            bw.write(record);
         }
         bw.close();
         fw.close();
