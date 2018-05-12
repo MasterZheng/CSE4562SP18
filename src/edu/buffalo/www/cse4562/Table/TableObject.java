@@ -391,8 +391,7 @@ public class TableObject {
                 attrIndex.add(i);
         }
         int i = 1;
-        File fileL = new File(fileDir);
-        logger.info(String.valueOf(fileL.length())+"bytes");
+
         FileReader fs = new FileReader(fileDir);
         BufferedReader br = new BufferedReader(fs);
         String line;
@@ -416,7 +415,8 @@ public class TableObject {
                 i++;
             }
         }
-
+        File fileL = new File(fileDir);
+        logger.info(String.valueOf(fileL.length())+"bytes");
         File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
         if (!file.exists()) {
             file.createNewFile();
@@ -424,10 +424,11 @@ public class TableObject {
         FileWriter fw = new FileWriter(file, false);
         BufferedWriter bw = new BufferedWriter(fw);
         for (String column : index.keySet()) {
+            String record = "";
             for (String value : index.get(column).keySet()) {
-                String record = column + "|" + value + "|" + index.get(column).get(value) + "\n";
-                bw.write(record);
+                record = record + column + "|" + value + "|" + index.get(column).get(value) + "\n";
             }
+            bw.write(record);
         }
         bw.close();
         fw.close();
