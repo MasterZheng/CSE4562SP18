@@ -193,34 +193,27 @@ public class TableObject {
     public void indexAndStatistic() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
-//        if (tableName.equals("LINEITEM")||tableName.equals("CUSTOMER")||tableName.equals("PART")||
-//                tableName.equals("PARTSUPP")){
-//            for (int i = 0; i < columnInfo.size(); i++) {
-//                index.put(columnInfo.get(i).getColumnName(), new HashMap());
-//                attrIndex.add(i);
-//            }
-//        }else {
-//            for (int i = 0;i<primaryKey.size();i++){
-//                index.put(primaryKey.get(i).getColumnName(),new HashMap<>());
-//            }
-//            for (int i = 0;i<references.size();i++){
-//                index.put(references.get(i).getColumnName(),new HashMap<>());
-//            }
-//            for (int i = 0;i<columnInfo.size();i++){
-//                if (index.containsKey(columnInfo.get(i).getColumnName()))
-//                    attrIndex.add(i);
-//            }
-//        }
-        for (int i = 0;i<primaryKey.size();i++){
-            index.put(primaryKey.get(i).getColumnName(),new HashMap<>());
-        }
-        for (int i = 0;i<references.size();i++){
-            index.put(references.get(i).getColumnName(),new HashMap<>());
-        }
-        for (int i = 0;i<columnInfo.size();i++){
-            if (index.containsKey(columnInfo.get(i).getColumnName()))
+        if (tableName.equals("LINEITEM")||tableName.equals("CUSTOMER")||
+                tableName.equals("PARTSUPP")){
+            for (int i = 0; i < columnInfo.size(); i++) {
+                index.put(columnInfo.get(i).getColumnName(), new HashMap());
                 attrIndex.add(i);
+            }
+        }else {
+            if (tableName.equals("PART"))
+                index.put("P_SIZE",new HashMap<>());
+            for (int i = 0;i<primaryKey.size();i++){
+                index.put(primaryKey.get(i).getColumnName(),new HashMap<>());
+            }
+            for (int i = 0;i<references.size();i++){
+                index.put(references.get(i).getColumnName(),new HashMap<>());
+            }
+            for (int i = 0;i<columnInfo.size();i++){
+                if (index.containsKey(columnInfo.get(i).getColumnName()))
+                    attrIndex.add(i);
+            }
         }
+
         CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
         Iterator<CSVRecord> Iterator = parser.iterator();
         int i = 1;
