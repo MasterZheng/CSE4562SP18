@@ -257,7 +257,7 @@ public class TableObject {
         }
     }
 
-    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex1() {
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + ".csv";
         final String[] FILE_HEADER = {"Column", "Value", "Index"};
         CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();
@@ -348,7 +348,7 @@ public class TableObject {
 
     }
 
-    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex1() {
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
         HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
         try {
@@ -359,7 +359,7 @@ public class TableObject {
                 String[] record = lineTxt.split("\\|");
                 String col = record[0].toUpperCase();
                 String p = record[1];
-                String[] indseq = record[2].replace(" ", "").replace("[", "").replace("]", "").split(",");
+                String[] indseq = record[2].replace("null","").replace(" ", "").replace("[", "").replace("]", "").split(",");
                 ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
                 if (index.containsKey(col)) {
                     index.get(col).put(p, list);
@@ -379,13 +379,13 @@ public class TableObject {
     public void setIndexDat() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
-        if (tableName.equals("LINEITEM")) {
-            index.put("L_QUANTITY", new HashMap<>());
-            index.put("L_DISCOUNT", new HashMap<>());
-        }
-        if (tableName.equals("PART")){
-            index.put("P_SIZE", new HashMap<>());
-        }
+//        if (tableName.equals("LINEITEM")) {
+//            index.put("L_QUANTITY", new HashMap<>());
+//            index.put("L_DISCOUNT", new HashMap<>());
+//        }
+//        if (tableName.equals("PART")){
+//            index.put("P_SIZE", new HashMap<>());
+//        }
 
         for (int i = 0; i < primaryKey.size(); i++) {
             index.put(primaryKey.get(i).getColumnName(), new HashMap<>());
@@ -432,7 +432,7 @@ public class TableObject {
         BufferedWriter bw = new BufferedWriter(fw);
         for (String column : index.keySet()) {
             for (String value : index.get(column).keySet()) {
-                String record = column + "|" + value + "|" + index.get(column).get(value) + "\n";
+                String record =column + "|" + value + "|" + index.get(column).get(value) + "\n";
                 bw.write(record);
             }
         }

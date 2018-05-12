@@ -47,9 +47,8 @@ public class CreatParser {
         //tableObject.setIndexTxt();
         //tableObject.setIndex();
         long startTime=System.currentTimeMillis();   //获取开始时间
-        tableObject.indexAndStatistic();
-
-        //tableObject.setIndexDat();
+        //tableObject.indexAndStatistic();
+        tableObject.setIndexDat();
         long endTime=System.currentTimeMillis(); //获取结束时间
 
         logger.info("running time： "+(endTime-startTime)+"ms");
