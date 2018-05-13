@@ -286,9 +286,8 @@ public class TableObject {
     }
 
 
-    public void setIndexTXTDivide() throws Exception {
+    public void setIndexTXTDivide(int part) throws Exception {
         //有划分，1列一文件
-        int part = 4;
         for (int k =0;k<part;k++){
             HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
             List<Integer> attrIndex = new ArrayList<>();

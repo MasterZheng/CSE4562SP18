@@ -47,8 +47,15 @@ public class CreatParser {
         logger.info(create.toString());
         long startTime=System.currentTimeMillis();   //获取开始时间
         File file = new File(tableObject.getFileDir());
-        if (file.length()>10000000){
-            tableObject.setIndexTXTDivide();
+        long length = file.length();
+        if (length>6000000){
+            int part = 4;
+//            if (length<10000000){
+//                part+=1;
+//            }else (length<20000000){
+//                part+=2;
+//            }
+            tableObject.setIndexTXTDivide(part);
         }else {
             tableObject.setIndexTXT();
         }
