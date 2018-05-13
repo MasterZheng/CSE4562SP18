@@ -348,8 +348,6 @@ public class processSelect {
         }
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-//            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
-//            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
             HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
             HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
             for (String p : leftCol.keySet()) {
@@ -377,14 +375,15 @@ public class processSelect {
             //左边是查询结果，右边是原始表
             //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
             HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
-
+            if (tableRight.getCurrentTuple()!=null&&tableRight.getCurrentTuple().size()!=0){
+                for(String colVal:rightCol.keySet()){
+                    rightCol.get(colVal).retainAll(tableRight.getCurrentTuple());
+                }
+            }
             while (leftIterator.hasNext()) {
                 Tuple t = getTuple(leftIterator, tableLeft);
                 PrimitiveValue p = t.getAttributes().get(colLeft);
                 ArrayList<String> rightList = rightCol.get(p.toRawString());
-                if (rightList!=null&&tableRight.getCurrentTuple()!=null&&tableRight.getCurrentTuple().size()!=0){
-                    rightList.retainAll(tableRight.getCurrentTuple());
-                }
                 if (rightList!=null&&rightList.size()!=0){
                     queryResult.addAll(indexHashJoin(t, null, rightList, null, rightIterator, null, tableRight));
                     CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
@@ -396,14 +395,15 @@ public class processSelect {
             //左边是原始表，右边是查询结果
             //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
             HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-
+            if (tableLeft.getCurrentTuple()!=null&&tableLeft.getCurrentTuple().size()!=0){
+                for(String colVal:leftCol.keySet()){
+                    leftCol.get(colVal).retainAll(tableLeft.getCurrentTuple());
+                }
+            }
             while (rightIterator.hasNext()) {
                 Tuple t = getTuple(rightIterator, tableRight);
                 PrimitiveValue p = t.getAttributes().get(colRight);
                 ArrayList<String> leftList = leftCol.get(p.toRawString());
-                if (leftList!=null&&tableLeft.getCurrentTuple()!=null&&tableLeft.getCurrentTuple().size()!=0){
-                    leftList.retainAll(tableLeft.getCurrentTuple());
-                }
                 if (leftList!=null&&leftList.size()!=0){
                     queryResult.addAll(indexHashJoin(t, leftList, null, leftIterator, null, tableLeft, null));
                     CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
@@ -855,6 +855,11 @@ public class processSelect {
                 }
             }
         }
+        HashMap<String,Integer> file2current = new HashMap<>();
+        for (int i = 0;i<tupleIndex.size();i++){
+            file2current.put(tupleIndex.get(i),i);
+        }
+        tableObject.setFile2Current(file2current);
         return tupleIndex;
     }
 }

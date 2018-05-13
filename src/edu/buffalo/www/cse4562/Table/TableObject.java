@@ -20,7 +20,8 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
-    List<String> currentTuple = null;
+    private List<String> currentTuple = null;
+    private HashMap<String,Integer> file2Current = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -142,6 +143,14 @@ public class TableObject {
 
     public void setCurrentTuple(List<String> currentTuple) {
         this.currentTuple = currentTuple;
+    }
+
+    public HashMap<String, Integer> getFile2Current() {
+        return file2Current;
+    }
+
+    public void setFile2Current(HashMap<String, Integer> file2Current) {
+        this.file2Current = file2Current;
     }
 
     public void MapRelation(List<Column> usedColInfo) {
