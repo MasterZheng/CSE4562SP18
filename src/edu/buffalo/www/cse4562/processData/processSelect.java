@@ -69,17 +69,19 @@ public class processSelect {
                     //optimize colDef and colInfo
                     tableLeft.MapRelation(((RATable) left).getUsedColInf());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-                    if (left.getExpression()!=null){
-                        //过滤不需要的数据根据 left.A=1类型expression
-                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
-                    }
-                    leftIterator = parserLeft.iterator();
-
-//                    if (left.getExpression() == null) {
-//                    } else {
-//                        leftIterator = tableLeft.getIterator();
-////                        tableLeft.setOriginal(false);
+//                    if (left.getExpression()!=null){
+//                        //过滤不需要的数据根据 left.A=1类型expression
+//                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
 //                    }
+//                    leftIterator = parserLeft.iterator();
+
+                    if (left.getExpression() == null) {
+                        leftIterator = parserLeft.iterator();
+                    } else {
+                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
+                        leftIterator = tableLeft.getIterator();
+                        tableLeft.setOriginal(false);
+                    }
                     involvedTables.add(tableLeft);
                 } else if (left.getOperation().equals("JOIN")) {
                     leftIterator = result.getIterator();
@@ -101,20 +103,20 @@ public class processSelect {
                         //optimize colDef and colInfo
                         tableRight.MapRelation(((RATable) right).getUsedColInf());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                        if (right.getExpression()!=null){
-                            //过滤
-                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-                        }
-                        rightIterator = parserRight.iterator();
-//                        if (right.getExpression() == null) {
-//                            rightIterator = parserRight.iterator();
-//                        } else {
+//                        if (right.getExpression()!=null){
 //                            //过滤
 //                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-//                            ;
-//                            rightIterator = tableRight.getIterator();
-////                            tableRight.setOriginal(false);
 //                        }
+//                        rightIterator = parserRight.iterator();
+                        if (right.getExpression() == null) {
+                            rightIterator = parserRight.iterator();
+                        } else {
+                            //过滤
+                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
+                            ;
+                            rightIterator = tableRight.getIterator();
+                            tableRight.setOriginal(false);
+                        }
                         involvedTables.add(tableRight);
                     } else {
                         // join right node is a subSelect tree
@@ -361,7 +363,7 @@ public class processSelect {
                     rightList.retainAll(tableRight.getCurrentTuple());
                 }
 
-                if (rightList!=null&&rightList.size() != 0) {
+                if (rightList!=null&&rightList.size() != 0&&LeftList!=null&&LeftList.size()!=0) {
                     queryResult.addAll(indexHashJoin(null, LeftList, rightList, leftIterator, rightIterator, tableLeft, tableRight));
                     CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
@@ -373,44 +375,38 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-            //HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex().get(colRight.getColumnName());
-            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
-            if (tableRight.getCurrentTuple()!=null&&tableRight.getCurrentTuple().size()!=0){
-                for(String colVal:rightCol.keySet()){
-                    rightCol.get(colVal).retainAll(tableRight.getCurrentTuple());
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            while (rightIterator.hasNext()){
+                Tuple t = getTuple(rightIterator,tableRight);
+                PrimitiveValue p = t.getAttributes().get(colRight);
+                if (leftCol.get(p.toRawString())!=null){
+                    for (String indexInfile: leftCol.get(p.toRawString())){
+                        if (tableLeft.getFile2Current().get(indexInfile)!=null){
+                            int index = tableLeft.getFile2Current().get(indexInfile);
+                            queryResult.add(t.joinTuple(tableLeft.getTupleList().get(index)));
+                        }
+                    }
                 }
             }
-            while (leftIterator.hasNext()) {
-                Tuple t = getTuple(leftIterator, tableLeft);
-                PrimitiveValue p = t.getAttributes().get(colLeft);
-                ArrayList<String> rightList = rightCol.get(p.toRawString());
-                if (rightList!=null&&rightList.size()!=0){
-                    queryResult.addAll(indexHashJoin(t, null, rightList, null, rightIterator, null, tableRight));
-                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                    rightIterator = parserRight.iterator();
-                }
-            }
+            tableLeft.setFile2Current(null);
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
-            //HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex().get(colLeft.getColumnName());
-            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            if (tableLeft.getCurrentTuple()!=null&&tableLeft.getCurrentTuple().size()!=0){
-                for(String colVal:leftCol.keySet()){
-                    leftCol.get(colVal).retainAll(tableLeft.getCurrentTuple());
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            while (leftIterator.hasNext()){
+                Tuple t = getTuple(leftIterator,tableLeft);
+                PrimitiveValue p = t.getAttributes().get(colLeft);
+                if (rightCol.get(p.toRawString())!=null){
+                    for (String indexInfile: rightCol.get(p.toRawString())){
+                        if (tableRight.getFile2Current().get(indexInfile)!=null){
+                            int index = tableRight.getFile2Current().get(indexInfile);
+                            queryResult.add(t.joinTuple(tableRight.getTupleList().get(index)));
+                        }
+                    }
                 }
             }
-            while (rightIterator.hasNext()) {
-                Tuple t = getTuple(rightIterator, tableRight);
-                PrimitiveValue p = t.getAttributes().get(colRight);
-                ArrayList<String> leftList = leftCol.get(p.toRawString());
-                if (leftList!=null&&leftList.size()!=0){
-                    queryResult.addAll(indexHashJoin(t, leftList, null, leftIterator, null, tableLeft, null));
-                    CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-                    leftIterator = parserLeft.iterator();
-                }
-            }
-            tableLeft.setOriginal(false);
+            tableRight.setFile2Current(null);
+            tableRight.setOriginal(false);
         } else {
             // 左右都是查询结果
             //if the table  is not parsed
@@ -429,42 +425,42 @@ public class processSelect {
                 tableRight.settupleList(list);
             }
             //将exp的左右列与join的左右表匹配
-            if (left.getTable() != null && right.getTable() != null) {
-                List<String> nameLeft = new ArrayList<>();
-                List<String> nameRight = new ArrayList<>();
-                if (tableLeft.getTupleList() != null && tableLeft.getTupleList().size() != 0) {
-                    nameLeft = tableLeft.getTupleList().get(0).getTableName();
-                }
-                if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
-                    nameRight = tableRight.getTupleList().get(0).getTableName();
-                }
-                if (nameLeft.contains(left.getTable().getName())) {
-                    if (tableLeft.getAlisa() != null) {
-                        colLeft = new Column(new Table(tableLeft.getAlisa()), left.getColumnName());
-                    } else {
-                        colLeft = new Column(tableLeft.getTable(), left.getColumnName());
-                    }
-                } else if (nameLeft.contains(right.getTable().getName())) {
-                    if (tableLeft.getAlisa() != null) {
-                        colLeft = new Column(new Table(tableLeft.getAlisa()), right.getColumnName());
-                    } else {
-                        colLeft = new Column(tableLeft.getTable(), right.getColumnName());
-                    }
-                }
-                if (nameRight.contains(left.getTable().getName())) {
-                    if (tableRight.getAlisa() != null) {
-                        colRight = new Column(new Table(tableRight.getAlisa()), left.getColumnName());
-                    } else {
-                        colRight = new Column(tableRight.getTable(), left.getColumnName());
-                    }
-                } else if (nameRight.contains(right.getTable().getName())) {
-                    if (tableRight.getAlisa() != null) {
-                        colRight = new Column(new Table(tableRight.getAlisa()), right.getColumnName());
-                    } else {
-                        colRight = new Column(tableRight.getTable(), right.getColumnName());
-                    }
-                }
-            }
+//            if (left.getTable() != null && right.getTable() != null) {
+//                List<String> nameLeft = new ArrayList<>();
+//                List<String> nameRight = new ArrayList<>();
+//                if (tableLeft.getTupleList() != null && tableLeft.getTupleList().size() != 0) {
+//                    nameLeft = tableLeft.getTupleList().get(0).getTableName();
+//                }
+//                if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
+//                    nameRight = tableRight.getTupleList().get(0).getTableName();
+//                }
+//                if (nameLeft.contains(left.getTable().getName())) {
+//                    if (tableLeft.getAlisa() != null) {
+//                        colLeft = new Column(new Table(tableLeft.getAlisa()), left.getColumnName());
+//                    } else {
+//                        colLeft = new Column(tableLeft.getTable(), left.getColumnName());
+//                    }
+//                } else if (nameLeft.contains(right.getTable().getName())) {
+//                    if (tableLeft.getAlisa() != null) {
+//                        colLeft = new Column(new Table(tableLeft.getAlisa()), right.getColumnName());
+//                    } else {
+//                        colLeft = new Column(tableLeft.getTable(), right.getColumnName());
+//                    }
+//                }
+//                if (nameRight.contains(left.getTable().getName())) {
+//                    if (tableRight.getAlisa() != null) {
+//                        colRight = new Column(new Table(tableRight.getAlisa()), left.getColumnName());
+//                    } else {
+//                        colRight = new Column(tableRight.getTable(), left.getColumnName());
+//                    }
+//                } else if (nameRight.contains(right.getTable().getName())) {
+//                    if (tableRight.getAlisa() != null) {
+//                        colRight = new Column(new Table(tableRight.getAlisa()), right.getColumnName());
+//                    } else {
+//                        colRight = new Column(tableRight.getTable(), right.getColumnName());
+//                    }
+//                }
+//            }
 
             HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
             for (int i = 0; i < tableRight.getTupleList().size(); i++) {
@@ -525,9 +521,9 @@ public class processSelect {
         } else {
             int leftCounter = 1;
             int rightCounter = 1;
-            if (leftCol.size() == 0 || rightCol.size() == 0) {
-                return result;
-            }
+//            if (leftCol.size() == 0 || rightCol.size() == 0) {
+//                return result;
+//            }
             Iterator<String> leftListIter = leftCol.iterator();
             Iterator<String> rightListIter = rightCol.iterator();
             int leftIndex = Integer.valueOf(leftListIter.next());
@@ -577,7 +573,7 @@ public class processSelect {
             if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp);
                 tableLeft.setCurrentTuple(tupleIndex);
-                //queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
+                queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 //tableLeft.setOriginal(false);
             }
 //            else {
