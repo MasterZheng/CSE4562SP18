@@ -2,7 +2,6 @@ package edu.buffalo.www.cse4562.Table;
 
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
-import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -191,7 +190,7 @@ public class TableObject {
         this.joinHash = joinHash;
     }
 
-    public void indexAndStatistic() throws Exception {
+    public void setIndexCSV() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
         if (tableName.equals("LINEITEM")) {
@@ -287,66 +286,56 @@ public class TableObject {
     }
 
 
-    public void setIndexTxt() throws Exception {
-        HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-        List<Integer> attrIndex = new ArrayList<>();
-        if (tableName.equals("LINEITEM")) {
-            index.put("L_QUANTITY", new HashMap<>());
-            index.put("L_DISCOUNT", new HashMap<>());
-        }
-        if (tableName.equals("PART")){
-            index.put("P_SIZE", new HashMap<>());
-        }
-
-        for (int i = 0; i < primaryKey.size(); i++) {
-            index.put(primaryKey.get(i).getColumnName(), new HashMap<>());
-        }
-        for (int i = 0; i < references.size(); i++) {
-            index.put(references.get(i).getColumnName(), new HashMap<>());
-        }
-        for (int i = 0; i < columnInfo.size(); i++) {
-            if (index.containsKey(columnInfo.get(i).getColumnName()))
-                attrIndex.add(i);
-        }
-        CSVParser parser = new CSVParser(new FileReader(fileDir), CSVFormat.DEFAULT.withDelimiter('|'));
-        Iterator<CSVRecord> Iterator = parser.iterator();
-        int i = 1;
-
-        if (index.size() != 0) {
-            while (Iterator.hasNext()) {
-                CSVRecord tuple = Iterator.next();
-                for (int j = 0; j < attrIndex.size(); j++) {
-                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-                    String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
-                    HashMap<String, String> colMap = index.get(colName);
-                    String attr = tuple.get(attrIndex.get(j));
-                    if (colMap.containsKey(attr)) {
-                        String list = colMap.get(attr) + "," + Integer.toString(i);
-                        colMap.put(attr, list);
-                    } else {
-                        String list = Integer.toString(i);
-                        colMap.put(attr, list);
+    public void setIndexTXT2() throws Exception {
+        int part = 2;
+        for (int k =0;k<part;k++){
+            HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+            List<Integer> attrIndex = new ArrayList<>();
+            for (int i = k*columnInfo.size()/part; i < columnInfo.size(); i++) {
+                index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
+            }
+            for (int i = 0; i < columnInfo.size(); i++) {
+                if (index.containsKey(columnInfo.get(i).getColumnName()))
+                    attrIndex.add(i);
+            }
+            int i = 1;
+            FileReader fs = new FileReader(fileDir);
+            BufferedReader br = new BufferedReader(fs);
+            String line;
+            if (index.size() != 0) {
+                while((line = br.readLine()) != null){
+                    String[] tuple = line.split("\\|");
+                    for (int j = 0; j < attrIndex.size(); j++) {
+                        //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                        String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
+                        String attrVal = tuple[attrIndex.get(j)];
+                        if (!index.get(colName).containsKey(attrVal)) {
+                            index.get(colName).put(attrVal,new StringBuilder(String.valueOf(i)));
+                        } else {
+                            index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
+                        }
                     }
+
+                    i++;
                 }
-                i++;
             }
-        }
-
-        File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-        FileWriter fw = new FileWriter(file, false);
-        BufferedWriter bw = new BufferedWriter(fw);
-        for (String column : index.keySet()) {
-            for (String value : index.get(column).keySet()) {
-                String record = column + "@" + value + "@" + index.get(column).get(value) + "\n";
-                bw.write(record);
+            File fileL = new File(fileDir);
+            logger.info(String.valueOf(fileL.length())+"bytes");
+            File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
+            if (!file.exists()) {
+                file.createNewFile();
             }
+            FileWriter fw = new FileWriter(file, false);
+            BufferedWriter bw = new BufferedWriter(fw);
+            for (String column : index.keySet()) {
+                for (String value : index.get(column).keySet()) {
+                    String record =column + "|" + value + "|" + index.get(column).get(value) + "\n";
+                    bw.write(record);
+                }
+            }
+            bw.close();
+            fw.close();
         }
-        bw.close();
-        fw.close();
-
     }
 
     public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
@@ -377,8 +366,8 @@ public class TableObject {
         return index;
     }
 
-    public void setIndexDat() throws Exception {
-        HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+    public void setIndexTXT() throws Exception {
+        HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
         if (tableName.equals("LINEITEM")) {
             index.put("L_QUANTITY", new HashMap<>());
@@ -395,12 +384,12 @@ public class TableObject {
         for (int i = 0; i < references.size(); i++) {
             index.put(references.get(i).getColumnName(), new HashMap<>());
         }
+
         for (int i = 0; i < columnInfo.size(); i++) {
             if (index.containsKey(columnInfo.get(i).getColumnName()))
                 attrIndex.add(i);
         }
         int i = 1;
-
         FileReader fs = new FileReader(fileDir);
         BufferedReader br = new BufferedReader(fs);
         String line;
@@ -410,21 +399,17 @@ public class TableObject {
                 for (int j = 0; j < attrIndex.size(); j++) {
                     //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
                     String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
-                    HashMap<String, String> colMap = index.get(colName);
                     String attrVal = tuple[attrIndex.get(j)];
-                    String originalList = colMap.put(attrVal,"");
-                    if (originalList==null) {
-                        colMap.put(attrVal, Integer.toString(i));
+                    if (!index.get(colName).containsKey(attrVal)) {
+                        index.get(colName).put(attrVal,new StringBuilder(String.valueOf(i)));
                     } else {
-                        StringBuilder a = new StringBuilder(originalList);
-                        colMap.put(attrVal, a.append(",").append(i).toString());
+                        index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
                     }
                 }
+
                 i++;
             }
         }
-        File fileL = new File(fileDir);
-        logger.info(String.valueOf(fileL.length())+"bytes");
         File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
         if (!file.exists()) {
             file.createNewFile();
