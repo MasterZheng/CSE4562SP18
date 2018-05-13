@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 5000;
+    private static int BLOCKSIZE = 10000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -69,11 +69,6 @@ public class processSelect {
                     //optimize colDef and colInfo
                     tableLeft.MapRelation(((RATable) left).getUsedColInf());
                     parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-//                    if (left.getExpression()!=null){
-//                        //过滤不需要的数据根据 left.A=1类型expression
-//                        tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
-//                    }
-//                    leftIterator = parserLeft.iterator();
 
                     if (left.getExpression() == null) {
                         leftIterator = parserLeft.iterator();
@@ -103,11 +98,7 @@ public class processSelect {
                         //optimize colDef and colInfo
                         tableRight.MapRelation(((RATable) right).getUsedColInf());
                         parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-//                        if (right.getExpression()!=null){
-//                            //过滤
-//                            tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-//                        }
-//                        rightIterator = parserRight.iterator();
+
                         if (right.getExpression() == null) {
                             rightIterator = parserRight.iterator();
                         } else {
@@ -401,9 +392,11 @@ public class processSelect {
             valInleft.clear();
             valInleft.addAll(set);
             ArrayList<String> indexInright = new ArrayList<>();
+
             for (String val : valInleft) {
-                if (rightCol.get(val)!=null)
-                    indexInright.addAll(rightCol.get(val));
+                List a= rightCol.get(val);
+                if (a!=null)
+                    indexInright.addAll(a);
             }
             indexInright.sort(c);
 

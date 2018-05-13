@@ -11,7 +11,9 @@ import net.sf.jsqlparser.statement.select.*;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static edu.buffalo.www.cse4562.SQLparser.CreatParser.CreatFunction;
@@ -34,16 +36,17 @@ public class Main {
         Statement s;
 
         // project here
-        int flag = 0;
+        List<String> string = new ArrayList<>();
         while ((s = parser.Statement()) != null) {
-            process(s, tableMap);
             if (s instanceof CreateTable){
-                flag++;
+                if (!string.contains(s.toString())){
+                    process(s, tableMap);
+                    string.add(s.toString());
+                }
+            }else {
+                process(s, tableMap);
             }
-//            if (flag>7){
-//                System.out.println(prompt);
-//                System.out.flush();
-//            }
+
             System.out.println(prompt);
             System.out.flush();
         }
