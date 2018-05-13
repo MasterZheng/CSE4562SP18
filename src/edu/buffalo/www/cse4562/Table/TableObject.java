@@ -7,7 +7,6 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
@@ -21,7 +20,7 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
-    List<String> currentTuple = new ArrayList<>();
+    List<String> currentTuple = null;
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -137,6 +136,14 @@ public class TableObject {
         this.columnInfo = columnInfo;
     }
 
+    public List<String> getCurrentTuple() {
+        return currentTuple;
+    }
+
+    public void setCurrentTuple(List<String> currentTuple) {
+        this.currentTuple = currentTuple;
+    }
+
     public void MapRelation(List<Column> usedColInfo) {
         //get the map relations between columninfo and usedColumnInfo
         for (int i = 0; i < usedColInfo.size(); i++)
@@ -171,7 +178,7 @@ public class TableObject {
     }
 
     public Iterator getIterator() {
-        return this.tupleList.iterator();
+            return this.tupleList.iterator();
     }
 
     public HashMap<Integer, ArrayList<Tuple>> getgroupMap() {
