@@ -6,6 +6,7 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
@@ -44,11 +45,13 @@ public class CreatParser {
         TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
-        //tableObject.setIndexTxt();
-        //tableObject.setIndex();
         long startTime=System.currentTimeMillis();   //获取开始时间
-        //tableObject.indexAndStatistic();
-        tableObject.setIndexTXT();
+        File file = new File(tableObject.getFileDir());
+        if (file.length()>10000000){
+            tableObject.setIndexTXTDivide();
+        }else {
+            tableObject.setIndexTXT();
+        }
         long endTime=System.currentTimeMillis(); //获取结束时间
 
         logger.info("running time： "+(endTime-startTime)+"ms");

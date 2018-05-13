@@ -286,12 +286,13 @@ public class TableObject {
     }
 
 
-    public void setIndexTXT2() throws Exception {
-        int part = 2;
+    public void setIndexTXTDivide() throws Exception {
+        //有划分，1列一文件
+        int part = 4;
         for (int k =0;k<part;k++){
             HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
             List<Integer> attrIndex = new ArrayList<>();
-            for (int i = k*columnInfo.size()/part; i < columnInfo.size(); i++) {
+            for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
                 index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
             }
             for (int i = 0; i < columnInfo.size(); i++) {
@@ -319,26 +320,68 @@ public class TableObject {
                     i++;
                 }
             }
-            File fileL = new File(fileDir);
-            logger.info(String.valueOf(fileL.length())+"bytes");
-            File file = new File("indexes/" + this.getTableName().toUpperCase() + ".txt");
+            for (String colName :index.keySet()){
+                File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                FileWriter fw = new FileWriter(file, true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                    for (String value : index.get(colName).keySet()) {
+                        bw.write(colName.concat("|").concat(value).concat("|").concat(index.get(colName).get(value).toString()).concat("\n"));
+                    }
+                bw.close();
+                fw.close();
+            }
+
+        }
+    }
+
+    public void setIndexTXT() throws Exception {
+        //无划分，一列一文件
+        HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        for (int i = 0; i < columnInfo.size(); i++) {
+            index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
+        }
+
+        int i = 1;
+        FileReader fs = new FileReader(fileDir);
+        BufferedReader br = new BufferedReader(fs);
+        String line;
+        if (index.size() != 0) {
+            while((line = br.readLine()) != null){
+                String[] tuple = line.split("\\|");
+                for (int j = 0; j < columnInfo.size(); j++) {
+                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                    String colName = columnInfo.get(j).getColumnName();
+                    String attrVal = tuple[j];
+                    if (!index.get(colName).containsKey(attrVal)) {
+                        index.get(colName).put(attrVal,new StringBuilder(String.valueOf(i)));
+                    } else {
+                        index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
+                    }
+                }
+
+                i++;
+            }
+        }
+        for (String colName :index.keySet()){
+            File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
             if (!file.exists()) {
                 file.createNewFile();
             }
-            FileWriter fw = new FileWriter(file, false);
+            FileWriter fw = new FileWriter(file, true);
             BufferedWriter bw = new BufferedWriter(fw);
-            for (String column : index.keySet()) {
-                for (String value : index.get(column).keySet()) {
-                    String record =column + "|" + value + "|" + index.get(column).get(value) + "\n";
-                    bw.write(record);
-                }
+            for (String value : index.get(colName).keySet()) {
+                bw.write(colName.concat("|").concat(value).concat("|").concat(index.get(colName).get(value).toString()).concat("\n"));
             }
             bw.close();
             fw.close();
         }
+
     }
 
-    public HashMap<String, HashMap<String, ArrayList<String>>> getIndex() {
+    public HashMap<String, HashMap<String, ArrayList<String>>> getIndexOK() {
         HashMap<String, HashMap<String, ArrayList<String>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
         try {
@@ -366,7 +409,8 @@ public class TableObject {
         return index;
     }
 
-    public void setIndexTXT() throws Exception {
+    public void setIndexTXTTotal() throws Exception {
+        //一张表生成一个文件
         HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
         if (tableName.equals("LINEITEM")) {
@@ -428,23 +472,24 @@ public class TableObject {
     }
 
     public HashMap<String, ArrayList<String>> getIndex(String ColName) {
-        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".csv";
-        final String[] FILE_HEADER = {"Value", "Index"};
-        CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER);
-
+        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
         HashMap<String, ArrayList<String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
-        try (Reader in = new FileReader(FILE_NAME)) {
-            Iterable<CSVRecord> records = format.parse(in);
-            for (CSVRecord record : records) {
-                //Column c = new Column(new Table(),col);
-                String p = record.get("Value");
-                String[] indseq = record.get("Index").replace(" ", "").replace("[", "").replace("]", "").split(",");
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(FILE_NAME)),
+                    "UTF-8"));
+            String lineTxt = null;
+            while ((lineTxt = br.readLine()) != null) {
+                String[] record = lineTxt.split("\\|");
+                String colVal = record[1].toUpperCase();
+                String[] indseq = record[2].replace(" ", "").replace("[", "").replace("]", "").split(",");
                 ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
-                index.put(p, list);
+                index.put(colVal, list);
+
             }
+            br.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("read errors :" + e);
         }
         return index;
     }
