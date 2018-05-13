@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
-    private static int BLOCKSIZE = 10000;
+    private static int BLOCKSIZE = 5000;
 
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
@@ -133,11 +133,11 @@ public class processSelect {
 
                     } else {
                         //process the expression in joinNode
-                        if((tableLeft.getCurrentTuple()==null||tableLeft.getCurrentTuple().size()!=0)&&
-                                (tableRight.getCurrentTuple()==null||tableRight.getCurrentTuple().size()!=0)){
+                        if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
+                                (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
-                        }else {
+                        } else {
                             result.settupleList(new ArrayList<>());
                         }
                         leftIterator = result.getIterator();
@@ -348,6 +348,17 @@ public class processSelect {
             colLeft = right;
             colRight = left;
         }
+        Comparator c = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                // TODO Auto-generated method stub
+                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                    return -1;
+                    //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
+                else return 1;
+            }
+        };
+
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
             HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
@@ -356,14 +367,14 @@ public class processSelect {
                 ArrayList<String> LeftList = leftCol.get(p);
                 ArrayList<String> rightList = rightCol.get(p);
 
-                if (tableLeft.getCurrentTuple()!=null&&tableLeft.getCurrentTuple().size()!=0){
+                if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
                     LeftList.retainAll(tableLeft.getCurrentTuple());
                 }
-                if (tableRight.getCurrentTuple()!=null&&tableRight.getCurrentTuple().size()!=0){
+                if (tableRight.getCurrentTuple() != null && tableRight.getCurrentTuple().size() != 0) {
                     rightList.retainAll(tableRight.getCurrentTuple());
                 }
 
-                if (rightList!=null&&rightList.size() != 0&&LeftList!=null&&LeftList.size()!=0) {
+                if (rightList != null && rightList.size() != 0 && LeftList != null && LeftList.size() != 0) {
                     queryResult.addAll(indexHashJoin(null, LeftList, rightList, leftIterator, rightIterator, tableLeft, tableRight));
                     CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
                     CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
@@ -376,33 +387,87 @@ public class processSelect {
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
             HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            while (rightIterator.hasNext()){
-                Tuple t = getTuple(rightIterator,tableRight);
-                PrimitiveValue p = t.getAttributes().get(colRight);
-                if (leftCol.get(p.toRawString())!=null){
-                    for (String indexInfile: leftCol.get(p.toRawString())){
-                        if (tableLeft.getFile2Current().get(indexInfile)!=null){
-                            int index = tableLeft.getFile2Current().get(indexInfile);
-                            queryResult.add(t.joinTuple(tableLeft.getTupleList().get(index)));
+            HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            ArrayList<String> valInleft = new ArrayList<>();
+            for (Tuple t : tableLeft.getTupleList()) {
+                String val = t.getAttributes().get(colLeft).toRawString();
+                valInleft.add(val);
+            }
+            Set set = new HashSet();
+            set.addAll(valInleft);
+            valInleft.clear();
+            valInleft.addAll(set);
+            ArrayList<String> indexInright = new ArrayList<>();
+            for (String val : valInleft) {
+                indexInright.addAll(rightCol.get(val));
+            }
+            indexInright.sort(c);
+
+            int counter = 1;
+            int counterIndex = 0;
+            while (rightIterator.hasNext()) {
+                if (counterIndex < indexInright.size() && counter == Integer.valueOf(indexInright.get(counterIndex))) {
+                    Tuple t = getTuple(rightIterator, tableRight);
+                    PrimitiveValue p = t.getAttributes().get(colRight);
+                    if (leftCol.get(p.toRawString()) != null) {
+                        for (String indexInfile : leftCol.get(p.toRawString())) {
+                            if (tableLeft.getFile2Current().get(indexInfile) != null) {
+                                int index = tableLeft.getFile2Current().get(indexInfile);
+                                queryResult.add(t.joinTuple(tableLeft.getTupleList().get(index)));
+                            }
                         }
                     }
+                    counterIndex++;
+                    counter++;
+                } else if (counterIndex == indexInright.size()) {
+                    break;
+                } else {
+                    rightIterator.next();
+                    counter++;
                 }
             }
             tableLeft.setFile2Current(null);
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
+            HashMap<String, ArrayList<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
             HashMap<String, ArrayList<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
-            while (leftIterator.hasNext()){
-                Tuple t = getTuple(leftIterator,tableLeft);
-                PrimitiveValue p = t.getAttributes().get(colLeft);
-                if (rightCol.get(p.toRawString())!=null){
-                    for (String indexInfile: rightCol.get(p.toRawString())){
-                        if (tableRight.getFile2Current().get(indexInfile)!=null){
-                            int index = tableRight.getFile2Current().get(indexInfile);
-                            queryResult.add(t.joinTuple(tableRight.getTupleList().get(index)));
+            ArrayList<String> valInRight = new ArrayList<>();
+            for (Tuple t : tableRight.getTupleList()) {
+                String val = t.getAttributes().get(colRight).toRawString();
+                valInRight.add(val);
+            }
+            Set set = new HashSet();
+            set.addAll(valInRight);
+            valInRight.clear();
+            valInRight.addAll(set);
+            ArrayList<String> indexInLeft = new ArrayList<>();
+            for (String val : valInRight) {
+                indexInLeft.addAll(leftCol.get(val));
+            }
+            indexInLeft.sort(c);
+
+            int counter = 1;
+            int counterIndex = 0;
+            while (leftIterator.hasNext()) {
+                if (counterIndex < indexInLeft.size() && counter == Integer.valueOf(indexInLeft.get(counterIndex))) {
+                    Tuple t = getTuple(leftIterator, tableLeft);
+                    PrimitiveValue p = t.getAttributes().get(colLeft);
+                    if (rightCol.get(p.toRawString()) != null) {
+                        for (String indexInfile : rightCol.get(p.toRawString())) {
+                            if (tableRight.getFile2Current().get(indexInfile) != null) {
+                                int index = tableRight.getFile2Current().get(indexInfile);
+                                queryResult.add(t.joinTuple(tableRight.getTupleList().get(index)));
+                            }
                         }
                     }
+                    counterIndex++;
+                    counter++;
+                } else if (counterIndex == indexInLeft.size()) {
+                    break;
+                } else {
+                    leftIterator.next();
+                    counter++;
                 }
             }
             tableRight.setFile2Current(null);
@@ -851,9 +916,9 @@ public class processSelect {
                 }
             }
         }
-        HashMap<String,Integer> file2current = new HashMap<>();
-        for (int i = 0;i<tupleIndex.size();i++){
-            file2current.put(tupleIndex.get(i),i);
+        HashMap<String, Integer> file2current = new HashMap<>();
+        for (int i = 0; i < tupleIndex.size(); i++) {
+            file2current.put(tupleIndex.get(i), i);
         }
         tableObject.setFile2Current(file2current);
         return tupleIndex;
