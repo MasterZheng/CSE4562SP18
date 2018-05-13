@@ -22,6 +22,7 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
+    List<String> currentTuple = new ArrayList<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -379,13 +380,14 @@ public class TableObject {
     public void setIndexDat() throws Exception {
         HashMap<String, HashMap<String, String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
         List<Integer> attrIndex = new ArrayList<>();
-//        if (tableName.equals("LINEITEM")) {
-//            index.put("L_QUANTITY", new HashMap<>());
-//            index.put("L_DISCOUNT", new HashMap<>());
-//        }
-//        if (tableName.equals("PART")){
-//            index.put("P_SIZE", new HashMap<>());
-//        }
+        if (tableName.equals("LINEITEM")) {
+            index.put("L_QUANTITY", new HashMap<>());
+            index.put("L_DISCOUNT", new HashMap<>());
+            index.put("L_RETURNFLAG", new HashMap<>());
+        }
+        if (tableName.equals("PART")){
+            index.put("P_SIZE", new HashMap<>());
+        }
 
         for (int i = 0; i < primaryKey.size(); i++) {
             index.put(primaryKey.get(i).getColumnName(), new HashMap<>());
@@ -412,11 +414,10 @@ public class TableObject {
                     String attrVal = tuple[attrIndex.get(j)];
                     String originalList = colMap.put(attrVal,"");
                     if (originalList==null) {
-                        String list = Integer.toString(i);
-                        colMap.put(attrVal, list);
+                        colMap.put(attrVal, Integer.toString(i));
                     } else {
-                        String list = originalList + "," + Integer.toString(i);
-                        colMap.put(attrVal, list);
+                        StringBuilder a = new StringBuilder(originalList);
+                        colMap.put(attrVal, a.append(",").append(i).toString());
                     }
                 }
                 i++;

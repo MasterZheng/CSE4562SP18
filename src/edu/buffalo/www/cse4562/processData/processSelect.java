@@ -103,7 +103,6 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
-
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
                             ;
                             rightIterator = tableRight.getIterator();
