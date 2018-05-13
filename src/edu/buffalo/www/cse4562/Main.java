@@ -56,6 +56,7 @@ public class Main {
             while (stmt != null) {
                 if (stmt instanceof Select) {
                     Select select = (Select) stmt;
+                    logger.info(stmt.toString());
                     SelectBody body = select.getSelectBody();
                     SelectParser parser = new SelectParser(body);
                     RANode raTree = parser.SelectFunction(body,tableMap);

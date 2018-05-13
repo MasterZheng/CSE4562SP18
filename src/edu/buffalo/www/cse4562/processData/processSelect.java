@@ -137,6 +137,9 @@ public class processSelect {
                                 (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                            tableRight.settupleList(null);
+                            tableLeft.setFile2Current(null);
+                            tableRight.setFile2Current(null);
                         } else {
                             result.settupleList(new ArrayList<>());
                         }
@@ -399,7 +402,8 @@ public class processSelect {
             valInleft.addAll(set);
             ArrayList<String> indexInright = new ArrayList<>();
             for (String val : valInleft) {
-                indexInright.addAll(rightCol.get(val));
+                if (rightCol.get(val)!=null)
+                    indexInright.addAll(rightCol.get(val));
             }
             indexInright.sort(c);
 
