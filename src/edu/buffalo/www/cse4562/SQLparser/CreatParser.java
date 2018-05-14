@@ -47,11 +47,12 @@ public class CreatParser {
         logger.info(create.toString());
         File file = new File(tableObject.getFileDir());
         long length = file.length();
-        if (length>6000000){
-            int part = 6;
-            tableObject.setIndexTXTDivide(part);
-        }else {
+        if (length<6000000){
             tableObject.setBufferIndex();
+        }else if (length<15000000){
+            tableObject.setIndexTXTDivide(4);
+        }else {
+            tableObject.setIndexTXTDivide(8);
         }
 
         return true;
