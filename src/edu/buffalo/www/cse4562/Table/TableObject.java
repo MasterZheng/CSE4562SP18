@@ -497,6 +497,7 @@ public class TableObject {
             while ((lineTxt = br.readLine()) != null) {
                 String[] record = lineTxt.split("\\|");
                 String colVal = record[1].toUpperCase();
+                //String[] indseq = record[2].split(",");
                 String[] indseq = record[2].replace(" ", "").replace("[", "").replace("]", "").split(",");
                 ArrayList<String> list = new ArrayList<>(Arrays.asList(indseq));
                 index.put(colVal, list);

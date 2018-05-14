@@ -45,7 +45,6 @@ public class CreatParser {
         TableObject tableObject = new TableObject(create, table, tableName);
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
-        long startTime=System.currentTimeMillis();   //获取开始时间
         File file = new File(tableObject.getFileDir());
         long length = file.length();
         if (length>6000000){
@@ -59,9 +58,7 @@ public class CreatParser {
         }else {
             tableObject.setIndexTXT();
         }
-        long endTime=System.currentTimeMillis(); //获取结束时间
 
-        logger.info("running time： "+(endTime-startTime)+"ms");
         return true;
     }
 

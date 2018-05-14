@@ -73,7 +73,10 @@ public class processSelect {
                     if (left.getExpression() == null) {
                         leftIterator = parserLeft.iterator();
                     } else {
+                        long startTime=System.currentTimeMillis();   //获取开始时间
                         tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
+                        long endTime=System.currentTimeMillis();   //获取开始时间
+                        logger.info("left filter"+String.valueOf(endTime-startTime)+"ms");
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
                     }
@@ -103,7 +106,10 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
+                            long startTime=System.currentTimeMillis();   //获取开始时间
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
+                            long endTime=System.currentTimeMillis();   //获取开始时间
+                            logger.info("right filter"+String.valueOf(endTime-startTime)+"ms");
                             ;
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
@@ -127,7 +133,11 @@ public class processSelect {
                         if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
                                 (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
+                            long startTime=System.currentTimeMillis();   //获取开始时间
+
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                            long endTime=System.currentTimeMillis();   //获取开始时间
+                            logger.info("join filter"+String.valueOf(endTime-startTime)+"ms");
                             tableRight.settupleList(null);
                             tableLeft.setFile2Current(null);
                             tableRight.setFile2Current(null);
@@ -362,10 +372,26 @@ public class processSelect {
                 ArrayList<String> rightList = rightCol.get(p);
 
                 if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
-                    LeftList.retainAll(tableLeft.getCurrentTuple());
+                    //LeftList.retainAll(tableLeft.getCurrentTuple());
+                    Set leftSet = new HashSet();
+                    leftSet.addAll(LeftList);
+                    Set leftset = new HashSet();
+                    leftset.addAll(tableLeft.getCurrentTuple());
+                    leftSet.retainAll(leftset);
+                    LeftList.clear();
+                    LeftList.addAll(leftSet);
+                    LeftList.sort(c);
                 }
                 if (tableRight.getCurrentTuple() != null && tableRight.getCurrentTuple().size() != 0) {
-                    rightList.retainAll(tableRight.getCurrentTuple());
+                    //rightList.retainAll(tableRight.getCurrentTuple());
+                    Set leftSet = new HashSet();
+                    leftSet.addAll(rightList);
+                    Set leftset = new HashSet();
+                    leftset.addAll(tableRight.getCurrentTuple());
+                    leftSet.retainAll(leftset);
+                    rightList.clear();
+                    rightList.addAll(leftSet);
+                    rightList.sort(c);
                 }
 
                 if (rightList != null && rightList.size() != 0 && LeftList != null && LeftList.size() != 0) {
@@ -485,59 +511,32 @@ public class processSelect {
                 }
                 tableRight.settupleList(list);
             }
-            if (tableRight.getTupleList().size()>tableLeft.getTupleList().size()){
-                HashMap<String, ArrayList<Integer>> rightjoinHash = new HashMap<>();
-                for (int i = 0; i < tableRight.getTupleList().size(); i++) {
-                    String val = tableRight.getTupleList().get(i).getAttributes().get(colRight).toRawString();
-                    if (rightjoinHash.containsKey(val)) {
-                        rightjoinHash.get(val).add(i);
-                    } else {
-                        ArrayList<Integer> list = new ArrayList<>();
-                        list.add(i);
-                        rightjoinHash.put(val, list);
-                    }
-                }
-
-                for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-                    Tuple tleft = tableLeft.getTupleList().get(i);
-                    String key = tleft.getAttributes().get(colLeft).toRawString();
-                    List<Integer> rightCols = rightjoinHash.get(key);
-                    if (rightCols != null && rightCols.size() > 0) {
-                        for (int j = 0; j < rightCols.size(); j++) {
-                            queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
-//                            evaluate eva = new evaluate(tleft, tableRight.getTupleList().get(rightCols.get(j)), exp);
-//                            queryResult = eva.Eval(queryResult);
-                        }
-                    }
-                }
-            }else {
-                HashMap<String, ArrayList<Integer>> leftjoinHash = new HashMap<>();
-                for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-                    String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft).toRawString();
-                    if (leftjoinHash.containsKey(val)) {
-                        leftjoinHash.get(val).add(i);
-                    } else {
-                        ArrayList<Integer> list = new ArrayList<>();
-                        list.add(i);
-                        leftjoinHash.put(val, list);
-                    }
-                }
-
-                for (int i = 0; i < tableRight.getTupleList().size(); i++) {
-                    Tuple tright = tableRight.getTupleList().get(i);
-                    String key = tright.getAttributes().get(colRight).toRawString();
-                    List<Integer> leftCols = leftjoinHash.get(key);
-                    if (leftCols != null && leftCols.size() > 0) {
-                        for (int j = 0; j < leftCols.size(); j++) {
-//                            evaluate eva = new evaluate(tright, tableRight.getTupleList().get(leftCols.get(j)), exp);
-//                            queryResult = eva.Eval(queryResult);
-                            queryResult.add(tright.joinTuple(tableLeft.getTupleList().get(leftCols.get(j))));
-
-                        }
-                    }
+            //将exp的左右列与join的左右表匹配
+            
+            HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
+            for (int i = 0; i < tableRight.getTupleList().size(); i++) {
+                String val = tableRight.getTupleList().get(i).getAttributes().get(colRight).toRawString();
+                int hascode = val.hashCode();
+                if (rightjoinHash.containsKey(hascode)) {
+                    rightjoinHash.get(hascode).add(i);
+                } else {
+                    ArrayList<Integer> list = new ArrayList<>();
+                    list.add(i);
+                    rightjoinHash.put(hascode, list);
                 }
             }
 
+            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
+                Tuple tleft = tableLeft.getTupleList().get(i);
+                int key = tleft.getAttributes().get(colLeft).toRawString().hashCode();
+                List<Integer> rightCols = rightjoinHash.get(key);
+                if (rightCols != null && rightCols.size() > 0) {
+                    for (int j = 0; j < rightCols.size(); j++) {
+                        evaluate eva = new evaluate(tleft, tableRight.getTupleList().get(rightCols.get(j)), exp);
+                        queryResult = eva.Eval(queryResult);
+                    }
+                }
+            }
         }
         return queryResult;
     }
@@ -862,8 +861,14 @@ public class processSelect {
                     Expression rightExp = ((AndExpression) exp).getRightExpression();
                     List<String> leftIndex = getIndexList(tableObject, leftExp,false);
                     List<String> rightIndex = getIndexList(tableObject, rightExp,false);
-                    leftIndex.retainAll(rightIndex);
-                    tupleIndex = leftIndex;
+
+                    Set right = new HashSet();
+                    right.addAll(rightIndex);
+                    Set left = new HashSet();
+                    left.addAll(leftIndex);
+                    right.retainAll(left);
+                    tupleIndex.addAll(right);
+                    tupleIndex.sort(c);
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
