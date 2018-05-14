@@ -305,7 +305,7 @@ public class TableObject {
     public void setIndexTXTDivide(int part) throws Exception {
         //有划分，1列一文件
         for (int k =0;k<part;k++){
-            HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+            HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
             List<Integer> attrIndex = new ArrayList<>();
             for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
                 index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
@@ -326,9 +326,11 @@ public class TableObject {
                         String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
                         String attrVal = tuple[attrIndex.get(j)];
                         if (!index.get(colName).containsKey(attrVal)) {
-                            index.get(colName).put(attrVal,new StringBuilder(String.valueOf(i)));
+                            ArrayList<Integer> a = new ArrayList<>();
+                            a.add(i);
+                            index.get(colName).put(attrVal,a);
                         } else {
-                            index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
+                            index.get(colName).get(attrVal).add(i);
                         }
                     }
 
