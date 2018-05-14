@@ -3,6 +3,7 @@ package edu.buffalo.www.cse4562.Table;
 import edu.buffalo.www.cse4562.RA.RANode;
 import edu.buffalo.www.cse4562.RA.RATable;
 import net.sf.jsqlparser.schema.Column;
+
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -647,7 +648,8 @@ public class TableObject {
     public void print() {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
+            iterator.next().printTuple(this.columnDefinitions, (List<edu.buffalo.www.cse4562.Table.Column>)(List) this.columnInfo);
+            //iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
         }
     }
 

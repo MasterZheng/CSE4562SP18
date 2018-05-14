@@ -2,7 +2,7 @@ package edu.buffalo.www.cse4562.Table;
 
 
 import net.sf.jsqlparser.expression.*;
-import net.sf.jsqlparser.schema.Column;
+//mport net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;

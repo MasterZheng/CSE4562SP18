@@ -6,7 +6,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.select.FromItem;
 
-import java.util.List;
 
 public class RAJoin extends RANode {
     private String operation = "JOIN";

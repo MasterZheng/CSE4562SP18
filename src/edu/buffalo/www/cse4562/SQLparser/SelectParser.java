@@ -6,6 +6,7 @@ import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Column;
+
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
@@ -27,7 +28,7 @@ public class SelectParser {
     private Distinct dist;
     private Limit lim;
     private FromItem fromItem;
-    private List<Column> groupByColumnReference;
+    private List<net.sf.jsqlparser.schema.Column> groupByColumnReference;
 
     public SelectParser(SelectBody selectBody){
 

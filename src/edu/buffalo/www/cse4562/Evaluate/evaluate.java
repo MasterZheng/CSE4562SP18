@@ -1,9 +1,9 @@
 package edu.buffalo.www.cse4562.Evaluate;
 
+//import edu.buffalo.www.cse4562.Table.Column;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.eval.Eval;
 import net.sf.jsqlparser.expression.*;
-
 import net.sf.jsqlparser.schema.Column;
 
 import java.sql.SQLException;
@@ -33,19 +33,19 @@ public class evaluate extends Eval {
         this.selectList = list;
     }
     @Override
-    public PrimitiveValue eval(Column column) throws SQLException {
+    public PrimitiveValue eval(net.sf.jsqlparser.schema.Column column) throws SQLException {
         String colTable = column.getTable().getName();
         if (colTable != null) {
             if (tupleLeft.getTableName().contains(colTable) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(column);
+                return tupleLeft.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
             } else {
-                return tupleRight.getAttributes().get(column);
+                return tupleRight.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
             }
         } else {
-            if (tupleLeft.getAttributes().containsKey(column) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(column);
+            if (tupleLeft.getAttributes().containsKey(new edu.buffalo.www.cse4562.Table.Column(column)) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
             } else {
-                return tupleRight.getAttributes().get(column);
+                return tupleRight.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
             }
         }
     }

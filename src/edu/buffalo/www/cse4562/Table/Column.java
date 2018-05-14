@@ -1,19 +1,42 @@
+/* ================================================================
+ * JSQLParser : java based sql parser 
+ * ================================================================
+ *
+ * Project Info:  http://jsqlparser.sourceforge.net
+ * Project Lead:  Leonardo Francalanci (leoonardoo@yahoo.it);
+ *
+ * (C) Copyright 2004, by Leonardo Francalanci
+ *
+ * This library is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU Lesser General Public License as published by the Free Software Foundation;
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with this
+ * library; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, MA 02111-1307, USA.
+ */
+
+
 package edu.buffalo.www.cse4562.Table;
-
-
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.schema.Table;
 
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.ExpressionVisitor;
-
-import java.io.Serializable;
-
-public class Column extends net.sf.jsqlparser.schema.Column implements Expression,Serializable{
+/**
+ * A column. It can have the table name it belongs to. 
+ */
+public class Column extends net.sf.jsqlparser.schema.Column implements Expression {
     private String columnName = "";
     private Table table;
 
+    public Column(net.sf.jsqlparser.schema.Column c){
+        this.columnName = c.getColumnName();
+        this.table = c.getTable();
+    }
     public Column() {
     }
 
@@ -23,44 +46,60 @@ public class Column extends net.sf.jsqlparser.schema.Column implements Expressio
     }
 
     public String getColumnName() {
-        return this.columnName;
+        return columnName;
     }
 
     public Table getTable() {
-        return this.table;
+        return table;
     }
 
     public void setColumnName(String string) {
-        this.columnName = string;
+        columnName = string;
     }
 
     public void setTable(Table table) {
         this.table = table;
     }
 
+    /**
+     * @return the name of the column, prefixed with 'tableName' and '.'
+     */
     public String getWholeColumnName() {
+
         String columnWholeName = null;
-        String tableWholeName = this.table.getWholeTableName();
+        String tableWholeName = table.getWholeTableName();
+
         if (tableWholeName != null && tableWholeName.length() != 0) {
-            columnWholeName = tableWholeName + "." + this.columnName;
+            columnWholeName = tableWholeName + "." + columnName;
         } else {
-            columnWholeName = this.columnName;
+            columnWholeName = columnName;
         }
 
         return columnWholeName;
+
     }
 
-    public void accept(ExpressionVisitor expressionVisitor) {
+    public void accept(ExpressionVisitor expressionVisitor)
+    {
         expressionVisitor.visit(this);
     }
 
     public String toString() {
-        return this.getWholeColumnName();
+        return getWholeColumnName();
     }
 
-    public int hashCode() {
-        return this.columnName.hashCode();
+    public int hashCode()
+    {
+        return columnName.hashCode();
     }
 
+    public boolean equals(Object o)
+    {
+        if(!(o instanceof Column)){ return false; }
+        Column other = (Column)o;
+        if(!columnName.equalsIgnoreCase(other.columnName)){ return false; }
+        if(table == null || other.table == null){ return true; }
+        if(table.getName() == null || other.table.getName() == null){ return true; }
+        return table.getName().equalsIgnoreCase(other.table.getName());
+    }
 }
-

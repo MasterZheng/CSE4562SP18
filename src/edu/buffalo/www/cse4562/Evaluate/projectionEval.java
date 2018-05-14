@@ -7,6 +7,7 @@ import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
+
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
@@ -84,7 +85,7 @@ public class projectionEval {
         return result;
     }
 
-    public List<Column> usefulCol(Expression where, List<OrderByElement> orderBy, List<Column> groupByColumnReference, List<TableObject> involvedTables) {
+    public List<Column> usefulCol(Expression where, List<OrderByElement> orderBy, List<net.sf.jsqlparser.schema.Column> groupByColumnReference, List<TableObject> involvedTables) {
         //find the useful columns in selectItems and where
         List<Column> result = new ArrayList<>();
         //process projection
@@ -106,7 +107,7 @@ public class projectionEval {
 
         //process groupBy
         if (groupByColumnReference != null) {
-            result.addAll(groupByColumnReference);
+            result.addAll((List<Column>)(List)groupByColumnReference);
         }
         //eliminate duplicate
         //convert List to set to remove the duplicate elements

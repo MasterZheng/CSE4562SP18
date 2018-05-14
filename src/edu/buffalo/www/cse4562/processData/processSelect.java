@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -14,6 +13,7 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
+
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -418,7 +418,7 @@ public class processSelect {
             HashMap<String, List<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInleft = new ArrayList<>();
             for (Tuple t : tableLeft.getTupleList()) {
-                valInleft.add(t.getAttributes().get(colLeft).toRawString());
+                valInleft.add(t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colLeft)).toRawString());
             }
             Set set = new HashSet();
             set.addAll(valInleft);
@@ -438,7 +438,7 @@ public class processSelect {
             while (rightIterator.hasNext()) {
                 if (counterIndex < indexInright.size() && counter == Integer.valueOf(indexInright.get(counterIndex))) {
                     Tuple t = getTuple(rightIterator, tableRight);
-                    PrimitiveValue p = t.getAttributes().get(colRight);
+                    PrimitiveValue p = t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colRight));
                     if (leftCol.get(p.toRawString()) != null) {
                         for (String indexInfile : leftCol.get(p.toRawString())) {
                             if (tableLeft.getFile2Current().get(indexInfile) != null) {
@@ -469,7 +469,7 @@ public class processSelect {
             HashMap<String, List<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInRight = new ArrayList<>();
             for (Tuple t : tableRight.getTupleList()) {
-                String val = t.getAttributes().get(colRight).toRawString();
+                String val = t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colRight)).toRawString();
                 valInRight.add(val);
             }
             Set set = new HashSet();
@@ -487,7 +487,7 @@ public class processSelect {
             while (leftIterator.hasNext()) {
                 if (counterIndex < indexInLeft.size() && counter == Integer.valueOf(indexInLeft.get(counterIndex))) {
                     Tuple t = getTuple(leftIterator, tableLeft);
-                    PrimitiveValue p = t.getAttributes().get(colLeft);
+                    PrimitiveValue p = t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colLeft));
                     if (rightCol.get(p.toRawString()) != null) {
                         for (String indexInfile : rightCol.get(p.toRawString())) {
                             if (tableRight.getFile2Current().get(indexInfile) != null) {
@@ -532,7 +532,7 @@ public class processSelect {
             
             HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
             for (int i = 0; i < tableRight.getTupleList().size(); i++) {
-                String val = tableRight.getTupleList().get(i).getAttributes().get(colRight).toRawString();
+                String val = tableRight.getTupleList().get(i).getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colRight)).toRawString();
                 int hascode = val.hashCode();
                 if (rightjoinHash.containsKey(hascode)) {
                     rightjoinHash.get(hascode).add(i);
@@ -545,7 +545,7 @@ public class processSelect {
 
             for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
                 Tuple tleft = tableLeft.getTupleList().get(i);
-                int key = tleft.getAttributes().get(colLeft).toRawString().hashCode();
+                int key = tleft.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(colLeft)).toRawString().hashCode();
                 List<Integer> rightCols = rightjoinHash.get(key);
                 if (rightCols != null && rightCols.size() > 0) {
                     for (int j = 0; j < rightCols.size(); j++) {

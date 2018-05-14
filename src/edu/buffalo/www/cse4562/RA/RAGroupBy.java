@@ -5,6 +5,7 @@ import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
+
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
@@ -17,7 +18,7 @@ public class RAGroupBy extends RANode {
     private String operation = "GROUPBY";
     private List<Function> aggSelect = new ArrayList<>();
 
-    public RAGroupBy(List<Column> groupByReferences, List<SelectItem> selectItems) {
+    public RAGroupBy(List<net.sf.jsqlparser.schema.Column> groupByReferences, List<SelectItem> selectItems) {
         for (SelectItem item : selectItems) {
             Expression exp = ((SelectExpressionItem) item).getExpression();
             if (exp instanceof Function) {
@@ -25,7 +26,7 @@ public class RAGroupBy extends RANode {
             }
         }
 
-        this.groupByReferences = groupByReferences;
+        this.groupByReferences = (List<Column>)(List) groupByReferences;
     }
 
 
@@ -41,7 +42,7 @@ public class RAGroupBy extends RANode {
             String hashCode = "";
             int key = 0;
             for (int j = 0;j<groupByReferences.size();j++){
-                hashCode+=t.getAttributes().get(groupByReferences.get(j)).toRawString();
+                hashCode+=t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(groupByReferences.get(j))).toRawString();
                 key = hashCode.hashCode();
             }
             if (hashMap.containsKey(key)){

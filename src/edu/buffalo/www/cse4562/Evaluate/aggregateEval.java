@@ -3,7 +3,6 @@ package edu.buffalo.www.cse4562.Evaluate;
 import edu.buffalo.www.cse4562.Table.Tuple;
 import net.sf.jsqlparser.expression.*;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.logging.Logger;
 

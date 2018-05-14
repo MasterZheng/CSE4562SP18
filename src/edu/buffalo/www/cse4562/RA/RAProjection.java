@@ -174,7 +174,7 @@ public class RAProjection extends RANode {
                     evaluate eval = new evaluate(tupleList.get(i));
                     attributes.put(columnInfo.get(j), eval.eval(e));
                 } else if (columnList.get(j) instanceof Column) {
-                    attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(columnList.get(j)));
+                    attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(new edu.buffalo.www.cse4562.Table.Column((Column) columnList.get(j))));
                 } else if (columnList.get(j) instanceof Function) {
                     if (funcVals!=null){
                         //有groupby，执行sum等操作时，值已经事先求好
@@ -191,7 +191,8 @@ public class RAProjection extends RANode {
                     }
                 }
             }
-            newTuple.setAttributes(attributes);
+            newTuple.setAttributes((HashMap<edu.buffalo.www.cse4562.Table.Column,PrimitiveValue>)(HashMap)attributes);
+            //ewTuple.setAttributes(attributes);
             newTupleList.add(newTuple);
         }
         //}
