@@ -20,8 +20,8 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
-    private List<String> currentTuple = null;
-    private HashMap<String,Integer> file2Current = new HashMap<>();
+    private List<Integer> currentTuple = null;
+    private HashMap<Integer,Integer> file2Current = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -137,19 +137,19 @@ public class TableObject {
         this.columnInfo = columnInfo;
     }
 
-    public List<String> getCurrentTuple() {
+    public List<Integer> getCurrentTuple() {
         return currentTuple;
     }
 
-    public void setCurrentTuple(List<String> currentTuple) {
+    public void setCurrentTuple(List<Integer> currentTuple) {
         this.currentTuple = currentTuple;
     }
 
-    public HashMap<String, Integer> getFile2Current() {
+    public HashMap<Integer, Integer> getFile2Current() {
         return file2Current;
     }
 
-    public void setFile2Current(HashMap<String, Integer> file2Current) {
+    public void setFile2Current(HashMap<Integer, Integer> file2Current) {
         this.file2Current = file2Current;
     }
 
@@ -486,7 +486,7 @@ public class TableObject {
 
     }
 
-    public HashMap<String, ArrayList<String>> getIndex(String ColName) {
+    public HashMap<String, ArrayList<String>> getIndex1(String ColName) {
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
         HashMap<String, ArrayList<String>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
 
@@ -510,6 +510,55 @@ public class TableObject {
         return index;
     }
 
+    public void setBufferIndex() throws Exception {
+        //无划分，一列一文件
+        HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+        for (int i = 0; i < columnInfo.size(); i++) {
+            index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
+        }
+
+        int i = 1;
+        FileReader fs = new FileReader(fileDir);
+        BufferedReader br = new BufferedReader(fs);
+        String line;
+        if (index.size() != 0) {
+            while((line = br.readLine()) != null){
+                String[] tuple = line.split("\\|");
+                for (int j = 0; j < columnInfo.size(); j++) {
+                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                    String colName = columnInfo.get(j).getColumnName();
+                    String attrVal = tuple[j];
+                    if (!index.get(colName).containsKey(attrVal)) {
+                        ArrayList<Integer> a = new ArrayList<>();
+                        a.add(i);
+                        index.get(colName).put(attrVal,a);
+                    } else {
+                        index.get(colName).get(attrVal).add(i);
+                    }
+                }
+
+                i++;
+            }
+        }
+        for (String colName :index.keySet()){
+            File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileOutputStream outputStream = new FileOutputStream(file);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(index.get(colName));
+            objectOutputStream.close();
+        }
+
+    }
+
+    public HashMap<String, ArrayList<Integer>> getIndex(String ColName) throws Exception{
+        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
+        FileInputStream inputStream = new FileInputStream(new File(FILE_NAME));//创建文件字节输出流对象
+        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+        return (HashMap<String, ArrayList<Integer>>)objectInputStream.readObject();
+    }
     public void print() {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {

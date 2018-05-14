@@ -56,7 +56,8 @@ public class CreatParser {
 //            }
             tableObject.setIndexTXTDivide(part);
         }else {
-            tableObject.setIndexTXT();
+            //tableObject.setIndexTXT();
+            tableObject.setBufferIndex();
         }
 
         return true;
