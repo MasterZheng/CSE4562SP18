@@ -49,12 +49,8 @@ public class CreatParser {
         long length = file.length();
         if (length<6000000){
             tableObject.setBufferIndex();
-        }else if (length<15000000){
-            tableObject.setIndexTXTDivide(4);
-        }else {
+        }else
             tableObject.setIndexTXTDivide(8);
-        }
-
         return true;
     }
 

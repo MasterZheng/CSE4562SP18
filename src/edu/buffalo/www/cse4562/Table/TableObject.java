@@ -310,6 +310,9 @@ public class TableObject {
             for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
                 index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
             }
+            if (index.size()==0){
+                continue;
+            }
             for (int i = 0; i < columnInfo.size(); i++) {
                 if (index.containsKey(columnInfo.get(i).getColumnName()))
                     attrIndex.add(i);
