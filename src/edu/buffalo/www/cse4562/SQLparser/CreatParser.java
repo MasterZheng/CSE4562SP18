@@ -56,7 +56,7 @@ public class CreatParser {
         }else if (length<12000000){
             tableObject.setIndexTXTDivide(4);
         }else{
-            tableObject.setIndexTXTDivide(6);
+            tableObject.setIndexTXTDivide(7);
         }
         long end = System.currentTimeMillis();
         logger.info("Create "+(end-start)+" ms");
