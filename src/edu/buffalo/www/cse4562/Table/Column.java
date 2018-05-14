@@ -26,10 +26,12 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.schema.Table;
 
+import java.io.Serializable;
+
 /**
  * A column. It can have the table name it belongs to. 
  */
-public class Column extends net.sf.jsqlparser.schema.Column implements Expression {
+public class Column extends net.sf.jsqlparser.schema.Column implements Serializable{
     private String columnName = "";
     private Table table;
 
@@ -37,8 +39,7 @@ public class Column extends net.sf.jsqlparser.schema.Column implements Expressio
         this.columnName = c.getColumnName();
         this.table = c.getTable();
     }
-    public Column() {
-    }
+
 
     public Column(Table table, String columnName) {
         this.table = table;
@@ -79,10 +80,10 @@ public class Column extends net.sf.jsqlparser.schema.Column implements Expressio
 
     }
 
-    public void accept(ExpressionVisitor expressionVisitor)
-    {
-        expressionVisitor.visit(this);
-    }
+//    public void accept(ExpressionVisitor expressionVisitor)
+//    {
+//        expressionVisitor.visit(this);
+//    }
 
     public String toString() {
         return getWholeColumnName();
@@ -93,13 +94,4 @@ public class Column extends net.sf.jsqlparser.schema.Column implements Expressio
         return columnName.hashCode();
     }
 
-    public boolean equals(Object o)
-    {
-        if(!(o instanceof Column)){ return false; }
-        Column other = (Column)o;
-        if(!columnName.equalsIgnoreCase(other.columnName)){ return false; }
-        if(table == null || other.table == null){ return true; }
-        if(table.getName() == null || other.table.getName() == null){ return true; }
-        return table.getName().equalsIgnoreCase(other.table.getName());
-    }
 }

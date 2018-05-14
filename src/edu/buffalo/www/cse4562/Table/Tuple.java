@@ -2,7 +2,7 @@ package edu.buffalo.www.cse4562.Table;
 
 
 import net.sf.jsqlparser.expression.*;
-//mport net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class Tuple implements Serializable{
     static  Logger logger = Logger.getLogger(Tuple.class.getName());
 
-    private HashMap< Column, PrimitiveValue> attributes = new HashMap<>();
+    private HashMap< String, PrimitiveValue> attributes = new HashMap<>();
     private ArrayList<String> tableName = new ArrayList<>();
 
     public Tuple() {
@@ -37,30 +37,30 @@ public class Tuple implements Serializable{
             for (int j = 0;j<tableObject.getColumnDefinitions().size();j++) {
                 ColumnDefinition c = tableObject.getColumnDefinitions().get(j);
                 if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(i++)));
+                    attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(i++)));
                 } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(i++)));
+                    attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(i++)));
                 } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(i++)));
+                    attributes.put(c.getColumnName().toUpperCase(), new DoubleValue(record.get(i++)));
                 } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(i++)));
+                    attributes.put(c.getColumnName().toUpperCase(), new DateValue(record.get(i++)));
                 } else {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
+                    attributes.put(c.getColumnName().toUpperCase(), new NullValue());
                 }
             }
         }else {
             for (int j = 0;j<mapRelations.size();j++){
                 ColumnDefinition c = tableObject.getColumnDefinitions().get(j);
                 if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new LongValue(record.get(mapRelations.get(j))));
+                    attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(mapRelations.get(j))));
                 } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new StringValue(record.get(mapRelations.get(j))));
+                    attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(mapRelations.get(j))));
                 } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DoubleValue(record.get(mapRelations.get(j))));
+                    attributes.put(c.getColumnName().toUpperCase(), new DoubleValue(record.get(mapRelations.get(j))));
                 } else if (c.getColDataType().toString().toUpperCase().equals("DATE")) {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new DateValue(record.get(mapRelations.get(j))));
+                    attributes.put(c.getColumnName().toUpperCase(), new DateValue(record.get(mapRelations.get(j))));
                 } else {
-                    attributes.put(new Column(table, c.getColumnName().toUpperCase()), new NullValue());
+                    attributes.put(c.getColumnName().toUpperCase(), new NullValue());
                 }
             }
         }
@@ -69,7 +69,7 @@ public class Tuple implements Serializable{
 
     public Tuple joinTuple(Tuple right) {
         Tuple newTuple = new Tuple();
-        HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+        HashMap<String, PrimitiveValue> attributes = new HashMap<>();
         attributes.putAll(this.getAttributes());
         attributes.putAll(right.getAttributes());
         newTuple.setTableName(this.getTableName());
@@ -78,11 +78,11 @@ public class Tuple implements Serializable{
         return newTuple;
     }
 
-    public HashMap<Column, PrimitiveValue> getAttributes() {
+    public HashMap<String, PrimitiveValue> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(HashMap<Column, PrimitiveValue> attributes) {
+    public void setAttributes(HashMap<String, PrimitiveValue> attributes) {
         this.attributes = attributes;
     }
 
@@ -103,7 +103,7 @@ public class Tuple implements Serializable{
         String row = "";
 
         for (int i = 0; i < colInfo.size(); i++) {
-            row += attributes.get(colInfo.get(i));
+            row += attributes.get(colInfo.get(i).getColumnName());
             if (colInfo.size() != 1 && i < colInfo.size() - 1) {
                 row += "|";
             }

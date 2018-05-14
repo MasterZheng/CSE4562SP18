@@ -20,8 +20,8 @@ public class TupleComparator implements Comparator<Tuple> {
 
         for (OrderByElement element : orderByElements) {
             Column column = ((Column) element.getExpression());
-            PrimitiveValue leftValue = left.getAttributes().get(column);
-            PrimitiveValue rightValue = right.getAttributes().get(column);
+            PrimitiveValue leftValue = left.getAttributes().get(column.getColumnName());
+            PrimitiveValue rightValue = right.getAttributes().get(column.getColumnName());
 
             try {
                 if (leftValue instanceof LongValue) {

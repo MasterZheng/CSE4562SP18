@@ -11,7 +11,6 @@ public class test {
     public static void main(String[] args) throws Exception {
 
         Column a =  new Column(new Table(),"123");
-        edu.buffalo.www.cse4562.Table.Column B = (edu.buffalo.www.cse4562.Table.Column)a;
         int i =1;
 //        Tuple a = new Tuple();
 //        a.getAttributes().put(new Column(null,"123"), new DoubleValue(1));

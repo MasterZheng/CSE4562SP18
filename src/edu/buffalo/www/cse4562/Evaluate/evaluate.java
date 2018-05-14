@@ -37,15 +37,15 @@ public class evaluate extends Eval {
         String colTable = column.getTable().getName();
         if (colTable != null) {
             if (tupleLeft.getTableName().contains(colTable) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
+                return tupleLeft.getAttributes().get(column.getColumnName());
             } else {
-                return tupleRight.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
+                return tupleRight.getAttributes().get(column.getColumnName());
             }
         } else {
-            if (tupleLeft.getAttributes().containsKey(new edu.buffalo.www.cse4562.Table.Column(column)) || tupleRight == null) {
-                return tupleLeft.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
+            if (tupleLeft.getAttributes().containsKey(column.getColumnName()) || tupleRight == null) {
+                return tupleLeft.getAttributes().get(column.getColumnName());
             } else {
-                return tupleRight.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(column));
+                return tupleRight.getAttributes().get(column.getColumnName());
             }
         }
     }

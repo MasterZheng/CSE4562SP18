@@ -42,7 +42,7 @@ public class RAGroupBy extends RANode {
             String hashCode = "";
             int key = 0;
             for (int j = 0;j<groupByReferences.size();j++){
-                hashCode+=t.getAttributes().get(new edu.buffalo.www.cse4562.Table.Column(groupByReferences.get(j))).toRawString();
+                hashCode+=t.getAttributes().get(groupByReferences.get(j).getColumnName()).toRawString();
                 key = hashCode.hashCode();
             }
             if (hashMap.containsKey(key)){

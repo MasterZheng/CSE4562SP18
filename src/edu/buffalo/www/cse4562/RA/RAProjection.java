@@ -166,33 +166,33 @@ public class RAProjection extends RANode {
 //        }else {
         for (int i = 0; i < tupleList.size(); i++) {
             Tuple newTuple = new Tuple();
-            HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+            HashMap<String, PrimitiveValue> attributes = new HashMap<>();
             int index = 0;
             for (int j = 0; j < columnList.size(); j++) {
                 if (columnList.get(j) == null) {
                     Expression e = ((SelectExpressionItem) selectItem.get(j)).getExpression();
                     evaluate eval = new evaluate(tupleList.get(i));
-                    attributes.put(columnInfo.get(j), eval.eval(e));
+                    attributes.put(columnInfo.get(j).getColumnName(), eval.eval(e));
                 } else if (columnList.get(j) instanceof Column) {
-                    attributes.put(columnInfo.get(j), tupleList.get(i).getAttributes().get(new edu.buffalo.www.cse4562.Table.Column((Column) columnList.get(j))));
+                    attributes.put(columnInfo.get(j).getColumnName(), tupleList.get(i).getAttributes().get(((Column) (columnList.get(j))).getColumnName()));
                 } else if (columnList.get(j) instanceof Function) {
                     if (funcVals!=null){
                         //有groupby，执行sum等操作时，值已经事先求好
-                        attributes.put(columnInfo.get(j), funcVals.get(index++));
+                        attributes.put(columnInfo.get(j).getColumnName(), funcVals.get(index++));
                     }else {
                         //当无groupby 但有sum等操作时
                         List<Function> functions = new ArrayList<>();
                         functions.add((Function) columnList.get(j));
                         aggregateEval aggEval = new aggregateEval(tupleList, functions);
                         funcVals = aggEval.eval();
-                        attributes.put(columnInfo.get(j), funcVals.get(0));
+                        attributes.put(columnInfo.get(j).getColumnName(), funcVals.get(0));
                         //todo 强制退出外圈循环，临时办法，待修改
                         tupleList.clear();
                     }
                 }
             }
-            newTuple.setAttributes((HashMap<edu.buffalo.www.cse4562.Table.Column,PrimitiveValue>)(HashMap)attributes);
-            //ewTuple.setAttributes(attributes);
+            //newTuple.setAttributes((HashMap<edu.buffalo.www.cse4562.Table.Column,PrimitiveValue>)(HashMap)attributes);
+            newTuple.setAttributes(attributes);
             newTupleList.add(newTuple);
         }
         //}

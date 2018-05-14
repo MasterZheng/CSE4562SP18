@@ -648,7 +648,7 @@ public class TableObject {
     public void print() {
         Iterator<Tuple> iterator = this.getIterator();
         while (iterator.hasNext()) {
-            iterator.next().printTuple(this.columnDefinitions, (List<edu.buffalo.www.cse4562.Table.Column>)(List) this.columnInfo);
+            iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
             //iterator.next().printTuple(this.columnDefinitions, this.columnInfo);
         }
     }
