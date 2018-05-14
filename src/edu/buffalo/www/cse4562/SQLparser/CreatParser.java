@@ -46,11 +46,17 @@ public class CreatParser {
         tableMap.put(tableName, tableObject);
         logger.info(create.toString());
         File file = new File(tableObject.getFileDir());
+        long start = System.currentTimeMillis();
         long length = file.length();
-        if (length<6000000){
+        if (length<10000000){
+            //tableObject.setIndexTXTDivide(6);
             tableObject.setBufferIndex();
-        }else
-            tableObject.setIndexTXTDivide(8);
+        }else {
+            tableObject.setIndexTXTDivide(6);
+        }
+        long end = System.currentTimeMillis();
+        logger.info("Create "+(end-start)+" ms");
+
         return true;
     }
 

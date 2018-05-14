@@ -15,6 +15,7 @@ import java.util.List;
 public class test {
     public static void main(String[] args)throws Exception{
         FileReader fs = new FileReader("data/LINEITEM_TEST.dat");
+        String a = "abc";
 
     }
 }

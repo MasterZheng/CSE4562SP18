@@ -362,11 +362,11 @@ public class processSelect {
 
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-            HashMap<String, ArrayList<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, ArrayList<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             for (String p : leftCol.keySet()) {
-                ArrayList<Integer> LeftList = leftCol.get(p);
-                ArrayList<Integer> rightList = rightCol.get(p);
+                List<Integer> LeftList = leftCol.get(p);
+                List<Integer> rightList = rightCol.get(p);
 
                 if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
                     //LeftList.retainAll(tableLeft.getCurrentTuple());
@@ -403,8 +403,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-            HashMap<String, ArrayList<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, ArrayList<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInleft = new ArrayList<>();
             for (Tuple t : tableLeft.getTupleList()) {
                 valInleft.add(t.getAttributes().get(colLeft).toRawString());
@@ -449,8 +449,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
-            HashMap<String, ArrayList<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, ArrayList<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInRight = new ArrayList<>();
             for (Tuple t : tableRight.getTupleList()) {
                 String val = t.getAttributes().get(colRight).toRawString();
@@ -538,7 +538,7 @@ public class processSelect {
         return queryResult;
     }
 
-    private static List<Tuple> indexHashJoin(Tuple tuple, ArrayList<Integer> leftCol, ArrayList<Integer> rightCol,
+    private static List<Tuple> indexHashJoin(Tuple tuple, List<Integer> leftCol, List<Integer> rightCol,
                                              Iterator leftIterator, Iterator rightIterator,
                                              TableObject tableLeft, TableObject tableRight) {
         List<Tuple> result = new ArrayList<>();
@@ -546,7 +546,7 @@ public class processSelect {
             if (leftCol == null && rightCol == null) {
                 return result;
             }
-            ArrayList<Integer> colList = leftCol != null ? leftCol : rightCol;
+            List<Integer> colList = leftCol != null ? leftCol : rightCol;
             if (colList.size() == 0)
                 return result;
             Iterator iterator = leftIterator != null ? leftIterator : rightIterator;
@@ -821,7 +821,7 @@ public class processSelect {
                 }
             }
             //HashMap<String, ArrayList<String>> map = tableObject.getIndex().get(colName);
-            HashMap<String, ArrayList<Integer>> map = tableObject.getIndex(colName);
+            HashMap<String, List<Integer>> map = tableObject.getIndex(colName);
 
             switch (operator) {
                 case "colName<colVal":

@@ -11,6 +11,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -305,7 +306,7 @@ public class TableObject {
     public void setIndexTXTDivide(int part) throws Exception {
         //有划分，1列一文件
         for (int k =0;k<part;k++){
-            HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+            HashMap<String, HashMap<String, List<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
             List<Integer> attrIndex = new ArrayList<>();
             for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
                 index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
@@ -334,6 +335,7 @@ public class TableObject {
                             index.get(colName).put(attrVal,a);
                         } else {
                             index.get(colName).get(attrVal).add(i);
+                            //index.get(colName).put(attrVal,index.get(colName).get(attrVal).concat(",").concat(String.valueOf(i)));
                         }
                     }
 
@@ -555,11 +557,11 @@ public class TableObject {
 
     }
 
-    public HashMap<String, ArrayList<Integer>> getIndex(String ColName) throws Exception{
+    public HashMap<String, List<Integer>> getIndex(String ColName) throws Exception{
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
         FileInputStream inputStream = new FileInputStream(new File(FILE_NAME));//创建文件字节输出流对象
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        return (HashMap<String, ArrayList<Integer>>)objectInputStream.readObject();
+        return (HashMap<String, List<Integer>>)objectInputStream.readObject();
     }
     public void print() {
         Iterator<Tuple> iterator = this.getIterator();
