@@ -11,7 +11,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -26,7 +25,7 @@ public class TableObject {
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
-
+    private List<String> IndexFileName = new ArrayList<>();
     //when the table is a query result, it is necessary to record the table info about the column
 
 
@@ -274,6 +273,26 @@ public class TableObject {
         }
     }
 
+    public List<String> getIndexFileName() {
+        return IndexFileName;
+    }
+
+    public void setIndexFileName(String indexFile) {
+        this.IndexFileName.add(indexFile);
+    }
+    public void setIndexFileName(List<String> indexFile) {
+        this.IndexFileName.addAll(indexFile);
+    }
+
+    public void getIndexTuple()throws Exception{
+        tupleList = new ArrayList<>();
+        for (String fileName:IndexFileName){
+            FileInputStream inputStream = new FileInputStream(fileName);
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            List<Tuple> temp = (List<Tuple>)objectInputStream.readObject();
+            tupleList.addAll (temp);
+        }
+    }
     public HashMap<String, HashMap<String, ArrayList<String>>> getIndex1() {
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + ".csv";
         final String[] FILE_HEADER = {"Column", "Value", "Index"};

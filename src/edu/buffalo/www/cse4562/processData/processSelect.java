@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.processData;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -21,7 +22,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -29,7 +30,7 @@ public class processSelect {
 
     static Logger logger = Logger.getLogger(processSelect.class.getName());
     private static int BLOCKSIZE = 10000;
-
+    private static int FLUSHSIZE = 1;
     private static CSVFormat formator = CSVFormat.DEFAULT.withDelimiter('|');
 
     public static TableObject SelectData(RANode raTree, HashMap<String, TableObject> tableMap, String tableName) throws Exception {
@@ -79,6 +80,7 @@ public class processSelect {
                         logger.info("left filter"+String.valueOf(endTime-startTime)+"ms");
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
+//                        tableLeft.getTupleList().clear();
                     }
                     involvedTables.add(tableLeft);
                 } else if (left.getOperation().equals("JOIN")) {
@@ -106,13 +108,11 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
-                            long startTime=System.currentTimeMillis();   //获取开始时间
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-                            long endTime=System.currentTimeMillis();   //获取开始时间
-                            logger.info("right filter"+String.valueOf(endTime-startTime)+"ms");
                             ;
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
+//                            tableRight.getTupleList().clear();
                         }
                         involvedTables.add(tableRight);
                     } else {
@@ -133,11 +133,18 @@ public class processSelect {
                         if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
                                 (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
-                            long startTime=System.currentTimeMillis();   //获取开始时间
-
+//                            if (tableLeft.getIndexFileName().size()!=0){
+//                                tableLeft.getIndexTuple();
+//                                tableLeft.getIndexFileName().clear();
+//                            }
+//                            if (tableRight.getIndexFileName().size()!=0){
+//                                tableRight.getIndexTuple();
+//                                tableRight.getIndexFileName().clear();
+//                            }
+//                            rightIterator = tableLeft.getIterator();
+//                            leftIterator = tableLeft.getIterator();
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
-                            long endTime=System.currentTimeMillis();   //获取开始时间
-                            logger.info("join filter"+String.valueOf(endTime-startTime)+"ms");
+                            //result.setIndexFileName(tableLeft.getIndexFileName());
                         } else {
                             result.settupleList(new ArrayList<>());
                         }
@@ -153,6 +160,10 @@ public class processSelect {
                 if (queryResult != null) {
                     result.settupleList(queryResult);
                 }
+//                if (tableLeft.getIndexFileName().size()!=0){
+//                    tableLeft.getIndexTuple();
+//                    tableLeft.getIndexFileName().clear();
+//                }
                 tableLeft = null;
                 tableRight = null;
             } else if (operation.equals("GROUPBY")) {
@@ -433,9 +444,13 @@ public class processSelect {
                             if (tableLeft.getFile2Current().get(indexInfile) != null) {
                                 int index = tableLeft.getFile2Current().get(indexInfile);
                                 queryResult.add(t.joinTuple(tableLeft.getTupleList().get(index)));
+
                             }
                         }
                     }
+//                    if (queryResult.size()>FLUSHSIZE){
+//                        flush2disk(queryResult,tableLeft);
+//                    }
                     counterIndex++;
                     counter++;
                 } else if (counterIndex == indexInright.size()) {
@@ -445,6 +460,7 @@ public class processSelect {
                     counter++;
                 }
             }
+//            flush2disk(queryResult,tableLeft);
             tableLeft.setFile2Current(null);
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
@@ -480,6 +496,9 @@ public class processSelect {
                             }
                         }
                     }
+//                    if (queryResult.size()>FLUSHSIZE){
+//                        flush2disk(queryResult,tableLeft);
+//                    }
                     counterIndex++;
                     counter++;
                 } else if (counterIndex == indexInLeft.size()) {
@@ -489,25 +508,26 @@ public class processSelect {
                     counter++;
                 }
             }
+            //flush2disk(queryResult,tableLeft);
             tableRight.setFile2Current(null);
             tableRight.setOriginal(false);
         } else {
             // 左右都是查询结果
             //if the table  is not parsed
-            if (tableLeft.getTupleList() == null) {
-                List<Tuple> list = new ArrayList<>();
-                while (leftIterator.hasNext()) {
-                    list.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
-                }
-                tableLeft.settupleList(list);
-            }
-            if (tableRight.getTupleList() == null) {
-                List<Tuple> list = new ArrayList<>();
-                while (rightIterator.hasNext()) {
-                    list.add(new Tuple(tableRight, (CSVRecord) rightIterator.next()));
-                }
-                tableRight.settupleList(list);
-            }
+//            if (tableLeft.getTupleList() == null) {
+//                List<Tuple> list = new ArrayList<>();
+//                while (leftIterator.hasNext()) {
+//                    list.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
+//                }
+//                tableLeft.settupleList(list);
+//            }
+//            if (tableRight.getTupleList() == null) {
+//                List<Tuple> list = new ArrayList<>();
+//                while (rightIterator.hasNext()) {
+//                    list.add(new Tuple(tableRight, (CSVRecord) rightIterator.next()));
+//                }
+//                tableRight.settupleList(list);
+//            }
             //将exp的左右列与join的左右表匹配
             
             HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
@@ -533,7 +553,10 @@ public class processSelect {
                         queryResult = eva.Eval(queryResult);
                     }
                 }
+//                if (queryResult.size()>FLUSHSIZE)
+//                    flush2disk(queryResult,tableLeft);
             }
+//            flush2disk(queryResult,tableLeft);
         }
         return queryResult;
     }
@@ -720,7 +743,7 @@ public class processSelect {
         return t;
     }
 
-    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) {
+    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator)throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             Iterator<String> iterator = tupleIndex.iterator();
@@ -737,7 +760,10 @@ public class processSelect {
                     CSViterator.next();
                 }
                 counter++;
+//                if (queryResult.size()>FLUSHSIZE)
+//                    flush2disk(queryResult,tableObject);
             }
+//            flush2disk(queryResult,tableObject);
         }
         return queryResult;
     }
@@ -888,5 +914,19 @@ public class processSelect {
 
         }
         return tupleIndex;
+    }
+
+    private static void flush2disk(List<Tuple>queryResult,TableObject tableLeft)throws Exception{
+            String fileName = "indexes/" + System.currentTimeMillis()+".txt";
+            File file = new File(fileName);
+            tableLeft.setIndexFileName(fileName);
+            file.createNewFile();
+
+            FileOutputStream outputStream = new FileOutputStream(file,false);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(queryResult);
+            objectOutputStream.close();
+            queryResult.clear();
+
     }
 }

@@ -7,13 +7,14 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import org.apache.commons.csv.CSVRecord;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class Tuple {
-    static Logger logger = Logger.getLogger(Tuple.class.getName());
+public class Tuple implements Serializable{
+    static  Logger logger = Logger.getLogger(Tuple.class.getName());
 
-    private HashMap<Column, PrimitiveValue> attributes = new HashMap<>();
+    private HashMap< Column, PrimitiveValue> attributes = new HashMap<>();
     private ArrayList<String> tableName = new ArrayList<>();
 
     public Tuple() {
