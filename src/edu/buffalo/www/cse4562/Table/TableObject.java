@@ -340,13 +340,10 @@ public class TableObject {
                 if (!file.exists()) {
                     file.createNewFile();
                 }
-                FileWriter fw = new FileWriter(file, true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                    for (String value : index.get(colName).keySet()) {
-                        bw.write(colName.concat("|").concat(value).concat("|").concat(index.get(colName).get(value).toString()).concat("\n"));
-                    }
-                bw.close();
-                fw.close();
+                FileOutputStream outputStream = new FileOutputStream(file);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(index.get(colName));
+                objectOutputStream.close();
             }
 
         }

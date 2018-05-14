@@ -138,9 +138,6 @@ public class processSelect {
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
                             long endTime=System.currentTimeMillis();   //获取开始时间
                             logger.info("join filter"+String.valueOf(endTime-startTime)+"ms");
-                            tableRight.getTupleList().clear();
-                            tableLeft.getFile2Current().clear();
-                            tableRight.getFile2Current().clear();
                         } else {
                             result.settupleList(new ArrayList<>());
                         }
