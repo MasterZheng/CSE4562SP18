@@ -53,8 +53,10 @@ public class CreatParser {
             tableObject.setIndexTXTDivide1(3);
         }else if(length<16000000){
             tableObject.setIndexTXTDivide1(6);
-        }else {
+        }else if (length<20000000){
             tableObject.setIndexTXTDivide1(8);
+        }else {
+            tableObject.setIndexTXTDivide1(10);
         }
 
         return true;
