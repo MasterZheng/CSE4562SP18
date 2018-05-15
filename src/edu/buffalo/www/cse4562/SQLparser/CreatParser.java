@@ -48,17 +48,14 @@ public class CreatParser {
         File file = new File(tableObject.getFileDir());
         long start = System.currentTimeMillis();
         long length = file.length();
-        if (length<4000000){
-            //tableObject.setIndexTXTDivide(6);
+        if (length<8000000){
             tableObject.setIndexTXTDivide1(1);
-        }else if (length<8000000){
-            tableObject.setIndexTXTDivide1(2);
         }else if (length<12000000){
-            tableObject.setIndexTXTDivide1(4);
+            tableObject.setIndexTXTDivide1(2);
         }else if(length<16000000){
-            tableObject.setIndexTXTDivide1(6);
+            tableObject.setIndexTXTDivide1(4);
         }else {
-            tableObject.setIndexTXTDivide1(8);
+            tableObject.setIndexTXTDivide1(6);
         }
         tableObject.BufferIndex();
         long end = System.currentTimeMillis();

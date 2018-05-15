@@ -655,17 +655,24 @@ public class TableObject {
         String fileName = "indexes/" + tableName+".txt";
         File file = new File(fileName);
         file.createNewFile();
-
+        long start = System.currentTimeMillis();
         FileOutputStream outputStream = new FileOutputStream(file,false);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
         int counter = 0;
         while (iterator.hasNext()){
-            objectOutputStream.writeObject(new Tuple(tableName,this.getColumnDefinitions(),iterator.next(),0));
+            Tuple t = new Tuple(tableName,this.getColumnDefinitions(),iterator.next(),0);
+            objectOutputStream.writeObject(t);
             counter+=1;
-            if (counter==2000)
+            if (counter==10000){
                 objectOutputStream.flush();
+                objectOutputStream.reset();
+                counter=0;
+            }
         }
+        objectOutputStream.flush();
         objectOutputStream.close();
+        long end = System.currentTimeMillis();
+        logger.info(String.valueOf(end-start));
 
     }
 

@@ -25,7 +25,7 @@ public class Tuple implements Serializable{
         this.tableName.add(tableName);
             for (int j = 0;j<cof.size();j++) {
                 ColumnDefinition c = cof.get(j);
-                if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                if (c.getColDataType().toString().toUpperCase().equals("INTEGER")) {
                     attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(i++)));
                 } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
                     attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(i++)));
@@ -64,7 +64,7 @@ public class Tuple implements Serializable{
         if (0==mapRelations.size()){
             for (int j = 0;j<tableObject.getColumnDefinitions().size();j++) {
                 ColumnDefinition c = tableObject.getColumnDefinitions().get(j);
-                if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                if (c.getColDataType().toString().toUpperCase().equals("INTEGER")) {
                     attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(i++)));
                 } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
                     attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(i++)));
