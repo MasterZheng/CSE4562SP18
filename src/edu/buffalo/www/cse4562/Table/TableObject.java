@@ -577,10 +577,10 @@ public class TableObject {
                             index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
                         }
                     }
-
                     i++;
                 }
             }
+            br.close();
             for (Iterator<Map.Entry<String,HashMap<String,StringBuilder>>> it = index.entrySet().iterator(); it.hasNext();){
                 Map.Entry<String, HashMap<String,StringBuilder>> item = it.next();
                 String colName = item.getKey();
@@ -592,8 +592,11 @@ public class TableObject {
                 }
                 FileOutputStream outputStream = new FileOutputStream(file);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                for (String colVal:index.get(colName).keySet()){
+                List<String> colVals = new ArrayList<>();
+                colVals.addAll(index.get(colName).keySet());
+                for (String colVal:colVals){
                     result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
+                    index.get(colName).remove(colVal);
                     List<Integer> a = result.stream().map(Integer::parseInt).collect(Collectors.toList());
                     a.sort(c);
                     col.put(colVal,a);

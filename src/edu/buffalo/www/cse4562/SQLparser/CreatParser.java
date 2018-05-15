@@ -56,7 +56,7 @@ public class CreatParser {
         }else if (length<20000000){
             tableObject.setIndexTXTDivide1(8);
         }else {
-            tableObject.setIndexTXTDivide1(10);
+            tableObject.setIndexTXTDivide1(16);
         }
 
         return true;
