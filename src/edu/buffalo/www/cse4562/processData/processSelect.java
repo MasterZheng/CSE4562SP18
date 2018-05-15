@@ -372,45 +372,45 @@ public class processSelect {
 
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
-            for (String p : leftCol.keySet()) {
-                List<Integer> LeftList = leftCol.get(p);
-                List<Integer> rightList = rightCol.get(p);
-
-                if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
-                    //LeftList.retainAll(tableLeft.getCurrentTuple());
-                    Set leftSet = new HashSet();
-                    leftSet.addAll(LeftList);
-                    Set leftset = new HashSet();
-                    leftset.addAll(tableLeft.getCurrentTuple());
-                    leftSet.retainAll(leftset);
-                    LeftList.clear();
-                    LeftList.addAll(leftSet);
-                    LeftList.sort(c);
-                }
-                if (tableRight.getCurrentTuple() != null && tableRight.getCurrentTuple().size() != 0) {
-                    //rightList.retainAll(tableRight.getCurrentTuple());
-                    Set leftSet = new HashSet();
-                    leftSet.addAll(rightList);
-                    Set leftset = new HashSet();
-                    leftset.addAll(tableRight.getCurrentTuple());
-                    leftSet.retainAll(leftset);
-                    rightList.clear();
-                    rightList.addAll(leftSet);
-                    rightList.sort(c);
-                }
-
-                if (rightList != null && rightList.size() != 0 && LeftList != null && LeftList.size() != 0) {
-                    queryResult.addAll(indexHashJoin(null, LeftList, rightList, leftIterator, rightIterator, tableLeft, tableRight));
-                    CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                    leftIterator = parserLeft.iterator();
-                    rightIterator = parserRight.iterator();
-                }
-            }
-            tableLeft.setOriginal(false);
-            tableRight.setOriginal(false);
+//            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+//            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+//            for (String p : leftCol.keySet()) {
+//                List<Integer> LeftList = leftCol.get(p);
+//                List<Integer> rightList = rightCol.get(p);
+//
+//                if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
+//                    //LeftList.retainAll(tableLeft.getCurrentTuple());
+//                    Set leftSet = new HashSet();
+//                    leftSet.addAll(LeftList);
+//                    Set leftset = new HashSet();
+//                    leftset.addAll(tableLeft.getCurrentTuple());
+//                    leftSet.retainAll(leftset);
+//                    LeftList.clear();
+//                    LeftList.addAll(leftSet);
+//                    LeftList.sort(c);
+//                }
+//                if (tableRight.getCurrentTuple() != null && tableRight.getCurrentTuple().size() != 0) {
+//                    //rightList.retainAll(tableRight.getCurrentTuple());
+//                    Set leftSet = new HashSet();
+//                    leftSet.addAll(rightList);
+//                    Set leftset = new HashSet();
+//                    leftset.addAll(tableRight.getCurrentTuple());
+//                    leftSet.retainAll(leftset);
+//                    rightList.clear();
+//                    rightList.addAll(leftSet);
+//                    rightList.sort(c);
+//                }
+//
+//                if (rightList != null && rightList.size() != 0 && LeftList != null && LeftList.size() != 0) {
+//                    queryResult.addAll(indexHashJoin(null, LeftList, rightList, leftIterator, rightIterator, tableLeft, tableRight));
+//                    CSVParser parserLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
+//                    CSVParser parserRight = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+//                    leftIterator = parserLeft.iterator();
+//                    rightIterator = parserRight.iterator();
+//                }
+//            }
+//            tableLeft.setOriginal(false);
+//            tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
             HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());

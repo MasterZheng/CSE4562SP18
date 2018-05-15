@@ -47,18 +47,20 @@ public class CreatParser {
         logger.info(create.toString());
         File file = new File(tableObject.getFileDir());
         long length = file.length();
+        long start = System.currentTimeMillis();
         if (length<8000000){
-            tableObject.setIndexTXTDivide123(1);
+            tableObject.setIndexTXTDivide1(1);
 
             //tableObject.setIndexTXTDivide1(1);
         }else if (length<12000000){
-            tableObject.setIndexTXTDivide123(3);
+            tableObject.setIndexTXTDivide1(3);
         }else if(length<16000000){
-            tableObject.setIndexTXTDivide123(6);
+            tableObject.setIndexTXTDivide1(6);
         }else{
-            tableObject.setIndexTXTDivide123(8);
+            tableObject.setIndexTXTDivide1(8);
         }
-
+        long end = System.currentTimeMillis();
+        System.out.println(end-start);
         return true;
     }
 
