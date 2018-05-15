@@ -21,6 +21,25 @@ public class Tuple implements Serializable{
 
     }
 
+    public Tuple(String tableName,List<ColumnDefinition> cof, CSVRecord record,int i) {
+        this.tableName.add(tableName);
+            for (int j = 0;j<cof.size();j++) {
+                ColumnDefinition c = cof.get(j);
+                if (c.getColDataType().toString().toUpperCase().equals("INT") || c.getColDataType().toString().toUpperCase().equals("INTEGER") || c.getColDataType().toString().toUpperCase().equals("LONG")) {
+                    attributes.put(c.getColumnName().toUpperCase(), new LongValue(record.get(i++)));
+                } else if (c.getColDataType().toString().toUpperCase().equals("STRING")) {
+                    attributes.put(c.getColumnName().toUpperCase(), new StringValue(record.get(i++)));
+                } else if (c.getColDataType().toString().toUpperCase().equals("DOUBLE")) {
+                    attributes.put(c.getColumnName().toUpperCase(), new DoubleValue(record.get(i++)));
+                } else{
+                    attributes.put(c.getColumnName().toUpperCase(), new DateValue(record.get(i++)));
+                }
+            }
+
+
+    }
+
+
     public Tuple(TableObject tableObject, CSVRecord record) {
         int i = 0;
         Table table = new Table();

@@ -60,7 +60,7 @@ public class CreatParser {
         }else {
             tableObject.setIndexTXTDivide1(8);
         }
-
+        tableObject.BufferIndex();
         long end = System.currentTimeMillis();
         logger.info("Create "+(end-start)+" ms");
 

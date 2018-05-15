@@ -74,10 +74,10 @@ public class processSelect {
                     if (left.getExpression() == null) {
                         leftIterator = parserLeft.iterator();
                     } else {
-                        long startTime=System.currentTimeMillis();   //获取开始时间
+                        long startTime = System.currentTimeMillis();   //获取开始时间
                         tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
-                        long endTime=System.currentTimeMillis();   //获取开始时间
-                        logger.info("left filter"+String.valueOf(endTime-startTime)+"ms");
+                        long endTime = System.currentTimeMillis();   //获取开始时间
+                        logger.info("left filter" + String.valueOf(endTime - startTime) + "ms");
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
 //                        tableLeft.getTupleList().clear();
@@ -427,8 +427,8 @@ public class processSelect {
             ArrayList<String> indexInright = new ArrayList<>();
 
             for (String val : valInleft) {
-                List a= rightCol.get(val);
-                if (a!=null)
+                List a = rightCol.get(val);
+                if (a != null)
                     indexInright.addAll(a);
             }
             indexInright.sort(c);
@@ -529,7 +529,7 @@ public class processSelect {
 //                tableRight.settupleList(list);
 //            }
             //将exp的左右列与join的左右表匹配
-            
+
             HashMap<Integer, ArrayList<Integer>> rightjoinHash = new HashMap<>();
             for (int i = 0; i < tableRight.getTupleList().size(); i++) {
                 String val = tableRight.getTupleList().get(i).getAttributes().get(colRight.getColumnName()).toRawString();
@@ -642,9 +642,10 @@ public class processSelect {
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
             if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
-                List<String> tupleIndex = getIndexList(tableLeft, exp,true);
+                List<String> tupleIndex = getIndexList(tableLeft, exp, true);
                 tableLeft.setCurrentTuple(tupleIndex);
-                queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
+                //queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
+                queryResult = getTupleByIndexBuffer(tableLeft, tupleIndex, leftIterator);
                 //tableLeft.setOriginal(false);
             }
 
@@ -735,15 +736,15 @@ public class processSelect {
     private static Tuple getTuple(Iterator iterator, TableObject tableObject) {
         Tuple t = null;
         if (iterator.getClass().getName().equals("org.apache.commons.csv.CSVParser$1")) {
-                t = new Tuple(tableObject, (CSVRecord) iterator.next());
+            t = new Tuple(tableObject, (CSVRecord) iterator.next());
 
         } else {
-                t = (Tuple) iterator.next();
+            t = (Tuple) iterator.next();
         }
         return t;
     }
 
-    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator)throws Exception {
+    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             Iterator<String> iterator = tupleIndex.iterator();
@@ -760,15 +761,37 @@ public class processSelect {
                     CSViterator.next();
                 }
                 counter++;
-//                if (queryResult.size()>FLUSHSIZE)
-//                    flush2disk(queryResult,tableObject);
             }
-//            flush2disk(queryResult,tableObject);
         }
         return queryResult;
     }
 
-    private static List<String> getIndexList(TableObject tableObject, Expression exp,boolean flag) throws Exception {
+    private static List<Tuple> getTupleByIndexBuffer(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+        List<Tuple> queryResult = new ArrayList<>();
+        if (tupleIndex.size() != 0) {
+            Iterator<String> iterator = tupleIndex.iterator();
+            int counter = 1;
+            int index = Integer.valueOf(iterator.next());
+            FileInputStream inputStream = new FileInputStream(new File("indexes/" + tableObject.getTableName() + ".txt"));//创建文件字节输出流对象
+            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            while (inputStream.available() > 0) {
+                if (counter == index) {
+                    queryResult.add((Tuple) objectInputStream.readObject());
+                    if (iterator.hasNext())
+                        index = Integer.valueOf(iterator.next());
+                    else
+                        break;
+                }else
+                    objectInputStream.readObject();
+                counter++;
+
+            }
+        }
+        return queryResult;
+
+    }
+
+    private static List<String> getIndexList(TableObject tableObject, Expression exp, boolean flag) throws Exception {
         List<String> tupleIndex = new ArrayList<>();
         Comparator c = new Comparator<String>() {
             @Override
@@ -882,8 +905,8 @@ public class processSelect {
                 if (exp instanceof AndExpression) {
                     Expression leftExp = ((AndExpression) exp).getLeftExpression();
                     Expression rightExp = ((AndExpression) exp).getRightExpression();
-                    List<String> leftIndex = getIndexList(tableObject, leftExp,false);
-                    List<String> rightIndex = getIndexList(tableObject, rightExp,false);
+                    List<String> leftIndex = getIndexList(tableObject, leftExp, false);
+                    List<String> rightIndex = getIndexList(tableObject, rightExp, false);
 
                     Set right = new HashSet();
                     right.addAll(rightIndex);
@@ -895,8 +918,8 @@ public class processSelect {
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
-                    List<String> leftIndex = getIndexList(tableObject, leftExp,false);
-                    List<String> rightIndex = getIndexList(tableObject, rightExp,false);
+                    List<String> leftIndex = getIndexList(tableObject, leftExp, false);
+                    List<String> rightIndex = getIndexList(tableObject, rightExp, false);
                     leftIndex.addAll(rightIndex);
                     Set set = new HashSet();
                     set.addAll(leftIndex);
@@ -905,7 +928,7 @@ public class processSelect {
                 }
             }
         }
-        if (flag){
+        if (flag) {
             HashMap<String, Integer> file2current = new HashMap<>();
             for (int i = 0; i < tupleIndex.size(); i++) {
                 file2current.put(tupleIndex.get(i), i);
@@ -916,17 +939,17 @@ public class processSelect {
         return tupleIndex;
     }
 
-    private static void flush2disk(List<Tuple>queryResult,TableObject tableLeft)throws Exception{
-            String fileName = "indexes/" + System.currentTimeMillis()+".txt";
-            File file = new File(fileName);
-            tableLeft.setIndexFileName(fileName);
-            file.createNewFile();
+    private static void flush2disk(List<Tuple> queryResult, TableObject tableLeft) throws Exception {
+        String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
+        File file = new File(fileName);
+        tableLeft.setIndexFileName(fileName);
+        file.createNewFile();
 
-            FileOutputStream outputStream = new FileOutputStream(file,false);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-            objectOutputStream.writeObject(queryResult);
-            objectOutputStream.close();
-            queryResult.clear();
+        FileOutputStream outputStream = new FileOutputStream(file, false);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+        objectOutputStream.writeObject(queryResult);
+        objectOutputStream.close();
+        queryResult.clear();
 
     }
 }
