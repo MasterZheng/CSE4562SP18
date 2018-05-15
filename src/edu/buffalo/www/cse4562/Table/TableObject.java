@@ -9,7 +9,6 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
@@ -663,7 +662,7 @@ public class TableObject {
         while (iterator.hasNext()){
             objectOutputStream.writeObject(new Tuple(tableName,this.getColumnDefinitions(),iterator.next(),0));
             counter+=1;
-            if (counter==10000)
+            if (counter==2000)
                 objectOutputStream.flush();
         }
         objectOutputStream.close();

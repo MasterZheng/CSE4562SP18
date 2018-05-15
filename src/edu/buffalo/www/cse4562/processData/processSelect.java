@@ -772,11 +772,12 @@ public class processSelect {
             Iterator<String> iterator = tupleIndex.iterator();
             int counter = 1;
             int index = Integer.valueOf(iterator.next());
-            FileInputStream inputStream = new FileInputStream(new File("indexes/" + tableObject.getTableName() + ".txt"));//创建文件字节输出流对象
+            FileInputStream inputStream = new FileInputStream(new File("indexes/" + tableObject.getTableName() + ".txt"));
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+            List<ColumnDefinition> col = tableObject.getColumnDefinitions();
             while (inputStream.available() > 0) {
                 if (counter == index) {
-                    queryResult.add((Tuple) objectInputStream.readObject());
+                    queryResult.add(((Tuple) objectInputStream.readObject()).Map(col));
                     if (iterator.hasNext())
                         index = Integer.valueOf(iterator.next());
                     else
@@ -784,7 +785,6 @@ public class processSelect {
                 }else
                     objectInputStream.readObject();
                 counter++;
-
             }
         }
         return queryResult;

@@ -38,6 +38,15 @@ public class Tuple implements Serializable{
 
 
     }
+    public Tuple Map(List<ColumnDefinition> col){
+        HashMap<String,PrimitiveValue> att = new HashMap<>();
+        for (int j = 0;j<col.size();j++){
+            String colName = col.get(j).getColumnName();
+            att.put(colName,this.getAttributes().get(colName));
+        }
+        this.setAttributes(att);
+        return this;
+    }
 
 
     public Tuple(TableObject tableObject, CSVRecord record) {
