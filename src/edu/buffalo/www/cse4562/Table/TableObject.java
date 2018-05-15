@@ -189,7 +189,7 @@ public class TableObject {
     }
 
     public Iterator getIterator() {
-            return this.tupleList.iterator();
+        return this.tupleList.iterator();
     }
 
     public HashMap<Integer, ArrayList<Tuple>> getgroupMap() {
@@ -547,13 +547,13 @@ public class TableObject {
             }
         };
         //有划分，1列一文件
-        for (int k =0;k<part;k++){
+        for (int k = 0; k < part; k++) {
             HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
             List<Integer> attrIndex = new ArrayList<>();
-            for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
+            for (int i = k * columnInfo.size() / part; i < (k + 1) * columnInfo.size() / part; i++) {
                 index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
             }
-            if (index.size()==0){
+            if (index.size() == 0) {
                 continue;
             }
             for (int i = 0; i < columnInfo.size(); i++) {
@@ -565,14 +565,14 @@ public class TableObject {
             BufferedReader br = new BufferedReader(fs);
             String line;
             if (index.size() != 0) {
-                while((line = br.readLine()) != null){
+                while ((line = br.readLine()) != null) {
                     String[] tuple = line.split("\\|");
                     for (int j = 0; j < attrIndex.size(); j++) {
                         //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
                         String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
                         String attrVal = tuple[attrIndex.get(j)];
                         if (!index.get(colName).containsKey(attrVal)) {
-                            index.get(colName).put(attrVal,new StringBuilder(String.valueOf(i)));
+                            index.get(colName).put(attrVal, new StringBuilder(String.valueOf(i)));
                         } else {
                             index.get(colName).put(attrVal, index.get(colName).get(attrVal).append(",").append(i));
                         }
@@ -581,12 +581,12 @@ public class TableObject {
                 }
             }
             br.close();
-            for (Iterator<Map.Entry<String,HashMap<String,StringBuilder>>> it = index.entrySet().iterator(); it.hasNext();){
-                Map.Entry<String, HashMap<String,StringBuilder>> item = it.next();
+            for (Iterator<Map.Entry<String, HashMap<String, StringBuilder>>> it = index.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, HashMap<String, StringBuilder>> item = it.next();
                 String colName = item.getKey();
                 List<String> result;
-                HashMap<String,List<Integer>>col = new HashMap<>();
-                File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
+                HashMap<String, List<Integer>> col = new HashMap<>();
+                File file = new File("indexes/" + this.getTableName().toUpperCase() + "_" + colName + ".txt");
                 if (!file.exists()) {
                     file.createNewFile();
                 }
@@ -594,11 +594,11 @@ public class TableObject {
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
                 List<String> colVals = new ArrayList<>();
                 colVals.addAll(index.get(colName).keySet());
-                for (String colVal:colVals){
+                for (String colVal : colVals) {
                     result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
                     index.get(colName).remove(colVal);
                     List<Integer> a = result.stream().map(Integer::parseInt).collect(Collectors.toList());
-                    col.put(colVal,a);
+                    col.put(colVal, a);
                 }
                 it.remove();
                 objectOutputStream.writeObject(col);
@@ -626,6 +626,65 @@ public class TableObject {
         }
     }
 
+    public void setIndexTXTDivide123(int part) throws Exception {
+        Comparator c = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                // TODO Auto-generated method stub
+                if (o1 < o2)
+                    return -1;
+                    //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
+                else return 1;
+            }
+        };
+        //有划分，1列一文件
+        for (int k =0;k<part;k++){
+            HashMap<String, HashMap<String, List<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
+            List<Integer> attrIndex = new ArrayList<>();
+            for (int i = k*columnInfo.size()/part; i < (k+1)*columnInfo.size()/part; i++) {
+                index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
+            }
+            if (index.size()==0){
+                continue;
+            }
+            for (int i = 0; i < columnInfo.size(); i++) {
+                if (index.containsKey(columnInfo.get(i).getColumnName()))
+                    attrIndex.add(i);
+            }
+            int i = 1;
+            FileReader fs = new FileReader(fileDir);
+            BufferedReader br = new BufferedReader(fs);
+            String line;
+            if (index.size() != 0) {
+                while((line = br.readLine()) != null){
+                    String[] tuple = line.split("\\|");
+                    for (int j = 0; j < attrIndex.size(); j++) {
+                        //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
+                        String colName = columnInfo.get(attrIndex.get(j)).getColumnName();
+                        String attrVal = tuple[attrIndex.get(j)];
+                        if (!index.get(colName).containsKey(attrVal)) {
+                            List<Integer> a = new LinkedList<>();
+                            a.add(i);
+                            index.get(colName).put(attrVal,a);
+                        } else {
+                            index.get(colName).get(attrVal).add(i);
+                        }
+                    }
+                    i++;
+                }
+            }
+            br.close();
+            for (String colName :index.keySet()){
+                File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                FileOutputStream outputStream = new FileOutputStream(file);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(index.get(colName));
+                objectOutputStream.close();
+            }
+        }}
 
     public HashMap<String, List<Integer>> getIndex(String ColName) throws Exception{
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
