@@ -112,7 +112,6 @@ public class processSelect {
                             ;
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
-//                            tableRight.getTupleList().clear();
                         }
                         involvedTables.add(tableRight);
                     } else {
@@ -644,8 +643,8 @@ public class processSelect {
             if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
                 List<String> tupleIndex = getIndexList(tableLeft, exp, true);
                 tableLeft.setCurrentTuple(tupleIndex);
-                //queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
-                queryResult = getTupleByIndexBuffer(tableLeft, tupleIndex, leftIterator);
+                queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
+                //queryResult = getTupleByIndexBuffer(tableLeft, tupleIndex, leftIterator);
                 //tableLeft.setOriginal(false);
             }
 
@@ -744,7 +743,7 @@ public class processSelect {
         return t;
     }
 
-    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+    private static List<Tuple> getTupleByIndex1(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             Iterator<String> iterator = tupleIndex.iterator();
@@ -762,6 +761,31 @@ public class processSelect {
                 }
                 counter++;
             }
+
+        }
+        return queryResult;
+    }
+    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+        List<Tuple> queryResult = new ArrayList<>();
+        if (tupleIndex.size() != 0) {
+            int counter = 1;
+            int counterIndex = 0;
+            int size = tupleIndex.size();
+            int index = Integer.valueOf(tupleIndex.get(0));
+            while (CSViterator.hasNext()) {
+                if (counter != index) {
+                    CSViterator.next();
+                } else {
+                    queryResult.add(new Tuple(tableObject, (CSVRecord) CSViterator.next()));
+                    counterIndex = counterIndex + 1;
+                    if (counterIndex<size) {
+                        index = Integer.valueOf(tupleIndex.get(counterIndex));
+                    }else
+                        break;
+                }
+                counter=counter+1;
+            }
+
         }
         return queryResult;
     }
@@ -778,6 +802,7 @@ public class processSelect {
             while (inputStream.available() > 0) {
                 if (counter == index) {
                     queryResult.add(((Tuple) objectInputStream.readObject()).Map(col));
+                    //Tuple t = ((Tuple) objectInputStream.readObject()).Map(col);
                     if (iterator.hasNext())
                         index = Integer.valueOf(iterator.next());
                     else
@@ -914,7 +939,6 @@ public class processSelect {
                     left.addAll(leftIndex);
                     right.retainAll(left);
                     tupleIndex.addAll(right);
-                    tupleIndex.sort(c);
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
@@ -924,7 +948,6 @@ public class processSelect {
                     Set set = new HashSet();
                     set.addAll(leftIndex);
                     tupleIndex.addAll(set);
-                    tupleIndex.sort(c);
                 }
             }
         }
@@ -934,7 +957,7 @@ public class processSelect {
                 file2current.put(tupleIndex.get(i), i);
             }
             tableObject.setFile2Current(file2current);
-
+            tupleIndex.sort(c);
         }
         return tupleIndex;
     }
