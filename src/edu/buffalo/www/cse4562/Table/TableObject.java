@@ -598,7 +598,6 @@ public class TableObject {
                     result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
                     index.get(colName).remove(colVal);
                     List<Integer> a = result.stream().map(Integer::parseInt).collect(Collectors.toList());
-                    a.sort(c);
                     col.put(colVal,a);
                 }
                 it.remove();
