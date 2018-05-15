@@ -77,7 +77,7 @@ public class processSelect {
                         long startTime = System.currentTimeMillis();   //获取开始时间
                         tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
                         long endTime = System.currentTimeMillis();   //获取开始时间
-                        logger.info("left filter" + String.valueOf(endTime - startTime) + "ms");
+                        logger.info(tableLeft.getTableName()+" filter " + String.valueOf(endTime - startTime) + "ms");
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
 //                        tableLeft.getTupleList().clear();
@@ -108,8 +108,10 @@ public class processSelect {
                             rightIterator = parserRight.iterator();
                         } else {
                             //过滤
+                            long startTime = System.currentTimeMillis();   //获取开始时间
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-                            ;
+                            long endTime = System.currentTimeMillis();   //获取开始时间
+                            logger.info(tableRight.getTableName()+" filter " + String.valueOf(endTime - startTime) + "ms");
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
                         }
@@ -132,18 +134,11 @@ public class processSelect {
                         if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
                                 (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
-//                            if (tableLeft.getIndexFileName().size()!=0){
-//                                tableLeft.getIndexTuple();
-//                                tableLeft.getIndexFileName().clear();
-//                            }
-//                            if (tableRight.getIndexFileName().size()!=0){
-//                                tableRight.getIndexTuple();
-//                                tableRight.getIndexFileName().clear();
-//                            }
-//                            rightIterator = tableLeft.getIterator();
-//                            leftIterator = tableLeft.getIterator();
+                            long startTime = System.currentTimeMillis();   //获取开始时间
                             result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
-                            //result.setIndexFileName(tableLeft.getIndexFileName());
+                            long endTime = System.currentTimeMillis();   //获取开始时间
+                            logger.info(tableLeft.getTableName()+" "+tableRight.getTableName()+" join " + String.valueOf(endTime - startTime) + "ms");
+
                         } else {
                             result.settupleList(new ArrayList<>());
                         }
@@ -155,10 +150,14 @@ public class processSelect {
                     }
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
+                long startTime = System.currentTimeMillis();   //获取开始时间
                 List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression());
                 if (queryResult != null) {
                     result.settupleList(queryResult);
                 }
+                long endTime = System.currentTimeMillis();   //获取开始时间
+                logger.info(tableLeft.getTableName()+" "+tableRight.getTableName()+" join " + String.valueOf(endTime - startTime) + "ms");
+
 //                if (tableLeft.getIndexFileName().size()!=0){
 //                    tableLeft.getIndexTuple();
 //                    tableLeft.getIndexFileName().clear();
@@ -173,9 +172,13 @@ public class processSelect {
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
+                long startTime = System.currentTimeMillis();   //获取开始时间
                 selectItems = ((RAProjection) pointer).getSelectItem();
                 tempColDef(result, selectItems, involvedTables);
                 result = ((RAProjection) pointer).Eval(result, tableName);
+                long endTime = System.currentTimeMillis();   //获取开始时间
+                logger.info(" projection " + String.valueOf(endTime - startTime) + "ms");
+
 
             } else if (operation.equals("ORDERBY")) {
                 result = ((RAOrderby) pointer).Eval(result);
