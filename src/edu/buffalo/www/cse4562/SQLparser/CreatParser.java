@@ -50,16 +50,12 @@ public class CreatParser {
         if (length<8000000){
             tableObject.setIndexTXTDivide1(1);
         }else if (length<12000000){
-            tableObject.setIndexTXTDivide1(2);
+            tableObject.setIndexTXTDivide1(3);
         }else if(length<16000000){
-            tableObject.setIndexTXTDivide1(4);
+            tableObject.setIndexTXTDivide1(6);
         }else {
             tableObject.setIndexTXTDivide1(8);
         }
-//        long start = System.currentTimeMillis();
-//        tableObject.BufferIndex();
-//        long end = System.currentTimeMillis();
-//        logger.info("buffer "+(end-start)+" ms");
 
         return true;
     }

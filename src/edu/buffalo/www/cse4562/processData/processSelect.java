@@ -359,11 +359,11 @@ public class processSelect {
             colLeft = right;
             colRight = left;
         }
-        Comparator c = new Comparator<String>() {
+        Comparator c = new Comparator<Integer>() {
             @Override
-            public int compare(String o1, String o2) {
+            public int compare(Integer o1, Integer o2) {
                 // TODO Auto-generated method stub
-                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                if (o1 < o2)
                     return -1;
                     //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
                 else return 1;
@@ -372,11 +372,11 @@ public class processSelect {
 
         if (tableLeft.isOriginal() && tableRight.isOriginal()) {
             // 左右都是原始表
-            HashMap<String, List<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, List<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             for (String p : leftCol.keySet()) {
-                List<String> LeftList = leftCol.get(p);
-                List<String> rightList = rightCol.get(p);
+                List<Integer> LeftList = leftCol.get(p);
+                List<Integer> rightList = rightCol.get(p);
 
                 if (tableLeft.getCurrentTuple() != null && tableLeft.getCurrentTuple().size() != 0) {
                     //LeftList.retainAll(tableLeft.getCurrentTuple());
@@ -413,8 +413,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-            HashMap<String, List<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, List<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInleft = new ArrayList<>();
             for (Tuple t : tableLeft.getTupleList()) {
                 valInleft.add(t.getAttributes().get(colLeft.getColumnName()).toRawString());
@@ -423,7 +423,7 @@ public class processSelect {
             set.addAll(valInleft);
             valInleft.clear();
             valInleft.addAll(set);
-            ArrayList<String> indexInright = new ArrayList<>();
+            ArrayList<Integer> indexInright = new ArrayList<>();
 
             for (String val : valInleft) {
                 List a = rightCol.get(val);
@@ -435,11 +435,11 @@ public class processSelect {
             int counter = 1;
             int counterIndex = 0;
             while (rightIterator.hasNext()) {
-                if (counterIndex < indexInright.size() && counter == Integer.valueOf(indexInright.get(counterIndex))) {
+                if (counterIndex < indexInright.size() && counter == indexInright.get(counterIndex)) {
                     Tuple t = getTuple(rightIterator, tableRight);
                     PrimitiveValue p = t.getAttributes().get(colRight.getColumnName());
                     if (leftCol.get(p.toRawString()) != null) {
-                        for (String indexInfile : leftCol.get(p.toRawString())) {
+                        for (Integer indexInfile : leftCol.get(p.toRawString())) {
                             if (tableLeft.getFile2Current().get(indexInfile) != null) {
                                 int index = tableLeft.getFile2Current().get(indexInfile);
                                 queryResult.add(t.joinTuple(tableLeft.getTupleList().get(index)));
@@ -464,8 +464,8 @@ public class processSelect {
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
-            HashMap<String, List<String>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
-            HashMap<String, List<String>> rightCol = tableRight.getIndex(colRight.getColumnName());
+            HashMap<String, List<Integer>> leftCol = tableLeft.getIndex(colLeft.getColumnName());
+            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
             ArrayList<String> valInRight = new ArrayList<>();
             for (Tuple t : tableRight.getTupleList()) {
                 String val = t.getAttributes().get(colRight.getColumnName()).toRawString();
@@ -475,7 +475,7 @@ public class processSelect {
             set.addAll(valInRight);
             valInRight.clear();
             valInRight.addAll(set);
-            ArrayList<String> indexInLeft = new ArrayList<>();
+            ArrayList<Integer> indexInLeft = new ArrayList<>();
             for (String val : valInRight) {
                 indexInLeft.addAll(leftCol.get(val));
             }
@@ -484,11 +484,11 @@ public class processSelect {
             int counter = 1;
             int counterIndex = 0;
             while (leftIterator.hasNext()) {
-                if (counterIndex < indexInLeft.size() && counter == Integer.valueOf(indexInLeft.get(counterIndex))) {
+                if (counterIndex < indexInLeft.size() && counter == indexInLeft.get(counterIndex)) {
                     Tuple t = getTuple(leftIterator, tableLeft);
                     PrimitiveValue p = t.getAttributes().get(colLeft.getColumnName());
                     if (rightCol.get(p.toRawString()) != null) {
-                        for (String indexInfile : rightCol.get(p.toRawString())) {
+                        for (Integer indexInfile : rightCol.get(p.toRawString())) {
                             if (tableRight.getFile2Current().get(indexInfile) != null) {
                                 int index = tableRight.getFile2Current().get(indexInfile);
                                 queryResult.add(t.joinTuple(tableRight.getTupleList().get(index)));
@@ -560,7 +560,7 @@ public class processSelect {
         return queryResult;
     }
 
-    private static List<Tuple> indexHashJoin(Tuple tuple, List<String> leftCol, List<String> rightCol,
+    private static List<Tuple> indexHashJoin(Tuple tuple, List<Integer> leftCol, List<Integer> rightCol,
                                              Iterator leftIterator, Iterator rightIterator,
                                              TableObject tableLeft, TableObject tableRight) {
         List<Tuple> result = new ArrayList<>();
@@ -568,19 +568,19 @@ public class processSelect {
             if (leftCol == null && rightCol == null) {
                 return result;
             }
-            List<String> colList = leftCol != null ? leftCol : rightCol;
+            List<Integer> colList = leftCol != null ? leftCol : rightCol;
             if (colList.size() == 0)
                 return result;
             Iterator iterator = leftIterator != null ? leftIterator : rightIterator;
             TableObject tableObject = tableLeft != null ? tableLeft : tableRight;
-            Iterator<String> iteratorList = colList.iterator();
+            Iterator<Integer> iteratorList = colList.iterator();
             int counter = 1;
-            int index = Integer.valueOf(iteratorList.next());
+            int index =  iteratorList.next();
             while (iterator.hasNext()) {
                 if (counter == index) {
                     result.add(tuple.joinTuple(new Tuple(tableObject, (CSVRecord) iterator.next())));
                     if (iteratorList.hasNext())
-                        index = Integer.valueOf(iteratorList.next());
+                        index =  iteratorList.next();
                     else
                         break;
                 } else {
@@ -594,17 +594,17 @@ public class processSelect {
 //            if (leftCol.size() == 0 || rightCol.size() == 0) {
 //                return result;
 //            }
-            Iterator<String> leftListIter = leftCol.iterator();
-            Iterator<String> rightListIter = rightCol.iterator();
-            int leftIndex = Integer.valueOf(leftListIter.next());
-            int rightIndex = Integer.valueOf(rightListIter.next());
+            Iterator<Integer> leftListIter = leftCol.iterator();
+            Iterator<Integer> rightListIter = rightCol.iterator();
+            int leftIndex =  leftListIter.next();
+            int rightIndex =  rightListIter.next();
             List<Tuple> leftList = new ArrayList<>();
             List<Tuple> rightList = new ArrayList<>();
             while (leftIterator.hasNext()) {
                 if (leftCounter == leftIndex) {
                     leftList.add(new Tuple(tableLeft, (CSVRecord) leftIterator.next()));
                     if (leftListIter.hasNext())
-                        leftIndex = Integer.valueOf(leftListIter.next());
+                        leftIndex =  leftListIter.next();
                     else
                         break;
                 } else {
@@ -617,7 +617,7 @@ public class processSelect {
                     rightList.add(new Tuple(tableRight, (CSVRecord) rightIterator.next()));
                     ;
                     if (rightListIter.hasNext())
-                        rightIndex = Integer.valueOf(rightListIter.next());
+                        rightIndex =  rightListIter.next();
                     else
                         break;
                 } else {
@@ -641,7 +641,7 @@ public class processSelect {
         if (tableRight == null) {
             //if no right table ,just evaluate left tuple 右表为空
             if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
-                List<String> tupleIndex = getIndexList(tableLeft, exp, true);
+                List<Integer> tupleIndex = getIndexList(tableLeft, exp, true);
                 tableLeft.setCurrentTuple(tupleIndex);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 //queryResult = getTupleByIndexBuffer(tableLeft, tupleIndex, leftIterator);
@@ -743,17 +743,17 @@ public class processSelect {
         return t;
     }
 
-    private static List<Tuple> getTupleByIndex1(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+    private static List<Tuple> getTupleByIndex1(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
-            Iterator<String> iterator = tupleIndex.iterator();
+            Iterator<Integer> iterator = tupleIndex.iterator();
             int counter = 1;
-            int index = Integer.valueOf(iterator.next());
+            int index =  iterator.next();
             while (CSViterator.hasNext()) {
                 if (counter == index) {
                     queryResult.add(new Tuple(tableObject, (CSVRecord) CSViterator.next()));
                     if (iterator.hasNext())
-                        index = Integer.valueOf(iterator.next());
+                        index =  iterator.next();
                     else
                         break;
                 } else {
@@ -765,13 +765,13 @@ public class processSelect {
         }
         return queryResult;
     }
-    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+    private static List<Tuple> getTupleByIndex(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             int counter = 1;
             int counterIndex = 0;
             int size = tupleIndex.size();
-            int index = Integer.valueOf(tupleIndex.get(0));
+            int index =  tupleIndex.get(0);
             while (CSViterator.hasNext()) {
                 if (counter != index) {
                     CSViterator.next();
@@ -779,7 +779,7 @@ public class processSelect {
                     queryResult.add(new Tuple(tableObject, (CSVRecord) CSViterator.next()));
                     counterIndex = counterIndex + 1;
                     if (counterIndex<size) {
-                        index = Integer.valueOf(tupleIndex.get(counterIndex));
+                        index =  tupleIndex.get(counterIndex);
                     }else
                         break;
                 }
@@ -790,12 +790,12 @@ public class processSelect {
         return queryResult;
     }
 
-    private static List<Tuple> getTupleByIndexBuffer(TableObject tableObject, List<String> tupleIndex, Iterator CSViterator) throws Exception {
+    private static List<Tuple> getTupleByIndexBuffer(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
-            Iterator<String> iterator = tupleIndex.iterator();
+            Iterator<Integer> iterator = tupleIndex.iterator();
             int counter = 1;
-            int index = Integer.valueOf(iterator.next());
+            int index =  iterator.next();
             FileInputStream inputStream = new FileInputStream(new File("indexes/" + tableObject.getTableName() + ".txt"));
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
             List<ColumnDefinition> col = tableObject.getColumnDefinitions();
@@ -804,7 +804,7 @@ public class processSelect {
                     queryResult.add(((Tuple) objectInputStream.readObject()).Map(col));
                     //Tuple t = ((Tuple) objectInputStream.readObject()).Map(col);
                     if (iterator.hasNext())
-                        index = Integer.valueOf(iterator.next());
+                        index =  iterator.next();
                     else
                         break;
                 }else
@@ -816,14 +816,14 @@ public class processSelect {
 
     }
 
-    private static List<String> getIndexList(TableObject tableObject, Expression exp, boolean flag) throws Exception {
-        List<String> tupleIndex = new ArrayList<>();
+    private static List<Integer> getIndexList(TableObject tableObject, Expression exp, boolean flag) throws Exception {
+        List<Integer> tupleIndex = new ArrayList<>();
         boolean isSorted = true;
-        Comparator c = new Comparator<String>() {
+        Comparator c = new Comparator<Integer>() {
             @Override
-            public int compare(String o1, String o2) {
+            public int compare(Integer o1, Integer o2) {
                 // TODO Auto-generated method stub
-                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                if (o1 < o2)
                     return -1;
                     //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
                 else return 1;
@@ -896,7 +896,7 @@ public class processSelect {
                 }
             }
             //HashMap<String, ArrayList<String>> map = tableObject.getIndex().get(colName);
-            HashMap<String, List<String>> map = tableObject.getIndex(colName);
+            HashMap<String, List<Integer>> map = tableObject.getIndex(colName);
 
             switch (operator) {
                 case "colName<colVal":
@@ -931,8 +931,8 @@ public class processSelect {
                 if (exp instanceof AndExpression) {
                     Expression leftExp = ((AndExpression) exp).getLeftExpression();
                     Expression rightExp = ((AndExpression) exp).getRightExpression();
-                    List<String> leftIndex = getIndexList(tableObject, leftExp, false);
-                    List<String> rightIndex = getIndexList(tableObject, rightExp, false);
+                    List<Integer> leftIndex = getIndexList(tableObject, leftExp, false);
+                    List<Integer> rightIndex = getIndexList(tableObject, rightExp, false);
 
                     Set right = new HashSet();
                     right.addAll(rightIndex);
@@ -944,8 +944,8 @@ public class processSelect {
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
-                    List<String> leftIndex = getIndexList(tableObject, leftExp, false);
-                    List<String> rightIndex = getIndexList(tableObject, rightExp, false);
+                    List<Integer> leftIndex = getIndexList(tableObject, leftExp, false);
+                    List<Integer> rightIndex = getIndexList(tableObject, rightExp, false);
                     leftIndex.addAll(rightIndex);
                     Set set = new HashSet();
                     set.addAll(leftIndex);
@@ -955,7 +955,7 @@ public class processSelect {
             }
         }
         if (flag) {
-            HashMap<String, Integer> file2current = new HashMap<>();
+            HashMap<Integer, Integer> file2current = new HashMap<>();
             for (int i = 0; i < tupleIndex.size(); i++) {
                 file2current.put(tupleIndex.get(i), i);
             }

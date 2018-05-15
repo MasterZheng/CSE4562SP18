@@ -14,6 +14,7 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TableObject {
     private Table table;
@@ -21,8 +22,8 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
-    private List<String> currentTuple = null;
-    private HashMap<String, Integer> file2Current = new HashMap<>();
+    private List<Integer> currentTuple = null;
+    private HashMap<Integer, Integer> file2Current = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -138,19 +139,19 @@ public class TableObject {
         this.columnInfo = columnInfo;
     }
 
-    public List<String> getCurrentTuple() {
+    public List<Integer> getCurrentTuple() {
         return currentTuple;
     }
 
-    public void setCurrentTuple(List<String> currentTuple) {
+    public void setCurrentTuple(List<Integer> currentTuple) {
         this.currentTuple = currentTuple;
     }
 
-    public HashMap<String, Integer> getFile2Current() {
+    public HashMap<Integer, Integer> getFile2Current() {
         return file2Current;
     }
 
-    public void setFile2Current(HashMap<String, Integer> file2Current) {
+    public void setFile2Current(HashMap<Integer, Integer> file2Current) {
         this.file2Current = file2Current;
     }
 
@@ -535,11 +536,11 @@ public class TableObject {
 //    }
 
     public void setIndexTXTDivide1(int part) throws Exception {
-        Comparator c = new Comparator<String>() {
+        Comparator c = new Comparator<Integer>() {
             @Override
-            public int compare(String o1, String o2) {
+            public int compare(Integer o1, Integer o2) {
                 // TODO Auto-generated method stub
-                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                if (o1 < o2)
                     return -1;
                     //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
                 else return 1;
@@ -583,9 +584,8 @@ public class TableObject {
             for (Iterator<Map.Entry<String,HashMap<String,StringBuilder>>> it = index.entrySet().iterator(); it.hasNext();){
                 Map.Entry<String, HashMap<String,StringBuilder>> item = it.next();
                 String colName = item.getKey();
-                HashMap<String,StringBuilder> hashMap = item.getValue();
                 List<String> result;
-                HashMap<String,List<String>>col = new HashMap<>();
+                HashMap<String,List<Integer>>col = new HashMap<>();
                 File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
                 if (!file.exists()) {
                     file.createNewFile();
@@ -594,8 +594,9 @@ public class TableObject {
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
                 for (String colVal:index.get(colName).keySet()){
                     result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
-                    result.sort(c);
-                    col.put(colVal,result);
+                    List<Integer> a = result.stream().map(Integer::parseInt).collect(Collectors.toList());
+                    a.sort(c);
+                    col.put(colVal,a);
                 }
                 it.remove();
                 objectOutputStream.writeObject(col);
@@ -624,11 +625,11 @@ public class TableObject {
     }
 
 
-    public HashMap<String, List<String>> getIndex(String ColName) throws Exception{
+    public HashMap<String, List<Integer>> getIndex(String ColName) throws Exception{
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
         FileInputStream inputStream = new FileInputStream(new File(FILE_NAME));//创建文件字节输出流对象
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        HashMap<String, List<String>> object = (HashMap<String, List<String>>)objectInputStream.readObject();
+        HashMap<String, List<Integer>> object = (HashMap<String, List<Integer>>)objectInputStream.readObject();
         return object;
     }
 
