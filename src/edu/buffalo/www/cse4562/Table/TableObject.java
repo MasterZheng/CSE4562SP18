@@ -659,8 +659,13 @@ public class TableObject {
 
         FileOutputStream outputStream = new FileOutputStream(file,false);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-        while (iterator.hasNext())
+        int counter = 0;
+        while (iterator.hasNext()){
             objectOutputStream.writeObject(new Tuple(tableName,this.getColumnDefinitions(),iterator.next(),0));
+            counter+=1;
+            if (counter==10000)
+                objectOutputStream.flush();
+        }
         objectOutputStream.close();
 
     }
