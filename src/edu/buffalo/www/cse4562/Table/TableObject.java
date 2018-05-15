@@ -535,6 +535,16 @@ public class TableObject {
 //    }
 
     public void setIndexTXTDivide1(int part) throws Exception {
+        Comparator c = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                // TODO Auto-generated method stub
+                if (Integer.valueOf(o1) < Integer.valueOf(o2))
+                    return -1;
+                    //注意！！返回值必须是一对相反数，否则无效。jdk1.7以后就是这样。
+                else return 1;
+            }
+        };
         //有划分，1列一文件
         for (int k =0;k<part;k++){
             HashMap<String, HashMap<String, StringBuilder>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
@@ -570,80 +580,56 @@ public class TableObject {
                     i++;
                 }
             }
-            for (String colName :index.keySet()){
+            for (Iterator<Map.Entry<String,HashMap<String,StringBuilder>>> it = index.entrySet().iterator(); it.hasNext();){
+                Map.Entry<String, HashMap<String,StringBuilder>> item = it.next();
+                String colName = item.getKey();
+                HashMap<String,StringBuilder> hashMap = item.getValue();
+                List<String> result;
+                HashMap<String,List<String>>col = new HashMap<>();
                 File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
                 if (!file.exists()) {
                     file.createNewFile();
                 }
                 FileOutputStream outputStream = new FileOutputStream(file);
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(index.get(colName));
+                for (String colVal:index.get(colName).keySet()){
+                    result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
+                    result.sort(c);
+                    col.put(colVal,result);
+                }
+                it.remove();
+                objectOutputStream.writeObject(col);
                 objectOutputStream.close();
             }
+//            for (String colName :index.keySet()){
+//                List<String> result;
+//                HashMap<String,List<String>>col = new HashMap<>();
+//                File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
+//                if (!file.exists()) {
+//                    file.createNewFile();
+//                }
+//                FileOutputStream outputStream = new FileOutputStream(file);
+//                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+//                for (String colVal:index.get(colName).keySet()){
+//                    result = Arrays.asList(index.get(colName).get(colVal).toString().split(","));
+//                    result.sort(c);
+//                    col.put(colVal,result);
+//                }
+//                index.remove(colName);
+//                objectOutputStream.writeObject(col);
+//                objectOutputStream.close();
+//            }
 
         }
     }
 
-//    public void setBufferIndex() throws Exception {
-//        //无划分，一列一文件
-//        HashMap<String, HashMap<String, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-//        for (int i = 0; i < columnInfo.size(); i++) {
-//            index.put(columnInfo.get(i).getColumnName(), new HashMap<>());
-//        }
-//
-//        int i = 1;
-//        FileReader fs = new FileReader(fileDir);
-//        BufferedReader br = new BufferedReader(fs);
-//        String line;
-//        if (index.size() != 0) {
-//            while((line = br.readLine()) != null){
-//                String[] tuple = line.split("\\|");
-//                for (int j = 0; j < columnInfo.size(); j++) {
-//                    //判断当前index表中某列的index是否存在这个值，如果存在，将下标加入list
-//                    String colName = columnInfo.get(j).getColumnName();
-//                    String attrVal = tuple[j];
-//                    if (!index.get(colName).containsKey(attrVal)) {
-//                        ArrayList<Integer> a = new ArrayList<>();
-//                        a.add(i);
-//                        index.get(colName).put(attrVal,a);
-//                    } else {
-//                        index.get(colName).get(attrVal).add(i);
-//                    }
-//                }
-//
-//                i++;
-//            }
-//        }
-//        for (String colName :index.keySet()){
-//            File file = new File("indexes/" + this.getTableName().toUpperCase()+"_"+colName + ".txt");
-//            if (!file.exists()) {
-//                file.createNewFile();
-//            }
-//            FileOutputStream outputStream = new FileOutputStream(file);
-//            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-//            objectOutputStream.writeObject(index.get(colName));
-//            objectOutputStream.close();
-//        }
-//
-//    }
-
-//    public HashMap<String, List<Integer>> getIndexO(String ColName) throws Exception{
-//        final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
-//        FileInputStream inputStream = new FileInputStream(new File(FILE_NAME));//创建文件字节输出流对象
-//        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-//        return (HashMap<String, List<Integer>>)objectInputStream.readObject();
-//    }
 
     public HashMap<String, List<String>> getIndex(String ColName) throws Exception{
         final String FILE_NAME = "indexes/" + this.getTableName().toUpperCase() + "_" + ColName + ".txt";
         FileInputStream inputStream = new FileInputStream(new File(FILE_NAME));//创建文件字节输出流对象
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        HashMap<String, List<String>> result = new HashMap<>();
-        HashMap<String, StringBuilder> object = (HashMap<String, StringBuilder>)objectInputStream.readObject();
-        for (String key:object.keySet()) {
-            result.put(key, Arrays.asList(object.get(key).toString().split(",")));
-        }
-        return result;
+        HashMap<String, List<String>> object = (HashMap<String, List<String>>)objectInputStream.readObject();
+        return object;
     }
 
     public void BufferIndex()throws Exception{
@@ -656,11 +642,15 @@ public class TableObject {
         File file = new File(fileName);
         file.createNewFile();
         long start = System.currentTimeMillis();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DataOutputStream dataOut = new DataOutputStream(out);
+
         FileOutputStream outputStream = new FileOutputStream(file,false);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
         int counter = 0;
         while (iterator.hasNext()){
             Tuple t = new Tuple(tableName,this.getColumnDefinitions(),iterator.next(),0);
+
             objectOutputStream.writeObject(t);
             counter+=1;
             if (counter==10000){

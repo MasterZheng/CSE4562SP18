@@ -818,6 +818,7 @@ public class processSelect {
 
     private static List<String> getIndexList(TableObject tableObject, Expression exp, boolean flag) throws Exception {
         List<String> tupleIndex = new ArrayList<>();
+        boolean isSorted = true;
         Comparator c = new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -923,7 +924,7 @@ public class processSelect {
                     }
                     break;
             }
-            tupleIndex.sort(c);
+            isSorted = false;
         } else {
             //size == 0 : the tableobject is the results of a subselect
             if (tableObject.isOriginal()) {
@@ -939,6 +940,7 @@ public class processSelect {
                     left.addAll(leftIndex);
                     right.retainAll(left);
                     tupleIndex.addAll(right);
+                    isSorted = false;
                 } else if (exp instanceof OrExpression) {
                     Expression leftExp = ((OrExpression) exp).getLeftExpression();
                     Expression rightExp = ((OrExpression) exp).getRightExpression();
@@ -948,6 +950,7 @@ public class processSelect {
                     Set set = new HashSet();
                     set.addAll(leftIndex);
                     tupleIndex.addAll(set);
+                    isSorted = false;
                 }
             }
         }
@@ -957,7 +960,8 @@ public class processSelect {
                 file2current.put(tupleIndex.get(i), i);
             }
             tableObject.setFile2Current(file2current);
-            tupleIndex.sort(c);
+            if (!isSorted)
+                tupleIndex.sort(c);
         }
         return tupleIndex;
     }
