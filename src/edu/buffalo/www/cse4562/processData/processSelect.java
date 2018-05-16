@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -22,12 +21,10 @@ import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import sun.font.TrueTypeFont;
 
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class processSelect {
 
@@ -134,9 +131,9 @@ public class processSelect {
 
                     } else {
                         //process the expression in joinNode
-                        if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
-                                (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
-                            //= null :未过滤，size=0 过滤后无值
+//                        if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
+//                                (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
+//                            //= null :未过滤，size=0 过滤后无值
                             //result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
                             int fileNum = tableLeft.getIndexFileName().size();
                             List<Tuple> queryResult = new ArrayList<>();
@@ -167,9 +164,9 @@ public class processSelect {
                                 result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
 
                             }
-                        } else {
-                            result.settupleList(new ArrayList<>());
-                        }
+//                        } else {
+//                            result.settupleList(new ArrayList<>());
+//                        }
                         leftIterator = result.getIterator();
                         rightIterator = null;
                         tableRight = null;
@@ -179,9 +176,9 @@ public class processSelect {
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
                 List<Tuple> queryResult = new ArrayList<>();
-                if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
-                        (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
-                    //= null :未过滤，size=0 过滤后无值
+//                if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
+//                        (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
+//                    //= null :未过滤，size=0 过滤后无值
                     //result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
                     int fileNum = tableLeft.getIndexFileName().size();
                     if (tableLeft.getIndexFileName().size()!=0){
@@ -211,9 +208,9 @@ public class processSelect {
                         result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
 
                     }
-                } else {
-                    result.settupleList(new ArrayList<>());
-                }
+//                } else {
+//                    result.settupleList(new ArrayList<>());
+//                }
 
                 tableLeft = null;
                 tableRight = null;
@@ -504,9 +501,9 @@ public class processSelect {
                             queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
                         }
                     }
-                    if (tableLeft.getTupleList().size()>40000&&queryResult.size()>10000){
-                        writeTupleIntoFile(tableLeft,queryResult);
-                    }
+//                    if (tableLeft.getTupleList().size()>40000&&queryResult.size()>10000){
+//                        writeTupleIntoFile(tableLeft,queryResult);
+//                    }
                     counterIndex++;
                     counter++;
                 }else {
@@ -603,11 +600,11 @@ public class processSelect {
 //                        queryResult = eva.Eval(queryResult);
                         queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
                     }
-                    if (tableLeft.getTupleList().size()+tableLeft.getTupleList().size()>60000){
-                        if (queryResult.size()>10000){
-                            writeTupleIntoFile(tableLeft,queryResult);
-                        }
-                    }
+//                    if (tableLeft.getTupleList().size()+tableLeft.getTupleList().size()>60000){
+//                        if (queryResult.size()>10000){
+//                            writeTupleIntoFile(tableLeft,queryResult);
+//                        }
+//                    }
                 }
                 t.remove();
             }
@@ -698,7 +695,7 @@ public class processSelect {
             //if no right table ,just evaluate left tuple 右表为空
             if (tableLeft.isOriginal() || (exp instanceof EqualsTo || exp instanceof MinorThan || exp instanceof GreaterThan)) {
                 List<Integer> tupleIndex = getIndexList(tableLeft, exp, true);
-                tableLeft.setCurrentTuple(tupleIndex);
+                //tableLeft.setCurrentTuple(tupleIndex);
                 queryResult = getTupleByIndex(tableLeft, tupleIndex, leftIterator);
                 //queryResult = getTupleByIndexBuffer(tableLeft, tupleIndex, leftIterator);
                 //tableLeft.setOriginal(false);

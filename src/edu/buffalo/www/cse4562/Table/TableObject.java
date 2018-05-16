@@ -22,7 +22,7 @@ public class TableObject {
     private String alisa;
     private String fileDir;
     private boolean original = true;
-    private List<Integer> currentTuple = null;
+    //private List<Integer> currentTuple = null;
 //    private HashMap<Integer, Integer> file2Current = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
@@ -139,13 +139,13 @@ public class TableObject {
         this.columnInfo = columnInfo;
     }
 
-    public List<Integer> getCurrentTuple() {
-        return currentTuple;
-    }
-
-    public void setCurrentTuple(List<Integer> currentTuple) {
-        this.currentTuple = currentTuple;
-    }
+//    public List<Integer> getCurrentTuple() {
+//        return currentTuple;
+//    }
+//
+//    public void setCurrentTuple(List<Integer> currentTuple) {
+//        this.currentTuple = currentTuple;
+//    }
 
 //    public HashMap<Integer, Integer> getFile2Current() {
 //        return file2Current;
