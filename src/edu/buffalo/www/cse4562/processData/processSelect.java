@@ -130,6 +130,8 @@ public class processSelect {
                     if (pointer.getParentNode().getOperation().equals("SELECTION") && pointer.getExpression().toString().equals("1 = 1")) {
 
                     } else {
+                        long startTime = System.currentTimeMillis();   //获取开始时间
+
                         //process the expression in joinNode
 //                        if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
 //                                (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
@@ -167,6 +169,9 @@ public class processSelect {
 //                        } else {
 //                            result.settupleList(new ArrayList<>());
 //                        }
+                        long endTime = System.currentTimeMillis();   //获取开始时间
+                        logger.info(tableLeft.getTableName()+" "+tableRight.getTableName()+" JOIN  " + String.valueOf(endTime - startTime) + "ms       "+result.getTupleList().size());
+
                         leftIterator = result.getIterator();
                         rightIterator = null;
                         tableRight = null;
