@@ -47,7 +47,6 @@ public class CreatParser {
         logger.info(create.toString());
         File file = new File(tableObject.getFileDir());
         long length = file.length();
-        long start = System.currentTimeMillis();
         if (length<8000000){
             tableObject.setIndexTXTDivide1(1);
 
@@ -59,8 +58,6 @@ public class CreatParser {
         }else{
             tableObject.setIndexTXTDivide1(8);
         }
-        long end = System.currentTimeMillis();
-        System.out.println(end-start);
         return true;
     }
 

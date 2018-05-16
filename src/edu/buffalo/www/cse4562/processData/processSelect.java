@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.processData;
 
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -21,6 +22,7 @@ import net.sf.jsqlparser.statement.select.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import sun.font.TrueTypeFont;
 
 import java.io.*;
 import java.util.*;
@@ -665,8 +667,14 @@ public class processSelect {
                 if (tableRight.getIndexFileName().size()!=0){
                     for (String fileName:tableRight.getIndexFileName()){
                         getTupleFromFile(fileName,tableRight);
-                        leftIterator = tableLeft.getTupleList().iterator();
                         rightIterator = tableRight.getTupleList().iterator();
+                        if (tableLeft.getTupleList()!=null){
+                            leftIterator = tableLeft.getTupleList().iterator();
+                        }else {
+                            CSVParser parseLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
+                            leftIterator = parseLeft.iterator();
+                            tableLeft.setOriginal(true);
+                        }
                         queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
                     }
                 }
@@ -674,13 +682,19 @@ public class processSelect {
                     for (String fileName:tableLeft.getIndexFileName()){
                         getTupleFromFile(fileName,tableLeft);
                         leftIterator = tableLeft.getTupleList().iterator();
-                        rightIterator = tableRight.getTupleList().iterator();
+                        if (tableRight.getTupleList()!=null){
+                            rightIterator = tableRight.getTupleList().iterator();
+                        }else {
+                            CSVParser parseLeft = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
+                            rightIterator = parseLeft.iterator();
+                            tableRight.setOriginal(true);
+                        }
                         queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
                     }
                 }
 
-            }
-            queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
+            }else
+              queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
         } else if (exp instanceof EqualsTo && exp.toString().equals("1 = 1")) {
             if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
                 while (leftIterator.hasNext()) {
@@ -809,7 +823,8 @@ public class processSelect {
                         index =  tupleIndex.get(counterIndex);
                     }else
                         break;
-                    if (queryResult.size()==45000){
+                    if (queryResult.size()==35000){
+                        long start = System.currentTimeMillis();
                         String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
                         File file = new File(fileName);
                         tableObject.setIndexFileName(fileName);
@@ -819,6 +834,8 @@ public class processSelect {
                         objectOutputStream.writeObject(queryResult);
                         objectOutputStream.close();
                         queryResult.clear();
+                        long end = System.currentTimeMillis();
+                        logger.info("write into file "+String.valueOf(end-start));
                     }
                 }
                 counter=counter+1;
