@@ -75,10 +75,7 @@ public class processSelect {
                         leftIterator = parserLeft.iterator();
                     } else {
                         tableLeft.setLeft(true);
-                        long startTime = System.currentTimeMillis();   //获取开始时间
                         tableLeft.settupleList(SelectAndJoin(parserLeft.iterator(), null, tableLeft, null, left.getExpression()));
-                        long endTime = System.currentTimeMillis();   //获取开始时间
-                        logger.info(tableLeft.getTableName() + " filter " + String.valueOf(endTime - startTime) + "ms     " + tableLeft.getTupleList().size());
                         leftIterator = tableLeft.getIterator();
                         tableLeft.setOriginal(false);
                     }
@@ -109,10 +106,7 @@ public class processSelect {
                         } else {
                             //过滤
                             tableRight.setLeft(false);
-                            long startTime = System.currentTimeMillis();   //获取开始时间
                             tableRight.settupleList(SelectAndJoin(parserRight.iterator(), null, tableRight, null, right.getExpression()));
-                            long endTime = System.currentTimeMillis();   //获取开始时间
-                            logger.info(tableRight.getTableName() + " filter " + String.valueOf(endTime - startTime) + "ms       " + tableRight.getTupleList().size());
                             rightIterator = tableRight.getIterator();
                             tableRight.setOriginal(false);
                         }
@@ -131,7 +125,6 @@ public class processSelect {
                     if (pointer.getParentNode().getOperation().equals("SELECTION") && pointer.getExpression().toString().equals("1 = 1")) {
 
                     } else {
-                        long startTime = System.currentTimeMillis();   //获取开始时间
 
                         //process the expression in joinNode
                         int fileNum = tableLeft.getIndexFileName().size();
@@ -166,8 +159,6 @@ public class processSelect {
 //                        } else {
 //                            result.settupleList(new ArrayList<>());
 //                        }
-                        long endTime = System.currentTimeMillis();   //获取开始时间
-                        logger.info(tableLeft.getTableName() + " " + tableRight.getTableName() + " JOIN  " + String.valueOf(endTime - startTime) + "ms       " + result.getTupleList().size());
 
                         leftIterator = result.getIterator();
                         rightIterator = null;
@@ -224,12 +215,9 @@ public class processSelect {
             } else if (operation.equals("PROJECTION")) {
                 //before process projection, check
                 //if no where ,add all tuple into the queryResult List
-                long startTime = System.currentTimeMillis();   //获取开始时间
                 selectItems = ((RAProjection) pointer).getSelectItem();
                 tempColDef(result, selectItems, involvedTables);
                 result = ((RAProjection) pointer).Eval(result, tableName);
-                long endTime = System.currentTimeMillis();   //获取开始时间
-                logger.info(" projection " + String.valueOf(endTime - startTime) + "ms");
 
 
             } else if (operation.equals("ORDERBY")) {
@@ -860,8 +848,6 @@ public class processSelect {
     }
 
     private static List<Tuple> getTupleByIndex(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
-        logger.info("getTupleByIndex");
-        long start = System.currentTimeMillis();
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             int counter = 1;
@@ -883,8 +869,6 @@ public class processSelect {
             }
 
         }
-        long end = System.currentTimeMillis();
-        logger.info(String.valueOf(end-start));
         return queryResult;
     }
 
