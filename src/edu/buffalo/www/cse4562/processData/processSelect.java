@@ -515,28 +515,35 @@ public class processSelect {
                 }
             } else {
                 logger.info("left is result>55000, right is original ");
-                List<OrderByElement> a = new ArrayList<>();
-                OrderByElement order = new OrderByElement();
-                order.setExpression(colLeft);
-                a.add(order);
-                tableLeft = RAOrderby.Eval(tableLeft,a);
+                HashMap<String,List<Tuple>> tupleLeftList = new HashMap<>();
                 Iterator<Tuple> tleft = tableLeft.getIterator();
-                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
-                PrimitiveValue currentVal = null;
-                List<Tuple> tupleRightBlock =new ArrayList<>();
                 while (tleft.hasNext()){
                     Tuple t = tleft.next();
-                    if (currentVal!= t.getAttributes().get(colLeft.getColumnName())){
-                        currentVal = t.getAttributes().get(colLeft.getColumnName());
-                        tupleRightBlock = getTupleByIndex(tableRight,rightCol.get(currentVal.toRawString()),rightIterator);
-                    }
-                    for (int i = 0;i<tupleRightBlock.size();i++){
-                        queryResult.add(t.joinTuple(tupleRightBlock.get(i)));
+                    String attrVal = t.getAttributes().get(colLeft.getColumnName()).toRawString();
+                    if (!tupleLeftList.containsKey(attrVal)) {
+                        List<Tuple> a = new ArrayList<>();
+                        a.add(t);
+                        tupleLeftList.put(attrVal, a);
+                    } else {
+                        tupleLeftList.get(attrVal).add(t);
                     }
                     tleft.remove();
                 }
+                for (String attrVal:tupleLeftList.keySet()){
+                    List<Integer> rightColIndex = tableRight.getIndex(colRight.getColumnName()).get(attrVal);
+                    rightIterator = new CSVParser(new FileReader(tableRight.getFileDir()),formator).iterator();
+                    List<Tuple> tupleRightBlock = getTupleByIndex(tableRight,rightColIndex,rightIterator);
+                    Iterator<Tuple> leftIter = tupleLeftList.get(attrVal).iterator();
+                    while (leftIter.hasNext()){
+                        Tuple t = leftIter.next();
+                        Iterator<Tuple> rightIter = tupleRightBlock.iterator();
+                        while (rightIter.hasNext()){
+                            queryResult.add(t.joinTuple(rightIter.next()));
+                        }
+                        leftIter.remove();
+                    }
+                }
             }
-
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
