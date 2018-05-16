@@ -32,6 +32,12 @@ public class RAOrderby extends RANode {
         table.settupleList(tupleList);
         return table;
     }
+    public static TableObject Eval(TableObject table,List orderby){
+        List<Tuple> tupleList = table.getTupleList();
+        tupleList.sort(new TupleComparator(orderby));
+        table.settupleList(tupleList);
+        return table;
+    }
     @Override
     public boolean hasNext() {
         if (this.leftNode != null) {

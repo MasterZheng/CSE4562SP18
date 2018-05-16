@@ -1,6 +1,5 @@
 package edu.buffalo.www.cse4562.processData;
 
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -470,7 +469,8 @@ public class processSelect {
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
 
-            if (tableLeft.getTupleList().size()<60000){
+            if (tableLeft.getTupleList().size()<55000){
+                logger.info("left is result<55000, right is original");
                 HashMap<String, ArrayList<Integer>> leftHash = new HashMap<>();
                 for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
                     String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
@@ -504,6 +504,9 @@ public class processSelect {
                                 queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
                             }
                         }
+
+
+
                         counterIndex++;
                         counter++;
                     } else {
@@ -512,7 +515,12 @@ public class processSelect {
                     }
                 }
             }else {
-                tableLeft.getTupleList().sort(c);
+                logger.info("left is result>55000, right is original ");
+                List<OrderByElement> a = new ArrayList<>();
+                OrderByElement order = new OrderByElement();
+                order.setExpression(colLeft);
+                a.add(order);
+                tableLeft = RAOrderby.Eval(tableLeft,a);
                 Iterator<Tuple> tleft = tableLeft.getIterator();
                 HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
                 PrimitiveValue currentVal = null;
