@@ -468,74 +468,74 @@ public class processSelect {
 //            tableRight.setOriginal(false);
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
-//            if (tableLeft.getTupleList().size()<55000){
-            logger.info("left is result<55000, right is original");
-            HashMap<String, ArrayList<Integer>> leftHash = new HashMap<>();
-            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-                String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
-                if (leftHash.containsKey(val)) {
-                    leftHash.get(val).add(i);
-                } else {
-                    ArrayList<Integer> list = new ArrayList<>();
-                    list.add(i);
-                    leftHash.put(val, list);
-                }
-            }
-            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
-            ArrayList<Integer> indexInright = new ArrayList<>();
-
-            for (String val : leftHash.keySet()) {
-                List a = rightCol.get(val);
-                if (a != null)
-                    indexInright.addAll(a);
-            }
-            rightCol.clear();
-            indexInright.sort(c);
-
-            int counterIndex = 0;
-            int counter = 1;
-            while (rightIterator.hasNext()) {
-                if (counterIndex < indexInright.size() && counter == indexInright.get(counterIndex)) {
-                    Tuple t = getTuple(rightIterator, tableRight);
-                    List<Integer> leftIndex = leftHash.get(t.getAttributes().get(colRight.getColumnName()).toRawString());
-                    if (leftIndex != null) {
-                        for (Integer i : leftIndex) {
-                            queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
-                        }
+            if (tableLeft.getTupleList().size() < 55000) {
+                logger.info("left is result<55000, right is original");
+                HashMap<String, ArrayList<Integer>> leftHash = new HashMap<>();
+                for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
+                    String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
+                    if (leftHash.containsKey(val)) {
+                        leftHash.get(val).add(i);
+                    } else {
+                        ArrayList<Integer> list = new ArrayList<>();
+                        list.add(i);
+                        leftHash.put(val, list);
                     }
+                }
+                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+                ArrayList<Integer> indexInright = new ArrayList<>();
+
+                for (String val : leftHash.keySet()) {
+                    List a = rightCol.get(val);
+                    if (a != null)
+                        indexInright.addAll(a);
+                }
+                rightCol.clear();
+                indexInright.sort(c);
+
+                int counterIndex = 0;
+                int counter = 1;
+                while (rightIterator.hasNext()) {
+                    if (counterIndex < indexInright.size() && counter == indexInright.get(counterIndex)) {
+                        Tuple t = getTuple(rightIterator, tableRight);
+                        List<Integer> leftIndex = leftHash.get(t.getAttributes().get(colRight.getColumnName()).toRawString());
+                        if (leftIndex != null) {
+                            for (Integer i : leftIndex) {
+                                queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
+                            }
+                        }
 //                    if (tableLeft.getTupleList().size()>40000||queryResult.size()>40000){
 //                        writeTupleIntoFile(tableLeft,queryResult);
 //                    }
-                    counterIndex++;
-                    counter++;
-                } else {
-                    rightIterator.next();
-                    counter++;
+                        counterIndex++;
+                        counter++;
+                    } else {
+                        rightIterator.next();
+                        counter++;
+                    }
+                }
+            } else {
+                logger.info("left is result>55000, right is original ");
+                List<OrderByElement> a = new ArrayList<>();
+                OrderByElement order = new OrderByElement();
+                order.setExpression(colLeft);
+                a.add(order);
+                tableLeft = RAOrderby.Eval(tableLeft,a);
+                Iterator<Tuple> tleft = tableLeft.getIterator();
+                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+                PrimitiveValue currentVal = null;
+                List<Tuple> tupleRightBlock =new ArrayList<>();
+                while (tleft.hasNext()){
+                    Tuple t = tleft.next();
+                    if (currentVal!= t.getAttributes().get(colLeft.getColumnName())){
+                        currentVal = t.getAttributes().get(colLeft.getColumnName());
+                        tupleRightBlock = getTupleByIndex(tableRight,rightCol.get(currentVal.toRawString()),rightIterator);
+                    }
+                    for (int i = 0;i<tupleRightBlock.size();i++){
+                        queryResult.add(t.joinTuple(tupleRightBlock.get(i)));
+                    }
+                    tleft.remove();
                 }
             }
-//            }else {
-//                logger.info("left is result>55000, right is original ");
-//                List<OrderByElement> a = new ArrayList<>();
-//                OrderByElement order = new OrderByElement();
-//                order.setExpression(colLeft);
-//                a.add(order);
-//                tableLeft = RAOrderby.Eval(tableLeft,a);
-//                Iterator<Tuple> tleft = tableLeft.getIterator();
-//                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
-//                PrimitiveValue currentVal = null;
-//                List<Tuple> tupleRightBlock =new ArrayList<>();
-//                while (tleft.hasNext()){
-//                    Tuple t = tleft.next();
-//                    if (currentVal!= t.getAttributes().get(colLeft.getColumnName())){
-//                        currentVal = t.getAttributes().get(colLeft.getColumnName());
-//                        tupleRightBlock = getTupleByIndex(tableRight,rightCol.get(currentVal.toRawString()),rightIterator);
-//                    }
-//                    for (int i = 0;i<tupleRightBlock.size();i++){
-//                        queryResult.add(t.joinTuple(tupleRightBlock.get(i)));
-//                    }
-//                    tleft.remove();
-//                }
-//            }
 
             tableRight.setOriginal(false);
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
