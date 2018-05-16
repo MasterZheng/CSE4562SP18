@@ -137,11 +137,36 @@ public class processSelect {
                         if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
                                 (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
                             //= null :未过滤，size=0 过滤后无值
-                            long startTime = System.currentTimeMillis();   //获取开始时间
-                            result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
-                            long endTime = System.currentTimeMillis();   //获取开始时间
-                            logger.info(tableLeft.getTableName()+" "+tableRight.getTableName()+" join " + String.valueOf(endTime - startTime) + "ms     "+result.getTupleList().size());
+                            //result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                            int fileNum = tableLeft.getIndexFileName().size();
+                            List<Tuple> queryResult = new ArrayList<>();
+                            if (tableLeft.getIndexFileName().size()!=0){
+                                for (String fileName:tableRight.getIndexFileName()){
+                                    tableLeft.getTupleList().clear();
+                                    tableLeft.settupleList(getTupleFromFile(fileName));
+                                    rightIterator = tableRight.getTupleList().iterator();
+                                    if (tableLeft.getTupleList()!=null){
+                                        leftIterator = tableLeft.getTupleList().iterator();
+                                    }else {
+                                        CSVParser parseLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
+                                        leftIterator = parseLeft.iterator();
+                                        tableLeft.setOriginal(true);
+                                    }
+                                    queryResult.addAll(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                                }
+                                for (int i= 0;i<fileNum;i++)
+                                    tableLeft.getIndexFileName().remove(tableLeft.getIndexFileName().size()-1);
+                                if (tableLeft.getIndexFileName().size()>0){
+                                    for (int i = 0;i<tableLeft.getIndexFileName().size();i++){
+                                        queryResult.addAll(getTupleFromFile(tableLeft.getIndexFileName().get(i)));
+                                    }
+                                }
+                                result.settupleList(queryResult);
 
+                            }else {
+                                result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+
+                            }
                         } else {
                             result.settupleList(new ArrayList<>());
                         }
@@ -153,18 +178,43 @@ public class processSelect {
                     }
                 }
             } else if (operation.equals("SELECTION") && pointer.getExpression() != null) {
-                long startTime = System.currentTimeMillis();   //获取开始时间
-                List<Tuple> queryResult = SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression());
-                if (queryResult != null) {
-                    result.settupleList(queryResult);
-                }
-                long endTime = System.currentTimeMillis();   //获取开始时间
-                logger.info(tableLeft.getTableName()+" "+tableRight.getTableName()+" join " + String.valueOf(endTime - startTime) + "ms");
+                List<Tuple> queryResult = new ArrayList<>();
+                if ((tableLeft.getCurrentTuple() == null || tableLeft.getCurrentTuple().size() != 0) &&
+                        (tableRight.getCurrentTuple() == null || tableRight.getCurrentTuple().size() != 0)) {
+                    //= null :未过滤，size=0 过滤后无值
+                    //result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                    int fileNum = tableLeft.getIndexFileName().size();
+                    if (tableLeft.getIndexFileName().size()!=0){
+                        for (String fileName:tableRight.getIndexFileName()){
+                            tableLeft.getTupleList().clear();
+                            tableLeft.settupleList(getTupleFromFile(fileName));
+                            rightIterator = tableRight.getTupleList().iterator();
+                            if (tableLeft.getTupleList()!=null){
+                                leftIterator = tableLeft.getTupleList().iterator();
+                            }else {
+                                CSVParser parseLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
+                                leftIterator = parseLeft.iterator();
+                                tableLeft.setOriginal(true);
+                            }
+                            queryResult.addAll(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+                        }
+                        for (int i= 0;i<fileNum;i++)
+                            tableLeft.getIndexFileName().remove(tableLeft.getIndexFileName().size()-1);
+                        if (tableLeft.getIndexFileName().size()>0){
+                            for (int i = 0;i<tableLeft.getIndexFileName().size();i++){
+                                queryResult.addAll(getTupleFromFile(tableLeft.getIndexFileName().get(i)));
+                            }
+                        }
+                        result.settupleList(queryResult);
 
-//                if (tableLeft.getIndexFileName().size()!=0){
-//                    tableLeft.getIndexTuple();
-//                    tableLeft.getIndexFileName().clear();
-//                }
+                    }else {
+                        result.settupleList(SelectAndJoin(leftIterator, rightIterator, tableLeft, tableRight, pointer.getExpression()));
+
+                    }
+                } else {
+                    result.settupleList(new ArrayList<>());
+                }
+
                 tableLeft = null;
                 tableRight = null;
             } else if (operation.equals("GROUPBY")) {
@@ -454,6 +504,9 @@ public class processSelect {
                             queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
                         }
                     }
+                    if (queryResult.size()>10000){
+                        writeTupleIntoFile(tableLeft,queryResult);
+                    }
                     counterIndex++;
                     counter++;
                 }else {
@@ -550,21 +603,13 @@ public class processSelect {
 //                        queryResult = eva.Eval(queryResult);
                         queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
                     }
+                    if (queryResult.size()>10000){
+                        writeTupleIntoFile(tableLeft,queryResult);
+                    }
                 }
                 t.remove();
             }
-//            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-//                Tuple tleft = tableLeft.getTupleList().get(i);
-//                int key = tleft.getAttributes().get(colLeft.getColumnName()).toRawString().hashCode();
-//                List<Integer> rightCols = rightjoinHash.get(key);
-//                if (rightCols != null && rightCols.size() > 0) {
-//                    for (int j = 0; j < rightCols.size(); j++) {
-////                        evaluate eva = new evaluate(tleft, tableRight.getTupleList().get(rightCols.get(j)), exp);
-////                        queryResult = eva.Eval(queryResult);
-//                        queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
-//                    }
-//                }
-//            }
+
         }
         return queryResult;
     }
@@ -662,38 +707,6 @@ public class processSelect {
                 ((BinaryExpression) exp).getRightExpression() instanceof Column) {
             //右表存在，且左右join
             // A.C=B.C
-            if (tableRight.getIndexFileName().size()!=0||tableLeft.getIndexFileName().size()!=0){
-                queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
-                if (tableRight.getIndexFileName().size()!=0){
-                    for (String fileName:tableRight.getIndexFileName()){
-                        getTupleFromFile(fileName,tableRight);
-                        rightIterator = tableRight.getTupleList().iterator();
-                        if (tableLeft.getTupleList()!=null){
-                            leftIterator = tableLeft.getTupleList().iterator();
-                        }else {
-                            CSVParser parseLeft = new CSVParser(new FileReader(tableLeft.getFileDir()), formator);
-                            leftIterator = parseLeft.iterator();
-                            tableLeft.setOriginal(true);
-                        }
-                        queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
-                    }
-                }
-                if (tableLeft.getIndexFileName().size()!=0){
-                    for (String fileName:tableLeft.getIndexFileName()){
-                        getTupleFromFile(fileName,tableLeft);
-                        leftIterator = tableLeft.getTupleList().iterator();
-                        if (tableRight.getTupleList()!=null){
-                            rightIterator = tableRight.getTupleList().iterator();
-                        }else {
-                            CSVParser parseLeft = new CSVParser(new FileReader(tableRight.getFileDir()), formator);
-                            rightIterator = parseLeft.iterator();
-                            tableRight.setOriginal(true);
-                        }
-                        queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
-                    }
-                }
-
-            }else
               queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
         } else if (exp instanceof EqualsTo && exp.toString().equals("1 = 1")) {
             if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
@@ -784,28 +797,6 @@ public class processSelect {
         return t;
     }
 
-    private static List<Tuple> getTupleByIndex1(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
-        List<Tuple> queryResult = new ArrayList<>();
-        if (tupleIndex.size() != 0) {
-            Iterator<Integer> iterator = tupleIndex.iterator();
-            int counter = 1;
-            int index =  iterator.next();
-            while (CSViterator.hasNext()) {
-                if (counter == index) {
-                    queryResult.add(new Tuple(tableObject, (CSVRecord) CSViterator.next()));
-                    if (iterator.hasNext())
-                        index =  iterator.next();
-                    else
-                        break;
-                } else {
-                    CSViterator.next();
-                }
-                counter++;
-            }
-
-        }
-        return queryResult;
-    }
     private static List<Tuple> getTupleByIndex(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
@@ -823,20 +814,6 @@ public class processSelect {
                         index =  tupleIndex.get(counterIndex);
                     }else
                         break;
-                    if (queryResult.size()==35000){
-                        long start = System.currentTimeMillis();
-                        String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
-                        File file = new File(fileName);
-                        tableObject.setIndexFileName(fileName);
-                        file.createNewFile();
-                        FileOutputStream outputStream = new FileOutputStream(file, false);
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                        objectOutputStream.writeObject(queryResult);
-                        objectOutputStream.close();
-                        queryResult.clear();
-                        long end = System.currentTimeMillis();
-                        logger.info("write into file "+String.valueOf(end-start));
-                    }
                 }
                 counter=counter+1;
             }
@@ -845,31 +822,6 @@ public class processSelect {
         return queryResult;
     }
 
-    private static List<Tuple> getTupleByIndexBuffer(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
-        List<Tuple> queryResult = new ArrayList<>();
-        if (tupleIndex.size() != 0) {
-            Iterator<Integer> iterator = tupleIndex.iterator();
-            int counter = 1;
-            int index =  iterator.next();
-            FileInputStream inputStream = new FileInputStream(new File("indexes/" + tableObject.getTableName() + ".txt"));
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-            List<ColumnDefinition> col = tableObject.getColumnDefinitions();
-            while (inputStream.available() > 0) {
-                if (counter == index) {
-                    queryResult.add(((Tuple) objectInputStream.readObject()).Map(col));
-                    //Tuple t = ((Tuple) objectInputStream.readObject()).Map(col);
-                    if (iterator.hasNext())
-                        index =  iterator.next();
-                    else
-                        break;
-                }else
-                    objectInputStream.readObject();
-                counter++;
-            }
-        }
-        return queryResult;
-
-    }
 
     private static List<Integer> getIndexList(TableObject tableObject, Expression exp, boolean flag) throws Exception {
         List<Integer> tupleIndex = new ArrayList<>();
@@ -1021,23 +973,20 @@ public class processSelect {
         return tupleIndex;
     }
 
-    private static void getTupleFromFile(String fileName,TableObject tableObject) throws Exception{
+    private static List<Tuple> getTupleFromFile(String fileName) throws Exception{
         FileInputStream inputStream = new FileInputStream(new File(fileName));//创建文件字节输出流对象
         ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        tableObject.getTupleList().clear();
-        tableObject.settupleList((List<Tuple>)objectInputStream.readObject());
+        return (List<Tuple>)objectInputStream.readObject();
     }
-    private static void flush2disk(List<Tuple> queryResult, TableObject tableLeft) throws Exception {
+    private static void writeTupleIntoFile(TableObject tableObject,List<Tuple> queryResult)throws Exception{
         String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
         File file = new File(fileName);
-        tableLeft.setIndexFileName(fileName);
+        tableObject.setIndexFileName(fileName);
         file.createNewFile();
-
         FileOutputStream outputStream = new FileOutputStream(file, false);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
         objectOutputStream.writeObject(queryResult);
         objectOutputStream.close();
         queryResult.clear();
-
     }
 }

@@ -180,6 +180,7 @@ public class TableObject {
         return tupleList;
     }
 
+
     public void settupleList(List<Tuple> tupleList) {
         this.tupleList = tupleList;
     }
@@ -280,7 +281,7 @@ public class TableObject {
     }
 
     public void setIndexFileName(String indexFile) {
-        this.IndexFileName.add(indexFile);
+        this.IndexFileName.add(0,indexFile);
     }
 //    public void setIndexFileName(List<String> indexFile) {
 //        this.IndexFileName.addAll(indexFile);
