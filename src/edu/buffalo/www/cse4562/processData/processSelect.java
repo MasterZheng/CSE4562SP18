@@ -610,7 +610,7 @@ public class processSelect {
                             List<Integer> leftCols = leftjoinHash.get(key);
                             if (leftCols != null && leftCols.size() > 0) {
                                 for (int j = 0; j < leftCols.size(); j++) {
-                                    queryResult.add(tRight.joinTuple(tableRight.getTupleList().get(leftCols.get(j))));
+                                    queryResult.add(tRight.joinTuple(tableLeft.getTupleList().get(leftCols.get(j))));
                                 }
                             }
                             counterIndex = counterIndex + 1;
