@@ -853,6 +853,8 @@ public class processSelect {
     }
 
     private static List<Tuple> getTupleByIndex(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
+        logger.info("getTupleByIndex");
+        long start = System.currentTimeMillis();
         List<Tuple> queryResult = new ArrayList<>();
         if (tupleIndex.size() != 0) {
             int counter = 1;
@@ -874,6 +876,8 @@ public class processSelect {
             }
 
         }
+        long end = System.currentTimeMillis();
+        logger.info(String.valueOf(end-start));
         return queryResult;
     }
 
