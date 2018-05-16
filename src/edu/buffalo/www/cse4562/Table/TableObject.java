@@ -29,17 +29,15 @@ public class TableObject {
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
     private List<String> IndexFileName = new ArrayList<>();
     //when the table is a query result, it is necessary to record the table info about the column
-
-
+    private List<Integer> index = new ArrayList<>();
+    private boolean isLeft = true;
     private List<Tuple> tupleList;
     private HashMap<Integer, ArrayList<Tuple>> groupMap = new HashMap<>();
     private HashMap<Integer, ArrayList<Integer>> joinHash = null;
     private List<Integer> mapRelations = new ArrayList<>();
     private List<Column> primaryKey = new ArrayList<>();
     private List<Column> references = new ArrayList<>();
-    //    private HashMap<Column, HashMap<PrimitiveValue, ArrayList<Integer>>> index = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,arraylist>
-//    private HashMap<Column, HashMap<PrimitiveValue, Integer>> statistics = new HashMap<>();//Key 是列名，value是hashmap<primitiveValue,count>
-//    private int size = 0;
+
     static Logger logger = Logger.getLogger(TableObject.class.getName());
 
 
@@ -535,6 +533,23 @@ public class TableObject {
 //        }
 //        return index;
 //    }
+
+
+    public boolean isLeft() {
+        return isLeft;
+    }
+
+    public void setLeft(boolean left) {
+        isLeft = left;
+    }
+
+    public List<Integer> getIndex() {
+        return index;
+    }
+
+    public void setIndex(List<Integer> index) {
+        this.index = index;
+    }
 
     public void setIndexTXTDivide1(int part) throws Exception {
 
