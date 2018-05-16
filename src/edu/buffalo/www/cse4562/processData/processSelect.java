@@ -504,7 +504,7 @@ public class processSelect {
                             queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
                         }
                     }
-                    if (queryResult.size()>10000){
+                    if (tableLeft.getTupleList().size()>50000&&queryResult.size()>10000){
                         writeTupleIntoFile(tableLeft,queryResult);
                     }
                     counterIndex++;
@@ -603,8 +603,10 @@ public class processSelect {
 //                        queryResult = eva.Eval(queryResult);
                         queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
                     }
-                    if (queryResult.size()>10000){
-                        writeTupleIntoFile(tableLeft,queryResult);
+                    if (tableLeft.getTupleList().size()+tableLeft.getTupleList().size()>70000){
+                        if (queryResult.size()>10000){
+                            writeTupleIntoFile(tableLeft,queryResult);
+                        }
                     }
                 }
                 t.remove();
