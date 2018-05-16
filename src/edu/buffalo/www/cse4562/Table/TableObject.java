@@ -23,7 +23,7 @@ public class TableObject {
     private String fileDir;
     private boolean original = true;
     private List<Integer> currentTuple = null;
-    private HashMap<Integer, Integer> file2Current = new HashMap<>();
+//    private HashMap<Integer, Integer> file2Current = new HashMap<>();
     private List<ColumnDefinition> columnDefinitions;// record the column type String,Long,Double...
     //when the table is a query result, it is necessary to record the table info about the column
     private List<Column> columnInfo = new ArrayList<>();//record the columns and their table information.
@@ -147,13 +147,13 @@ public class TableObject {
         this.currentTuple = currentTuple;
     }
 
-    public HashMap<Integer, Integer> getFile2Current() {
-        return file2Current;
-    }
-
-    public void setFile2Current(HashMap<Integer, Integer> file2Current) {
-        this.file2Current = file2Current;
-    }
+//    public HashMap<Integer, Integer> getFile2Current() {
+//        return file2Current;
+//    }
+//
+//    public void setFile2Current(HashMap<Integer, Integer> file2Current) {
+//        this.file2Current = file2Current;
+//    }
 
     public void MapRelation(List<Column> usedColInfo) {
         //get the map relations between columninfo and usedColumnInfo
