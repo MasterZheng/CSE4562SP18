@@ -275,9 +275,9 @@ public class TableObject {
 //        }
 //    }
 //
-//    public List<String> getIndexFileName() {
-//        return IndexFileName;
-//    }
+    public List<String> getIndexFileName() {
+        return IndexFileName;
+    }
 
     public void setIndexFileName(String indexFile) {
         this.IndexFileName.add(indexFile);

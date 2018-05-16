@@ -25,6 +25,7 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class processSelect {
 
@@ -536,8 +537,9 @@ public class processSelect {
                 }
             }
 
-            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-                Tuple tleft = tableLeft.getTupleList().get(i);
+            Iterator<Tuple> t = tableLeft.getIterator();
+            while (t.hasNext()){
+                Tuple tleft = t.next();
                 int key = tleft.getAttributes().get(colLeft.getColumnName()).toRawString().hashCode();
                 List<Integer> rightCols = rightjoinHash.get(key);
                 if (rightCols != null && rightCols.size() > 0) {
@@ -547,7 +549,20 @@ public class processSelect {
                         queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
                     }
                 }
+                t.remove();
             }
+//            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
+//                Tuple tleft = tableLeft.getTupleList().get(i);
+//                int key = tleft.getAttributes().get(colLeft.getColumnName()).toRawString().hashCode();
+//                List<Integer> rightCols = rightjoinHash.get(key);
+//                if (rightCols != null && rightCols.size() > 0) {
+//                    for (int j = 0; j < rightCols.size(); j++) {
+////                        evaluate eva = new evaluate(tleft, tableRight.getTupleList().get(rightCols.get(j)), exp);
+////                        queryResult = eva.Eval(queryResult);
+//                        queryResult.add(tleft.joinTuple(tableRight.getTupleList().get(rightCols.get(j))));
+//                    }
+//                }
+//            }
         }
         return queryResult;
     }
@@ -645,6 +660,26 @@ public class processSelect {
                 ((BinaryExpression) exp).getRightExpression() instanceof Column) {
             //右表存在，且左右join
             // A.C=B.C
+            if (tableRight.getIndexFileName().size()!=0||tableLeft.getIndexFileName().size()!=0){
+                queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
+                if (tableRight.getIndexFileName().size()!=0){
+                    for (String fileName:tableRight.getIndexFileName()){
+                        getTupleFromFile(fileName,tableRight);
+                        leftIterator = tableLeft.getTupleList().iterator();
+                        rightIterator = tableRight.getTupleList().iterator();
+                        queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
+                    }
+                }
+                if (tableLeft.getIndexFileName().size()!=0){
+                    for (String fileName:tableLeft.getIndexFileName()){
+                        getTupleFromFile(fileName,tableLeft);
+                        leftIterator = tableLeft.getTupleList().iterator();
+                        rightIterator = tableRight.getTupleList().iterator();
+                        queryResult.addAll(hashJoin(leftIterator,rightIterator,tableLeft,tableRight,exp));
+                    }
+                }
+
+            }
             queryResult = hashJoin(leftIterator, rightIterator, tableLeft, tableRight, exp);
         } else if (exp instanceof EqualsTo && exp.toString().equals("1 = 1")) {
             if (tableRight.getTupleList() != null && tableRight.getTupleList().size() != 0) {
@@ -774,6 +809,17 @@ public class processSelect {
                         index =  tupleIndex.get(counterIndex);
                     }else
                         break;
+                    if (queryResult.size()==45000){
+                        String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
+                        File file = new File(fileName);
+                        tableObject.setIndexFileName(fileName);
+                        file.createNewFile();
+                        FileOutputStream outputStream = new FileOutputStream(file, false);
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                        objectOutputStream.writeObject(queryResult);
+                        objectOutputStream.close();
+                        queryResult.clear();
+                    }
                 }
                 counter=counter+1;
             }
@@ -958,6 +1004,12 @@ public class processSelect {
         return tupleIndex;
     }
 
+    private static void getTupleFromFile(String fileName,TableObject tableObject) throws Exception{
+        FileInputStream inputStream = new FileInputStream(new File(fileName));//创建文件字节输出流对象
+        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+        tableObject.getTupleList().clear();
+        tableObject.settupleList((List<Tuple>)objectInputStream.readObject());
+    }
     private static void flush2disk(List<Tuple> queryResult, TableObject tableLeft) throws Exception {
         String fileName = "indexes/" + System.currentTimeMillis() + ".txt";
         File file = new File(fileName);
