@@ -1,5 +1,6 @@
 package edu.buffalo.www.cse4562.processData;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import edu.buffalo.www.cse4562.Evaluate.evaluate;
 import edu.buffalo.www.cse4562.RA.*;
 import edu.buffalo.www.cse4562.Table.TableObject;
@@ -469,54 +470,68 @@ public class processSelect {
         } else if (!tableLeft.isOriginal() && tableRight.isOriginal()) {
             //左边是查询结果，右边是原始表
 
-
-            HashMap<String, ArrayList<Integer>> leftHash = new HashMap<>();
-            for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
-                String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
-                if (leftHash.containsKey(val)) {
-                    leftHash.get(val).add(i);
-                } else {
-                    ArrayList<Integer> list = new ArrayList<>();
-                    list.add(i);
-                    leftHash.put(val, list);
-                }
-            }
-            HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
-            ArrayList<Integer> indexInright = new ArrayList<>();
-
-            for (String val : leftHash.keySet()) {
-                List a = rightCol.get(val);
-                if (a != null)
-                    indexInright.addAll(a);
-            }
-            rightCol.clear();
-            indexInright.sort(c);
-
-            int counterIndex = 0;
-            int counter = 1;
-            while (rightIterator.hasNext()) {
-                if (counterIndex < indexInright.size() && counter == indexInright.get(counterIndex)) {
-                    Tuple t = getTuple(rightIterator, tableRight);
-                    List<Integer> leftIndex = leftHash.get(t.getAttributes().get(colRight.getColumnName()).toRawString());
-                    if (leftIndex != null) {
-                        for (Integer i : leftIndex) {
-                            queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
-                        }
+            if (tableLeft.getTupleList().size()<60000){
+                HashMap<String, ArrayList<Integer>> leftHash = new HashMap<>();
+                for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
+                    String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
+                    if (leftHash.containsKey(val)) {
+                        leftHash.get(val).add(i);
+                    } else {
+                        ArrayList<Integer> list = new ArrayList<>();
+                        list.add(i);
+                        leftHash.put(val, list);
                     }
-//                    if (tableLeft.getTupleList().size()>40000||queryResult.size()>40000){
-//                        writeTupleIntoFile(tableLeft,queryResult);
-//                    }
-                    counterIndex++;
-                    counter++;
-                } else {
-                    rightIterator.next();
-                    counter++;
+                }
+                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+                ArrayList<Integer> indexInright = new ArrayList<>();
+
+                for (String val : leftHash.keySet()) {
+                    List a = rightCol.get(val);
+                    if (a != null)
+                        indexInright.addAll(a);
+                }
+                rightCol.clear();
+                indexInright.sort(c);
+
+                int counterIndex = 0;
+                int counter = 1;
+                while (rightIterator.hasNext()) {
+                    if (counterIndex < indexInright.size() && counter == indexInright.get(counterIndex)) {
+                        Tuple t = getTuple(rightIterator, tableRight);
+                        List<Integer> leftIndex = leftHash.get(t.getAttributes().get(colRight.getColumnName()).toRawString());
+                        if (leftIndex != null) {
+                            for (Integer i : leftIndex) {
+                                queryResult.add(t.joinTuple(tableLeft.getTupleList().get(i)));
+                            }
+                        }
+                        counterIndex++;
+                        counter++;
+                    } else {
+                        rightIterator.next();
+                        counter++;
+                    }
+                }
+            }else {
+                tableLeft.getTupleList().sort(c);
+                Iterator<Tuple> tleft = tableLeft.getIterator();
+                HashMap<String, List<Integer>> rightCol = tableRight.getIndex(colRight.getColumnName());
+                PrimitiveValue currentVal = null;
+                List<Tuple> tupleRightBlock =new ArrayList<>();
+                while (tleft.hasNext()){
+                    Tuple t = tleft.next();
+                    if (currentVal!= t.getAttributes().get(colLeft.getColumnName())){
+                        currentVal = t.getAttributes().get(colLeft.getColumnName());
+                        tupleRightBlock = getTupleByIndex(tableRight,rightCol.get(currentVal.toRawString()),rightIterator);
+                    }
+                    for (int i = 0;i<tupleRightBlock.size();i++){
+                        queryResult.add(t.joinTuple(tupleRightBlock.get(i)));
+                    }
+                    tleft.remove();
                 }
             }
+
             tableRight.setOriginal(false);
-//            if (tableLeft.getIndexFileName().size()>0){
-//                writeTupleIntoFile(tableLeft,tableLeft.getTupleList());
-//            }
+
         } else if (tableLeft.isOriginal() && !tableRight.isOriginal()) {
             //左边是原始表，右边是查询结果
 
@@ -581,16 +596,16 @@ public class processSelect {
 //            }
             //将exp的左右列与join的左右表匹配
 
-            HashMap<Integer, ArrayList<Integer>> leftjoinHash = new HashMap<>();
+            HashMap<String, ArrayList<Integer>> leftjoinHash = new HashMap<>();
             for (int i = 0; i < tableLeft.getTupleList().size(); i++) {
                 String val = tableLeft.getTupleList().get(i).getAttributes().get(colLeft.getColumnName()).toRawString();
-                int hascode = val.hashCode();
-                if (leftjoinHash.containsKey(hascode)) {
-                    leftjoinHash.get(hascode).add(i);
+                //int hascode = val.hashCode();
+                if (leftjoinHash.containsKey(val)) {
+                    leftjoinHash.get(val).add(i);
                 } else {
                     ArrayList<Integer> list = new ArrayList<>();
                     list.add(i);
-                    leftjoinHash.put(hascode, list);
+                    leftjoinHash.put(val, list);
                 }
             }
 
@@ -606,8 +621,9 @@ public class processSelect {
                             CSViterator.next();
                         } else {
                             Tuple tRight = new Tuple(tableRight, (CSVRecord) CSViterator.next());
-                            int key = tRight.getAttributes().get(colRight.getColumnName()).toRawString().hashCode();
-                            List<Integer> leftCols = leftjoinHash.get(key);
+                            //int key = tRight.getAttributes().get(colRight.getColumnName()).toRawString().hashCode();
+                            String val = tRight.getAttributes().get(colRight.getColumnName()).toRawString();
+                            List<Integer> leftCols = leftjoinHash.get(val);
                             if (leftCols != null && leftCols.size() > 0) {
                                 for (int j = 0; j < leftCols.size(); j++) {
                                     queryResult.add(tRight.joinTuple(tableLeft.getTupleList().get(leftCols.get(j))));
@@ -629,8 +645,9 @@ public class processSelect {
                 Iterator<Tuple> t = tableRight.getIterator();
                 while (t.hasNext()) {
                     Tuple tRight = t.next();
-                    int key = tRight.getAttributes().get(colRight.getColumnName()).toRawString().hashCode();
-                    List<Integer> leftCols = leftjoinHash.get(key);
+                    //int key = tRight.getAttributes().get(colRight.getColumnName()).toRawString().hashCode();
+                    String val = tRight.getAttributes().get(colRight.getColumnName()).toRawString();
+                    List<Integer> leftCols = leftjoinHash.get(val);
                     if (leftCols != null && leftCols.size() > 0) {
                         for (int j = 0; j < leftCols.size(); j++) {
 //                        evaluate eva = new evaluate(tleft, tableRight.getTupleList().get(rightCols.get(j)), exp);
@@ -832,7 +849,8 @@ public class processSelect {
     }
 
     private static List<Tuple> getTupleByIndex(TableObject tableObject, List<Integer> tupleIndex, Iterator CSViterator) throws Exception {
-        List<Tuple> queryResult = new ArrayList<>();
+        CSViterator = (new CSVParser(new FileReader(tableObject.getFileDir()),formator)).iterator();
+        List<Tuple> queryResult = new LinkedList<>();
         if (tupleIndex.size() != 0) {
             int counter = 1;
             int counterIndex = 0;
